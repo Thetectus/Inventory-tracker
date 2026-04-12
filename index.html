@@ -358,8 +358,8 @@
 const SUPABASE_URL = 'https://cqpsofmaaktsjtlkariw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxcHNvZm1hYWt0c2p0bGthcml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5ODM0MTIsImV4cCI6MjA5MTU1OTQxMn0.O5t-sDLAgvmy-Z9P_FVV2AS9ciewG33ZQy0HDbOA7yo';
 
-
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 
 const LOCATIONS = {
   "Angola":["Main Warehouse - Luanda","Offshore Workshop A","Workshop Luanda"],
@@ -378,6 +378,7 @@ let inventory = [];
 let filteredItems = [];
 let editingId = null;
 let pendingUpload = null;
+let sortState = { col: null, dir: 1 };
 
 // ═══════════════════════════════════════════════════
 // AUTH
@@ -487,7 +488,7 @@ function canEditCountry(country) {
 // FILTERS
 // ═══════════════════════════════════════════════════
 function populateFilters() {
-  const countries = Object.keys(LOCATIONS);
+  const countries = Object.keys(LOCATIONS).sort();
   ['f-country','c-country','h-country','a-country','t-country'].forEach(id => {
     const el = document.getElementById(id); if (!el) return;
     const first = el.options[0].outerHTML;
@@ -547,6 +548,12 @@ function clearFilters() {
 // ═══════════════════════════════════════════════════
 // RENDER TABLE
 // ═══════════════════════════════════════════════════
+function sortBy(col) {
+  if (sortState.col === col) { sortState.dir *= -1; }
+  else { sortState.col = col; sortState.dir = col === 'qty' ? -1 : 1; }
+  renderTable();
+}
+
 function renderTable() {
   const body = document.getElementById('inv-body');
   const isAdmin = currentProfile?.role === 'admin';
@@ -554,23 +561,47 @@ function renderTable() {
   const isViewer = currentProfile?.role === 'viewer';
   const showCosts = !isViewer;
 
+  const cols = [
+    { key: 'serial_number', label: 'Serial #' },
+    { key: 'name',          label: 'Name' },
+    { key: 'type',          label: 'Type' },
+    { key: 'country',       label: 'Country' },
+    { key: 'location',      label: 'Location' },
+    { key: 'qty',           label: 'Qty' },
+    ...(showCosts ? [{ key: 'unit_cost', label: 'Unit cost' }, { key: 'total_value', label: 'Total value' }] : []),
+    { key: 'stock',         label: 'Stock', nosort: true },
+    { key: 'actions',       label: 'Actions', nosort: true },
+  ];
+
+  const thStyle = 'cursor:pointer;user-select:none;white-space:nowrap;';
+  const arrow = k => sortState.col === k ? (sortState.dir === 1 ? ' ▲' : ' ▼') : '';
   const thead = document.querySelector('#pane-inventory table thead tr');
   if (thead) {
-    thead.innerHTML = `
-      <th>Serial #</th><th>Name</th><th>Type</th><th>Country</th><th>Location</th>
-      <th>Qty</th>
-      ${showCosts ? '<th>Unit cost</th><th>Total value</th>' : ''}
-      <th>Stock</th><th>Actions</th>`;
+    thead.innerHTML = cols.map(col =>
+      col.nosort
+        ? `<th>${col.label}</th>`
+        : `<th style="${thStyle}" onclick="sortBy('${col.key}')">${col.label}<span style="font-size:10px;color:var(--text3)">${arrow(col.key)}</span></th>`
+    ).join('');
   }
 
   if (!filteredItems.length) {
-    const cols = showCosts ? 10 : 8;
-    body.innerHTML = `<tr><td colspan="${cols}" style="text-align:center;color:var(--text3);padding:20px">No items match the filters.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="${cols.length}" style="text-align:center;color:var(--text3);padding:20px">No items match the filters.</td></tr>`;
     document.getElementById('filtered-total').textContent = ''; return;
   }
 
+  let sorted = [...filteredItems];
+  if (sortState.col && sortState.col !== 'total_value' && sortState.col !== 'stock') {
+    sorted.sort((a, b) => {
+      const av = sortState.col === 'qty' || sortState.col === 'unit_cost' ? (a[sortState.col] ?? 0) : String(a[sortState.col] ?? '').toLowerCase();
+      const bv = sortState.col === 'qty' || sortState.col === 'unit_cost' ? (b[sortState.col] ?? 0) : String(b[sortState.col] ?? '').toLowerCase();
+      return av < bv ? -sortState.dir : av > bv ? sortState.dir : 0;
+    });
+  } else if (sortState.col === 'total_value') {
+    sorted.sort((a, b) => sortState.dir * ((b.qty * b.unit_cost) - (a.qty * a.unit_cost)));
+  }
+
   let total = 0;
-  body.innerHTML = filteredItems.map(it => {
+  body.innerHTML = sorted.map(it => {
     const tv = it.qty * it.unit_cost; total += tv;
     const low = it.qty < it.min_qty_alert;
     const canEdit = canEditCountry(it.country);
@@ -598,11 +629,9 @@ function renderTable() {
   }).join('');
 
   const totalEl = document.getElementById('filtered-total');
-  if (showCosts) {
-    totalEl.innerHTML = `Filtered total: <strong>$${total.toLocaleString()}</strong> across <strong>${filteredItems.length}</strong> item(s)`;
-  } else {
-    totalEl.innerHTML = `Showing <strong>${filteredItems.length}</strong> item(s)`;
-  }
+  totalEl.innerHTML = showCosts
+    ? `Filtered total: <strong>$${total.toLocaleString()}</strong> across <strong>${filteredItems.length}</strong> item(s)`
+    : `Showing <strong>${filteredItems.length}</strong> item(s)`;
 }
 
 function updateKPIs() {
@@ -750,26 +779,92 @@ async function submitTransfer() {
 // ═══════════════════════════════════════════════════
 function exportTemplate(mode) {
   const wb = XLSX.utils.book_new();
+  const countries = Object.keys(LOCATIONS).sort();
+  const allLocs = Object.values(LOCATIONS).flat();
+  const types = ['Spare part', 'Tool'];
+
   let headers, data, sheetName;
+  let lockedCols = [];   // 0-based column indexes to protect
+  let dropdownCols = []; // { col, list } for data validation dropdowns
+
   if (mode === 'update') {
     sheetName = 'Inventory Update';
     headers = ['serial_number','item_name','type','country','location','current_qty_in_system','new_qty_on_hand','qty_consumed','unit_cost','min_qty_alert','notes'];
     data = inventory.map(it => [it.serial_number, it.name, it.type, it.country, it.location, it.qty, '', '', '', '', '']);
+    // Lock: serial(0), name(1), type(2), country(3), location(4), system_qty(5), unit_cost(8), min_qty(9)
+    lockedCols = [0,1,2,3,4,5,8,9];
+    // Editable cols only: new_qty(6), consumed(7), notes(10)
   } else {
     sheetName = 'New Items';
     headers = ['serial_number','item_name','type','country','location','qty','unit_cost','min_qty_alert','notes'];
-    data = [['SN-XXXX-XXX','Example item','Spare part','Angola','Main Warehouse - Luanda',1,0,2,'']];
+    data = [['SN-XXXX-XXX','Example item name','Spare part','Angola','Main Warehouse - Luanda',1,0,2,'Optional notes']];
+    // For new items: lock nothing, but add dropdowns for type(2), country(3), location(4)
+    dropdownCols = [
+      { col: 2, list: types },
+      { col: 3, list: countries },
+      { col: 4, list: allLocs },
+    ];
   }
+
   const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
-  ws['!cols'] = headers.map(() => ({ wch: 22 }));
-  const info = XLSX.utils.aoa_to_sheet([
-    ['INSTRUCTIONS'],[''],
-    ['Fill new_qty_on_hand with the physical count on site.'],
-    ['Fill qty_consumed if items were used since last update.'],
-    ['Do NOT change column headers or serial numbers.'],
-    ['Valid types: Spare part, Tool'],
-    ['Valid countries: ' + Object.keys(LOCATIONS).join(', ')],
-  ]);
+  ws['!cols'] = headers.map(() => ({ wch: 24 }));
+
+  // Style header row bold + background
+  const headerStyle = { font: { bold: true }, fill: { fgColor: { rgb: 'D9E1F2' } }, alignment: { horizontal: 'center' } };
+  headers.forEach((_, ci) => {
+    const addr = XLSX.utils.encode_cell({ r: 0, c: ci });
+    if (ws[addr]) ws[addr].s = headerStyle;
+  });
+
+  // Style locked cells in data rows grey + lock hint
+  const lockedStyle = { fill: { fgColor: { rgb: 'F2F2F2' } }, font: { color: { rgb: '888888' } }, protection: { locked: true } };
+  const editableStyle = { fill: { fgColor: { rgb: 'FFFDE7' } }, protection: { locked: false } };
+
+  if (mode === 'update') {
+    data.forEach((_, ri) => {
+      headers.forEach((_, ci) => {
+        const addr = XLSX.utils.encode_cell({ r: ri + 1, c: ci });
+        if (ws[addr]) ws[addr].s = lockedCols.includes(ci) ? lockedStyle : editableStyle;
+      });
+    });
+    // Sheet protection: locked cells cannot be edited; editable cells (yellow) still free
+    ws['!protect'] = { password: '', sheet: true, selectLockedCells: true, selectUnlockedCells: true, formatCells: false, formatColumns: false, formatRows: false, insertRows: false, deleteRows: false };
+  }
+
+  // Data validation dropdowns (for new items template)
+  if (dropdownCols.length) {
+    ws['!dataValidation'] = dropdownCols.map(({ col, list }) => ({
+      type: 'list',
+      sqref: XLSX.utils.encode_range({ s: { r: 1, c: col }, e: { r: 200, c: col } }),
+      formula1: '"' + list.join(',') + '"',
+      showDropDown: false,
+      showErrorMessage: true,
+      errorTitle: 'Invalid value',
+      error: 'Please select a value from the dropdown list.',
+    }));
+  }
+
+  const infoData = [
+    ['INSTRUCTIONS — Read before filling'],
+    [''],
+    mode === 'update'
+      ? ['GREY cells are locked — do not attempt to edit them.']
+      : ['Fill every row completely. Use the dropdowns for Type, Country and Location.'],
+    mode === 'update'
+      ? ['YELLOW cells are editable — fill new_qty_on_hand and/or qty_consumed.']
+      : ['Serial number must be unique — check existing inventory before adding.'],
+    [''],
+    ['Valid types: ' + types.join(', ')],
+    ['Valid countries: ' + countries.join(', ')],
+    [''],
+    ['Do NOT rename or reorder columns.'],
+    ['Save as .xlsx before uploading.'],
+  ];
+  const info = XLSX.utils.aoa_to_sheet(infoData.filter(Boolean));
+  info['!cols'] = [{ wch: 60 }];
+  // Bold the first row of instructions
+  if (info['A1']) info['A1'].s = { font: { bold: true, sz: 13 } };
+
   XLSX.utils.book_append_sheet(wb, info, 'Instructions');
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
   XLSX.writeFile(wb, mode === 'update' ? 'inventory_update_template.xlsx' : 'new_items_template.xlsx');
