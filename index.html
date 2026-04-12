@@ -358,6 +358,7 @@
 const SUPABASE_URL = 'https://cqpsofmaaktsjtlkariw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxcHNvZm1hYWt0c2p0bGthcml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5ODM0MTIsImV4cCI6MjA5MTU1OTQxMn0.O5t-sDLAgvmy-Z9P_FVV2AS9ciewG33ZQy0HDbOA7yo';
 
+
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const LOCATIONS = {
@@ -465,16 +466,21 @@ async function loadApp(user) {
 // DATA LOADING
 // ═══════════════════════════════════════════════════
 async function loadInventory() {
-  let query = sb.from('inventory').select('*').order('name');
-  if (currentProfile?.role === 'supervisor' && currentProfile?.assigned_countries?.length) {
-    query = query.in('country', currentProfile.assigned_countries);
-  }
-  const { data, error } = await query;
+  const { data, error } = await sb.from('inventory').select('*').order('name');
   if (error) { console.error(error); return; }
   inventory = data || [];
   filteredItems = [...inventory];
   renderTable();
   updateKPIs();
+}
+
+function canEditCountry(country) {
+  if (currentProfile?.role === 'admin') return true;
+  if (currentProfile?.role === 'supervisor') {
+    const assigned = currentProfile?.assigned_countries;
+    return !assigned?.length || assigned.includes(country);
+  }
+  return false;
 }
 
 // ═══════════════════════════════════════════════════
@@ -543,49 +549,84 @@ function clearFilters() {
 // ═══════════════════════════════════════════════════
 function renderTable() {
   const body = document.getElementById('inv-body');
-  if (!filteredItems.length) {
-    body.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:20px">No items match the filters.</td></tr>';
-    document.getElementById('filtered-total').textContent = ''; return;
-  }
-  let total = 0;
   const isAdmin = currentProfile?.role === 'admin';
   const isSupervisor = currentProfile?.role === 'supervisor';
+  const isViewer = currentProfile?.role === 'viewer';
+  const showCosts = !isViewer;
+
+  const thead = document.querySelector('#pane-inventory table thead tr');
+  if (thead) {
+    thead.innerHTML = `
+      <th>Serial #</th><th>Name</th><th>Type</th><th>Country</th><th>Location</th>
+      <th>Qty</th>
+      ${showCosts ? '<th>Unit cost</th><th>Total value</th>' : ''}
+      <th>Stock</th><th>Actions</th>`;
+  }
+
+  if (!filteredItems.length) {
+    const cols = showCosts ? 10 : 8;
+    body.innerHTML = `<tr><td colspan="${cols}" style="text-align:center;color:var(--text3);padding:20px">No items match the filters.</td></tr>`;
+    document.getElementById('filtered-total').textContent = ''; return;
+  }
+
+  let total = 0;
   body.innerHTML = filteredItems.map(it => {
     const tv = it.qty * it.unit_cost; total += tv;
     const low = it.qty < it.min_qty_alert;
-    const actions = isAdmin
-      ? `<button class="btn btn-sm" onclick="openItemModal(${it.id})" style="margin-right:3px">Edit</button><button class="btn btn-sm" onclick="openTransfer('${it.serial_number}')">Transfer</button>`
-      : isSupervisor
-        ? `<button class="btn btn-sm" onclick="openTransfer('${it.serial_number}')">Transfer</button>`
-        : '—';
-    return `<tr>
+    const canEdit = canEditCountry(it.country);
+    let actions;
+    if (isAdmin) {
+      actions = `<button class="btn btn-sm" onclick="openItemModal(${it.id})" style="margin-right:3px">Edit</button><button class="btn btn-sm" onclick="openTransfer('${it.serial_number}')">Transfer</button>`;
+    } else if (isSupervisor && canEdit) {
+      actions = `<button class="btn btn-sm" onclick="openTransfer('${it.serial_number}')">Transfer</button>`;
+    } else if (isSupervisor && !canEdit) {
+      actions = `<span style="font-size:11px;color:var(--text3)">View only</span>`;
+    } else {
+      actions = '—';
+    }
+    return `<tr ${!canEdit && isSupervisor ? 'style="opacity:0.6"' : ''}>
       <td style="font-family:monospace;font-size:11px">${it.serial_number}</td>
       <td>${it.name}</td>
       <td><span class="badge ${it.type === 'Tool' ? 'badge-tool' : 'badge-part'}">${it.type}</span></td>
       <td style="font-size:12px">${it.country}</td>
       <td style="font-size:12px">${it.location}</td>
       <td style="font-weight:500">${it.qty}</td>
-      <td>$${it.unit_cost.toLocaleString()}</td>
-      <td style="font-weight:500">$${tv.toLocaleString()}</td>
+      ${showCosts ? `<td>$${it.unit_cost.toLocaleString()}</td><td style="font-weight:500">$${tv.toLocaleString()}</td>` : ''}
       <td><span class="badge ${low ? 'badge-low' : 'badge-ok'}">${low ? 'Low' : 'OK'}</span></td>
       <td style="white-space:nowrap">${actions}</td>
     </tr>`;
   }).join('');
-  document.getElementById('filtered-total').innerHTML =
-    `Filtered total: <strong>$${total.toLocaleString()}</strong> across <strong>${filteredItems.length}</strong> item(s)`;
+
+  const totalEl = document.getElementById('filtered-total');
+  if (showCosts) {
+    totalEl.innerHTML = `Filtered total: <strong>$${total.toLocaleString()}</strong> across <strong>${filteredItems.length}</strong> item(s)`;
+  } else {
+    totalEl.innerHTML = `Showing <strong>${filteredItems.length}</strong> item(s)`;
+  }
 }
 
 function updateKPIs() {
-  const totalVal = inventory.reduce((s, i) => s + i.qty * i.unit_cost, 0);
-  const filtVal = filteredItems.reduce((s, i) => s + i.qty * i.unit_cost, 0);
+  const isViewer = currentProfile?.role === 'viewer';
   const lowCount = inventory.filter(i => i.qty < i.min_qty_alert).length;
   const countries = [...new Set(inventory.map(i => i.country))].length;
-  document.getElementById('kpis').innerHTML = `
-    <div class="kpi"><div class="kpi-label">Total inventory value</div><div class="kpi-value">$${totalVal.toLocaleString()}</div><div class="kpi-sub">Across ${countries} countries</div></div>
-    <div class="kpi"><div class="kpi-label">Filtered view value</div><div class="kpi-value ${filtVal < totalVal ? 'amber' : ''}">$${filtVal.toLocaleString()}</div><div class="kpi-sub">${filteredItems.length} of ${inventory.length} items</div></div>
-    <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${lowCount > 0 ? 'amber' : 'green'}">${lowCount}</div><div class="kpi-sub">${lowCount > 0 ? 'Items below minimum' : 'All sufficient'}</div></div>
-    <div class="kpi"><div class="kpi-label">Total items tracked</div><div class="kpi-value">${inventory.length}</div><div class="kpi-sub">Active locations: ${[...new Set(inventory.map(i => i.location))].length}</div></div>
-  `;
+  const locations = [...new Set(inventory.map(i => i.location))].length;
+
+  if (isViewer) {
+    document.getElementById('kpis').innerHTML = `
+      <div class="kpi"><div class="kpi-label">Total items tracked</div><div class="kpi-value">${inventory.length}</div><div class="kpi-sub">Across ${countries} countries</div></div>
+      <div class="kpi"><div class="kpi-label">Filtered items</div><div class="kpi-value">${filteredItems.length}</div><div class="kpi-sub">Active locations: ${locations}</div></div>
+      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${lowCount > 0 ? 'amber' : 'green'}">${lowCount}</div><div class="kpi-sub">${lowCount > 0 ? 'Items below minimum' : 'All sufficient'}</div></div>
+    `;
+  } else {
+    const totalVal = inventory.reduce((s, i) => s + i.qty * i.unit_cost, 0);
+    const filtVal = filteredItems.reduce((s, i) => s + i.qty * i.unit_cost, 0);
+    document.getElementById('kpis').innerHTML = `
+      <div class="kpi"><div class="kpi-label">Total inventory value</div><div class="kpi-value">$${totalVal.toLocaleString()}</div><div class="kpi-sub">Across ${countries} countries</div></div>
+      <div class="kpi"><div class="kpi-label">Filtered view value</div><div class="kpi-value ${filtVal < totalVal ? 'amber' : ''}">$${filtVal.toLocaleString()}</div><div class="kpi-sub">${filteredItems.length} of ${inventory.length} items</div></div>
+      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${lowCount > 0 ? 'amber' : 'green'}">${lowCount}</div><div class="kpi-sub">${lowCount > 0 ? 'Items below minimum' : 'All sufficient'}</div></div>
+      <div class="kpi"><div class="kpi-label">Total items tracked</div><div class="kpi-value">${inventory.length}</div><div class="kpi-sub">Active locations: ${locations}</div></div>
+    `;
+  }
 }
 
 // ═══════════════════════════════════════════════════
@@ -763,16 +804,17 @@ function renderPreview(rows, mode) {
   const tbody = document.getElementById('preview-tbody');
   let warnings = 0, changes = 0;
   if (mode === 'update') {
-    thead.innerHTML = '<tr><th>Serial #</th><th>Name</th><th>System qty</th><th>New qty</th><th>Consumed</th><th>Status</th></tr>';
+    thead.innerHTML = '<tr><th>Serial #</th><th>Name</th><th>Country</th><th>System qty</th><th>New qty</th><th>Consumed</th><th>Status</th></tr>';
     tbody.innerHTML = rows.map(r => {
       const item = inventory.find(i => i.serial_number === String(r.serial_number || '').trim());
-      if (!item) { warnings++; return `<tr><td colspan="6"><span class="badge badge-low">Serial ${r.serial_number} not found — skipped</span></td></tr>`; }
+      if (!item) { warnings++; return `<tr><td colspan="7"><span class="badge badge-low">Serial ${r.serial_number} not found — skipped</span></td></tr>`; }
+      if (!canEditCountry(item.country)) { warnings++; return `<tr><td colspan="7"><span class="badge badge-low">${item.serial_number} — not in your assigned countries, skipped</span></td></tr>`; }
       const newQty = r.new_qty_on_hand !== '' ? parseInt(r.new_qty_on_hand) : null;
       const consumed = r.qty_consumed !== '' ? parseInt(r.qty_consumed) : 0;
       if (newQty !== null || consumed > 0) changes++;
       return `<tr>
         <td style="font-family:monospace;font-size:11px">${item.serial_number}</td>
-        <td>${item.name}</td><td>${item.qty}</td>
+        <td>${item.name}</td><td style="font-size:12px">${item.country}</td><td>${item.qty}</td>
         <td>${newQty !== null ? newQty : '—'}</td>
         <td style="color:${consumed > 0 ? 'var(--red-text)' : 'var(--text3)'}">${consumed || '—'}</td>
         <td><span class="badge badge-ok">Ready</span></td>
@@ -783,6 +825,7 @@ function renderPreview(rows, mode) {
     tbody.innerHTML = rows.map(r => {
       const dup = inventory.find(i => i.serial_number === String(r.serial_number || '').trim());
       if (dup) { warnings++; return `<tr><td colspan="6"><span class="badge badge-low">Duplicate ${r.serial_number} — skipped</span></td></tr>`; }
+      if (!canEditCountry(r.country)) { warnings++; return `<tr><td colspan="6"><span class="badge badge-low">${r.serial_number} — country not assigned to you, skipped</span></td></tr>`; }
       changes++;
       return `<tr><td style="font-family:monospace;font-size:11px">${r.serial_number}</td><td>${r.item_name}</td><td>${r.type}</td><td>${r.country}</td><td>${r.qty}</td><td><span class="badge badge-ok">Will add</span></td></tr>`;
     }).join('');
@@ -804,6 +847,7 @@ async function confirmUpload() {
     for (const r of rows) {
       const item = inventory.find(i => i.serial_number === String(r.serial_number || '').trim());
       if (!item) continue;
+      if (!canEditCountry(item.country)) continue;
       const newQty = r.new_qty_on_hand !== '' ? parseInt(r.new_qty_on_hand) : null;
       const consumed = r.qty_consumed !== '' ? parseInt(r.qty_consumed) : 0;
       if (consumed > 0) {
@@ -818,6 +862,7 @@ async function confirmUpload() {
   } else {
     for (const r of rows) {
       if (inventory.find(i => i.serial_number === String(r.serial_number || '').trim())) continue;
+      if (!canEditCountry(r.country)) continue;
       await sb.from('inventory').insert({ serial_number: String(r.serial_number), name: r.item_name, type: r.type, country: r.country, location: r.location, qty: parseInt(r.qty) || 0, unit_cost: parseFloat(r.unit_cost) || 0, min_qty_alert: parseInt(r.min_qty_alert) || 2 });
       await sb.from('movements').insert({ action: 'Bulk upload', serial_number: String(r.serial_number), item_name: r.item_name, qty: parseInt(r.qty) || 0, from_location: null, to_location: r.location, country: r.country, notes: r.notes || 'Added via bulk upload', performed_by: currentUser.id });
     }
@@ -832,25 +877,35 @@ async function confirmUpload() {
 // CONSUMPTION
 // ═══════════════════════════════════════════════════
 async function renderConsumption() {
+  const isViewer = currentProfile?.role === 'viewer';
   const country = document.getElementById('c-country').value;
   let query = sb.from('consumption_log').select('*').order('created_at', { ascending: false });
   if (country) query = query.eq('country', country);
   const { data } = await query;
   const log = data || [];
   const totalVal = log.reduce((s, c) => s + c.qty * c.unit_cost, 0);
-  document.getElementById('consumption-kpis').innerHTML = `
+
+  document.getElementById('consumption-kpis').innerHTML = isViewer ? `
+    <div class="kpi"><div class="kpi-label">Total consumed units</div><div class="kpi-value">${log.reduce((s,c)=>s+c.qty,0)}</div><div class="kpi-sub">${log.length} event(s)</div></div>
+  ` : `
     <div class="kpi"><div class="kpi-label">Total consumed value</div><div class="kpi-value red">$${totalVal.toLocaleString()}</div><div class="kpi-sub">${log.length} event(s)</div></div>
     <div class="kpi"><div class="kpi-label">Total consumed units</div><div class="kpi-value">${log.reduce((s, c) => s + c.qty, 0)}</div><div class="kpi-sub">Filtered selection</div></div>
   `;
   const tbody = document.getElementById('consumption-body');
-  if (!log.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">No consumption recorded yet.</td></tr>'; return; }
+  if (!log.length) { tbody.innerHTML = `<tr><td colspan="${isViewer?6:8}" style="text-align:center;color:var(--text3);padding:20px">No consumption recorded yet.</td></tr>`; return; }
+
+  const thead = document.querySelector('#pane-consumption table thead tr');
+  if (thead) {
+    thead.innerHTML = `<th>Serial #</th><th>Name</th><th>Country</th><th>Location</th><th>Consumed qty</th>${isViewer ? '' : '<th>Unit cost</th><th>Consumed value</th>'}<th>Date</th>`;
+  }
+
   tbody.innerHTML = log.map(c => `<tr>
     <td style="font-family:monospace;font-size:11px">${c.serial_number}</td>
     <td>${c.item_name}</td><td style="font-size:12px">${c.country}</td><td style="font-size:12px">${c.location}</td>
     <td style="color:var(--red-text);font-weight:500">${c.qty}</td>
-    <td>$${c.unit_cost.toLocaleString()}</td>
-    <td style="font-weight:500;color:var(--red-text)">$${(c.qty * c.unit_cost).toLocaleString()}</td>
+    ${isViewer ? '' : `<td>$${c.unit_cost.toLocaleString()}</td><td style="font-weight:500;color:var(--red-text)">$${(c.qty * c.unit_cost).toLocaleString()}</td>`}
     <td style="font-size:12px">${c.created_at.slice(0,10)}</td>
+  </tr>`).join('');
   </tr>`).join('');
 }
 
