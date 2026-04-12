@@ -906,7 +906,6 @@ async function renderConsumption() {
     ${isViewer ? '' : `<td>$${c.unit_cost.toLocaleString()}</td><td style="font-weight:500;color:var(--red-text)">$${(c.qty * c.unit_cost).toLocaleString()}</td>`}
     <td style="font-size:12px">${c.created_at.slice(0,10)}</td>
   </tr>`).join('');
-  </tr>`).join('');
 }
 
 // ═══════════════════════════════════════════════════
