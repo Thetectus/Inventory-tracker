@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg: #ffffff; --bg2: #f5f5f4; --bg3: #efefed;
+    --text: #1a1a18; --text2: #6b6b67; --text3: #9d9d98;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --blue-bg: #e6f1fb; --blue-text: #0c447c; --blue-border: #85b7eb;
+    --green-bg: #eaf3de; --green-text: #27500a; --green-border: #97c459;
+    --amber-bg: #faeeda; --amber-text: #633806; --amber-border: #ef9f27;
+    --red-bg: #fcebeb; --red-text: #791f1f; --red-border: #f09595;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); font-size: 14px; min-height: 100vh; }
+
+  /* AUTH SCREEN */
+  #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; }
+  .auth-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; width: 100%; max-width: 380px; }
+  .auth-card h1 { font-size: 20px; font-weight: 500; margin-bottom: 0.25rem; }
+  .auth-card p { font-size: 13px; color: var(--text2); margin-bottom: 1.5rem; }
+  .auth-tabs { display: flex; gap: 0; border-bottom: 0.5px solid var(--border); margin-bottom: 1.25rem; }
+  .auth-tab { padding: 6px 16px; font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent; color: var(--text2); background: none; border-top: none; border-left: none; border-right: none; }
+  .auth-tab.active { border-bottom-color: var(--blue-text); color: var(--text); font-weight: 500; }
+  .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .field label { font-size: 12px; color: var(--text2); }
+  .field input, .field select { padding: 8px 10px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 13px; outline: none; }
+  .field input:focus, .field select:focus { border-color: var(--blue-border); }
+  .btn-full { width: 100%; padding: 9px; border: none; border-radius: var(--radius); background: var(--blue-text); color: white; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 4px; }
+  .btn-full:hover { opacity: 0.88; }
+  .auth-msg { font-size: 12px; margin-top: 10px; text-align: center; padding: 6px; border-radius: var(--radius); }
+  .auth-msg.error { background: var(--red-bg); color: var(--red-text); }
+  .auth-msg.success { background: var(--green-bg); color: var(--green-text); }
+
+  /* APP SHELL */
+  #app-screen { display: none; min-height: 100vh; flex-direction: column; }
+  .navbar { background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 0 1.25rem; display: flex; align-items: center; justify-content: space-between; height: 52px; position: sticky; top: 0; z-index: 100; }
+  .navbar-left { display: flex; align-items: center; gap: 10px; }
+  .navbar-left svg { color: var(--blue-text); }
+  .navbar-left h1 { font-size: 16px; font-weight: 500; }
+  .navbar-right { display: flex; align-items: center; gap: 12px; }
+  .role-pill { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+  .role-admin { background: var(--blue-bg); color: var(--blue-text); }
+  .role-supervisor { background: var(--amber-bg); color: var(--amber-text); }
+  .role-viewer { background: var(--bg2); color: var(--text2); }
+  .btn-signout { font-size: 12px; color: var(--text2); background: none; border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 4px 10px; cursor: pointer; }
+  .btn-signout:hover { background: var(--bg2); }
+  .main { max-width: 1200px; margin: 0 auto; padding: 1.25rem; width: 100%; }
+
+  /* KPIs */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 10px; margin-bottom: 1.25rem; }
+  .kpi { background: var(--bg2); border-radius: var(--radius); padding: 12px 14px; }
+  .kpi-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .kpi-value { font-size: 22px; font-weight: 500; }
+  .kpi-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .kpi-value.amber { color: #854f0b; } .kpi-value.green { color: #3b6d11; } .kpi-value.red { color: #a32d2d; }
+
+  /* TABS */
+  .tabs { display: flex; border-bottom: 0.5px solid var(--border); margin-bottom: 1rem; overflow-x: auto; }
+  .tab { padding: 8px 16px; font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent; color: var(--text2); white-space: nowrap; background: none; border-top: none; border-left: none; border-right: none; }
+  .tab.active { border-bottom-color: var(--blue-text); color: var(--text); font-weight: 500; }
+
+  /* FILTERS */
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; align-items: flex-end; }
+  .filter-group { display: flex; flex-direction: column; gap: 4px; }
+  .filter-group label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .03em; }
+  .filters select, .filters input[type=text] { padding: 6px 10px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 13px; outline: none; }
+
+  /* BUTTONS */
+  .btn { padding: 6px 14px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: transparent; cursor: pointer; font-size: 13px; color: var(--text); }
+  .btn:hover { background: var(--bg2); }
+  .btn-primary { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-border); }
+  .btn-primary:hover { opacity: .85; }
+  .btn-sm { padding: 3px 10px; font-size: 12px; }
+  .btn-icon { display: flex; align-items: center; gap: 6px; }
+
+  /* TABLE */
+  .table-wrap { border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: .75rem; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 800px; }
+  th { background: var(--bg2); padding: 8px 10px; text-align: left; font-weight: 500; font-size: 12px; color: var(--text2); border-bottom: 0.5px solid var(--border); white-space: nowrap; }
+  td { padding: 8px 10px; border-bottom: 0.5px solid var(--border); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg2); }
+
+  /* BADGES */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .badge-part { background: #e1f5ee; color: #085041; }
+  .badge-tool { background: var(--blue-bg); color: var(--blue-text); }
+  .badge-low { background: var(--amber-bg); color: var(--amber-text); }
+  .badge-ok { background: var(--green-bg); color: var(--green-text); }
+  .badge-consumed { background: var(--red-bg); color: var(--red-text); }
+  .badge-transfer { background: var(--blue-bg); color: var(--blue-text); }
+  .badge-bulk { background: var(--amber-bg); color: var(--amber-text); }
+
+  /* UPLOAD ZONE */
+  .upload-zone { border: 1.5px dashed var(--border2); border-radius: var(--radius-lg); padding: 2.5rem 1rem; text-align: center; cursor: pointer; }
+  .upload-zone:hover { background: var(--bg2); }
+  .upload-zone svg { width: 32px; height: 32px; color: var(--text3); margin-bottom: .75rem; }
+
+  /* NOTICES */
+  .notice { border-radius: var(--radius); padding: 8px 12px; font-size: 12px; margin-bottom: .75rem; }
+  .notice-info { background: var(--blue-bg); color: var(--blue-text); }
+  .notice-warn { background: var(--amber-bg); color: var(--amber-text); }
+  .notice-success { background: var(--green-bg); color: var(--green-text); }
+  .notice-danger { background: var(--red-bg); color: var(--red-text); }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+  .modal h2 { font-size: 16px; font-weight: 500; margin-bottom: 1rem; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .form-grid.full { grid-template-columns: 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label { font-size: 12px; color: var(--text2); }
+  .form-group input, .form-group select { padding: 7px 10px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 13px; outline: none; }
+  .form-group input:focus, .form-group select:focus { border-color: var(--blue-border); }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1rem; }
+
+  /* HISTORY */
+  .hist-row { display: flex; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .hist-row:last-child { border-bottom: none; }
+  .hist-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .hist-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* SECTION */
+  .section-head { font-size: 15px; font-weight: 500; margin: 1.25rem 0 .75rem; }
+  .filtered-total { text-align: right; font-size: 13px; color: var(--text2); margin-bottom: 1rem; }
+
+  /* SPINNER */
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border2); border-top-color: var(--blue-text); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-state { text-align: center; padding: 2rem; color: var(--text2); font-size: 13px; }
+
+  /* USER MANAGEMENT (admin only) */
+  .user-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .user-row:last-child { border-bottom: none; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--blue-bg); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--blue-text); flex-shrink: 0; }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .navbar-left h1 { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     AUTH SCREEN
+═══════════════════════════════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <h1>Inventory tracker</h1>
+    <p>Oil & gas asset management</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign in</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')" id="signup-tab-btn">Create account</button>
+    </div>
+    <div id="login-form">
+      <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="••••••••"></div>
+      <button class="btn-full" onclick="signIn()">Sign in</button>
+    </div>
+    <div id="signup-form" style="display:none">
+      <div class="field"><label>Full name</label><input type="text" id="signup-name" placeholder="Your name"></div>
+      <div class="field"><label>Email</label><input type="email" id="signup-email" placeholder="your@email.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="signup-password" placeholder="Min 6 characters"></div>
+      <div class="field"><label>Role (admin sets final role)</label>
+        <select id="signup-role">
+          <option value="viewer">Viewer</option>
+          <option value="supervisor">Supervisor</option>
+        </select>
+      </div>
+      <button class="btn-full" onclick="signUp()">Create account</button>
+    </div>
+    <div id="auth-msg" style="display:none" class="auth-msg"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     APP SCREEN
+═══════════════════════════════════════════════════ -->
+<div id="app-screen">
+  <nav class="navbar">
+    <div class="navbar-left">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="16" height="13" rx="2"/><path d="M2 8h16M6 3v5M10 3v5M14 3v5"/></svg>
+      <h1>Inventory tracker</h1>
+    </div>
+    <div class="navbar-right">
+      <span id="user-name" style="font-size:13px;color:var(--text2)"></span>
+      <span id="role-pill" class="role-pill"></span>
+      <button class="btn-signout" onclick="signOut()">Sign out</button>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="kpi-grid" id="kpis"><div class="loading-state"><div class="spinner"></div></div></div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('inventory')">Inventory</button>
+      <button class="tab" onclick="showTab('upload')" id="tab-upload">Bulk upload</button>
+      <button class="tab" onclick="showTab('consumption')">Consumption</button>
+      <button class="tab" onclick="showTab('history')">Movement history</button>
+      <button class="tab" onclick="showTab('users')" id="tab-users" style="display:none">Users</button>
+    </div>
+
+    <!-- INVENTORY PANE -->
+    <div id="pane-inventory">
+      <div class="filters">
+        <div class="filter-group"><label>Search</label><input type="text" id="f-search" placeholder="Name or serial #" style="width:170px" oninput="applyFilters()"></div>
+        <div class="filter-group"><label>Country</label><select id="f-country" onchange="cascadeLocation();applyFilters()"><option value="">All countries</option></select></div>
+        <div class="filter-group"><label>Location</label><select id="f-location" onchange="applyFilters()"><option value="">All locations</option></select></div>
+        <div class="filter-group"><label>Type</label><select id="f-type" onchange="applyFilters()"><option value="">All types</option><option>Spare part</option><option>Tool</option></select></div>
+        <div class="filter-group"><label>Stock</label><select id="f-status" onchange="applyFilters()"><option value="">All</option><option value="low">Low stock</option><option value="ok">OK</option></select></div>
+        <button class="btn" onclick="clearFilters()" style="margin-top:auto">Clear</button>
+        <button class="btn btn-primary" id="btn-add" onclick="openItemModal()" style="margin-top:auto;display:none">+ Add item</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Serial #</th><th>Name</th><th>Type</th><th>Country</th><th>Location</th>
+            <th>Qty</th><th>Unit cost</th><th>Total value</th><th>Stock</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="inv-body"><tr><td colspan="10" class="loading-state"><div class="spinner"></div> Loading...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="filtered-total" id="filtered-total"></div>
+    </div>
+
+    <!-- UPLOAD PANE -->
+    <div id="pane-upload" style="display:none">
+      <div class="notice notice-info">Supervisors: download the template, fill it in on-site, then upload it back. Changes are previewed before applying.</div>
+      <div class="section-head">Step 1 — Download template</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.5rem">
+        <button class="btn btn-primary btn-icon" onclick="exportTemplate('update')">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3"/><rect x="2" y="11" width="12" height="3" rx="1"/></svg>
+          Download update template (.xlsx)
+        </button>
+        <button class="btn btn-icon" onclick="exportTemplate('new')">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3"/><rect x="2" y="11" width="12" height="3" rx="1"/></svg>
+          Download new items template (.xlsx)
+        </button>
+      </div>
+      <div class="section-head">Step 2 — Upload filled template</div>
+      <div class="upload-zone" onclick="document.getElementById('file-input').click()"
+           ondragover="event.preventDefault();this.style.background='var(--bg2)'"
+           ondragleave="this.style.background=''"
+           ondrop="handleDrop(event)">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 4v16M10 14l6-6 6 6"/><path d="M6 24h20"/></svg>
+        <p style="font-size:13px;color:var(--text2)">Click to choose or drag & drop .xlsx file</p>
+        <input type="file" id="file-input" accept=".xlsx" style="display:none" onchange="handleFileSelect(event)">
+      </div>
+      <div id="upload-preview" style="display:none">
+        <div class="section-head">Step 3 — Review & confirm</div>
+        <div id="preview-notices"></div>
+        <div class="table-wrap" style="max-height:300px;overflow-y:auto">
+          <table id="preview-table" style="min-width:unset">
+            <thead id="preview-thead"></thead>
+            <tbody id="preview-tbody"></tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:.75rem">
+          <button class="btn" onclick="cancelUpload()">Cancel</button>
+          <button class="btn btn-primary" onclick="confirmUpload()">Apply changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONSUMPTION PANE -->
+    <div id="pane-consumption" style="display:none">
+      <div class="filters" style="margin-bottom:1rem">
+        <div class="filter-group"><label>Country</label><select id="c-country" onchange="renderConsumption()"><option value="">All countries</option></select></div>
+      </div>
+      <div class="kpi-grid" id="consumption-kpis" style="margin-bottom:1rem"></div>
+      <div class="table-wrap">
+        <table style="min-width:600px">
+          <thead><tr><th>Serial #</th><th>Name</th><th>Country</th><th>Location</th><th>Consumed qty</th><th>Unit cost</th><th>Consumed value</th><th>Date</th></tr></thead>
+          <tbody id="consumption-body"><tr><td colspan="8" class="loading-state">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- HISTORY PANE -->
+    <div id="pane-history" style="display:none">
+      <div class="filters" style="margin-bottom:.75rem">
+        <div class="filter-group"><label>Action</label>
+          <select id="h-type" onchange="renderHistory()">
+            <option value="">All actions</option><option>Transfer</option><option>Added</option><option>Consumed</option><option>Bulk upload</option>
+          </select>
+        </div>
+        <div class="filter-group"><label>Country</label><select id="h-country" onchange="renderHistory()"><option value="">All countries</option></select></div>
+      </div>
+      <div id="history-list"><div class="loading-state"><div class="spinner"></div> Loading...</div></div>
+    </div>
+
+    <!-- USERS PANE (admin only) -->
+    <div id="pane-users" style="display:none">
+      <div class="notice notice-info">Manage team access. Only admins can change roles and country assignments.</div>
+      <div id="users-list"><div class="loading-state"><div class="spinner"></div> Loading...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ITEM MODAL -->
+<div class="modal-overlay" id="item-modal">
+  <div class="modal">
+    <h2 id="modal-title">Add new item</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Serial #</label><input type="text" id="a-serial" placeholder="SN-2024-001"></div>
+      <div class="form-group"><label>Name</label><input type="text" id="a-name" placeholder="Equipment name"></div>
+      <div class="form-group"><label>Type</label><select id="a-type"><option>Spare part</option><option>Tool</option></select></div>
+      <div class="form-group"><label>Quantity</label><input type="number" id="a-qty" min="1" value="1"></div>
+      <div class="form-group"><label>Country</label><select id="a-country" onchange="fillAddLocations()"><option value="">Select</option></select></div>
+      <div class="form-group"><label>Location</label><select id="a-location"><option value="">Select</option></select></div>
+      <div class="form-group"><label>Unit cost ($)</label><input type="number" id="a-cost" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="form-group"><label>Min stock alert</label><input type="number" id="a-min" min="0" value="2"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeItemModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveItem()">Save item</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSFER MODAL -->
+<div class="modal-overlay" id="transfer-modal">
+  <div class="modal">
+    <h2>Transfer item</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Serial #</label><input type="text" id="t-serial" placeholder="SN-2024-001" oninput="fillTransferInfo()"></div>
+      <div class="form-group"><label>Item name</label><input type="text" id="t-name" disabled></div>
+      <div class="form-group"><label>Current location</label><input type="text" id="t-from" disabled></div>
+      <div class="form-group"><label>Quantity</label><input type="number" id="t-qty" min="1" value="1"></div>
+      <div class="form-group"><label>To country</label><select id="t-country" onchange="fillTransferLocations()"><option value="">Select</option></select></div>
+      <div class="form-group"><label>To location</label><select id="t-location"><option value="">Select</option></select></div>
+    </div>
+    <div class="form-grid full">
+      <div class="form-group"><label>Notes</label><input type="text" id="t-notes" placeholder="Reason for transfer"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeTransferModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitTransfer()">Confirm transfer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONFIG — Replace with your Supabase project details
+// ═══════════════════════════════════════════════════
+const SUPABASE_URL = 'https://supabase.com/dashboard/project/cqpsofmaaktsjtlkariw';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxcHNvZm1hYWt0c2p0bGthcml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5ODM0MTIsImV4cCI6MjA5MTU1OTQxMn0.O5t-sDLAgvmy-Z9P_FVV2AS9ciewG33ZQy0HDbOA7yo';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const LOCATIONS = {
+  "Angola":["Main Warehouse - Luanda","Offshore Workshop A","Workshop Luanda"],
+  "Nigeria":["Main Warehouse - Lagos","Offshore Workshop B","Workshop Abuja"],
+  "Saudi Arabia":["Main Warehouse - Riyadh","Offshore Workshop C","Workshop Jeddah"],
+  "UAE":["Main Warehouse - Dubai","Offshore Workshop D","Workshop Abu Dhabi"],
+  "Norway":["Main Warehouse - Bergen","Offshore Workshop E","Workshop Stavanger"],
+  "USA":["Main Warehouse - Houston","Offshore Workshop F","Workshop New Orleans"],
+  "Brazil":["Main Warehouse - Rio","Offshore Workshop G","Workshop São Paulo"],
+  "UK":["Main Warehouse - Aberdeen","Offshore Workshop H","Workshop London"]
+};
+
+let currentUser = null;
+let currentProfile = null;
+let inventory = [];
+let filteredItems = [];
+let editingId = null;
+let pendingUpload = null;
+
+// ═══════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) await loadApp(session.user);
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (session) await loadApp(session.user);
+    else showAuthScreen();
+  });
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('login-form').style.display = tab === 'login' ? '' : 'none';
+  document.getElementById('signup-form').style.display = tab === 'signup' ? '' : 'none';
+  document.querySelectorAll('.auth-tab').forEach((b, i) => b.classList.toggle('active', (i === 0) === (tab === 'login')));
+  hideAuthMsg();
+}
+
+async function signIn() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) return showAuthMsg('Please enter email and password.', 'error');
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) showAuthMsg(error.message, 'error');
+}
+
+async function signUp() {
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const role = document.getElementById('signup-role').value;
+  if (!name || !email || !password) return showAuthMsg('Please fill all fields.', 'error');
+  const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name, role } } });
+  if (error) showAuthMsg(error.message, 'error');
+  else showAuthMsg('Account created! Check your email to confirm, then sign in.', 'success');
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  showAuthScreen();
+}
+
+function showAuthScreen() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display = 'none';
+}
+
+function showAuthMsg(msg, type) {
+  const el = document.getElementById('auth-msg');
+  el.textContent = msg; el.className = 'auth-msg ' + type; el.style.display = 'block';
+}
+function hideAuthMsg() { document.getElementById('auth-msg').style.display = 'none'; }
+
+// ═══════════════════════════════════════════════════
+// APP LOAD
+// ═══════════════════════════════════════════════════
+async function loadApp(user) {
+  currentUser = user;
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
+  currentProfile = profile;
+
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.flexDirection = 'column';
+  document.getElementById('user-name').textContent = profile?.full_name || user.email;
+
+  const rolePill = document.getElementById('role-pill');
+  rolePill.textContent = profile?.role || 'viewer';
+  rolePill.className = 'role-pill role-' + (profile?.role || 'viewer');
+
+  if (profile?.role === 'admin') {
+    document.getElementById('btn-add').style.display = '';
+    document.getElementById('tab-users').style.display = '';
+  }
+  if (profile?.role === 'viewer') {
+    document.getElementById('tab-upload').style.display = 'none';
+  }
+
+  populateFilters();
+  await loadInventory();
+}
+
+// ═══════════════════════════════════════════════════
+// DATA LOADING
+// ═══════════════════════════════════════════════════
+async function loadInventory() {
+  let query = sb.from('inventory').select('*').order('name');
+  if (currentProfile?.role === 'supervisor' && currentProfile?.assigned_countries?.length) {
+    query = query.in('country', currentProfile.assigned_countries);
+  }
+  const { data, error } = await query;
+  if (error) { console.error(error); return; }
+  inventory = data || [];
+  filteredItems = [...inventory];
+  renderTable();
+  updateKPIs();
+}
+
+// ═══════════════════════════════════════════════════
+// FILTERS
+// ═══════════════════════════════════════════════════
+function populateFilters() {
+  const countries = Object.keys(LOCATIONS);
+  ['f-country','c-country','h-country','a-country','t-country'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    const first = el.options[0].outerHTML;
+    el.innerHTML = first + countries.map(c => `<option value="${c}">${c}</option>`).join('');
+  });
+}
+
+function cascadeLocation() {
+  const c = document.getElementById('f-country').value;
+  const el = document.getElementById('f-location');
+  const locs = c && LOCATIONS[c] ? LOCATIONS[c] : Object.values(LOCATIONS).flat();
+  el.innerHTML = '<option value="">All locations</option>' + locs.map(l => `<option value="${l}">${l}</option>`).join('');
+}
+
+function fillAddLocations() {
+  const c = document.getElementById('a-country').value;
+  document.getElementById('a-location').innerHTML = '<option value="">Select</option>' +
+    (c && LOCATIONS[c] ? LOCATIONS[c].map(l => `<option value="${l}">${l}</option>`).join('') : '');
+}
+
+function fillTransferLocations() {
+  const c = document.getElementById('t-country').value;
+  document.getElementById('t-location').innerHTML = '<option value="">Select</option>' +
+    (c && LOCATIONS[c] ? LOCATIONS[c].map(l => `<option value="${l}">${l}</option>`).join('') : '');
+}
+
+function fillTransferInfo() {
+  const serial = document.getElementById('t-serial').value.trim();
+  const item = inventory.find(i => i.serial_number === serial);
+  document.getElementById('t-name').value = item ? item.name : '';
+  document.getElementById('t-from').value = item ? `${item.location} (${item.country})` : '';
+}
+
+function applyFilters() {
+  const s = document.getElementById('f-search').value.toLowerCase();
+  const c = document.getElementById('f-country').value;
+  const l = document.getElementById('f-location').value;
+  const t = document.getElementById('f-type').value;
+  const st = document.getElementById('f-status').value;
+  filteredItems = inventory.filter(it => {
+    if (s && !it.name.toLowerCase().includes(s) && !it.serial_number.toLowerCase().includes(s)) return false;
+    if (c && it.country !== c) return false;
+    if (l && it.location !== l) return false;
+    if (t && it.type !== t) return false;
+    if (st === 'low' && it.qty >= it.min_qty_alert) return false;
+    if (st === 'ok' && it.qty < it.min_qty_alert) return false;
+    return true;
+  });
+  renderTable(); updateKPIs();
+}
+
+function clearFilters() {
+  ['f-search','f-country','f-location','f-type','f-status'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  cascadeLocation(); applyFilters();
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER TABLE
+// ═══════════════════════════════════════════════════
+function renderTable() {
+  const body = document.getElementById('inv-body');
+  if (!filteredItems.length) {
+    body.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:20px">No items match the filters.</td></tr>';
+    document.getElementById('filtered-total').textContent = ''; return;
+  }
+  let total = 0;
+  const isAdmin = currentProfile?.role === 'admin';
+  const isSupervisor = currentProfile?.role === 'supervisor';
+  body.innerHTML = filteredItems.map(it => {
+    const tv = it.qty * it.unit_cost; total += tv;
+    const low = it.qty < it.min_qty_alert;
+    const actions = isAdmin
+      ? `<button class="btn btn-sm" onclick="openItemModal(${it.id})" style="margin-right:3px">Edit</button><button class="btn btn-sm" onclick="openTransfer('${it.serial_number}')">Transfer</button>`
+      : isSupervisor
+        ? `<button class="btn btn-sm" onclick="openTransfer('${it.serial_number}')">Transfer</button>`
+        : '—';
+    return `<tr>
+      <td style="font-family:monospace;font-size:11px">${it.serial_number}</td>
+      <td>${it.name}</td>
+      <td><span class="badge ${it.type === 'Tool' ? 'badge-tool' : 'badge-part'}">${it.type}</span></td>
+      <td style="font-size:12px">${it.country}</td>
+      <td style="font-size:12px">${it.location}</td>
+      <td style="font-weight:500">${it.qty}</td>
+      <td>$${it.unit_cost.toLocaleString()}</td>
+      <td style="font-weight:500">$${tv.toLocaleString()}</td>
+      <td><span class="badge ${low ? 'badge-low' : 'badge-ok'}">${low ? 'Low' : 'OK'}</span></td>
+      <td style="white-space:nowrap">${actions}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('filtered-total').innerHTML =
+    `Filtered total: <strong>$${total.toLocaleString()}</strong> across <strong>${filteredItems.length}</strong> item(s)`;
+}
+
+function updateKPIs() {
+  const totalVal = inventory.reduce((s, i) => s + i.qty * i.unit_cost, 0);
+  const filtVal = filteredItems.reduce((s, i) => s + i.qty * i.unit_cost, 0);
+  const lowCount = inventory.filter(i => i.qty < i.min_qty_alert).length;
+  const countries = [...new Set(inventory.map(i => i.country))].length;
+  document.getElementById('kpis').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Total inventory value</div><div class="kpi-value">$${totalVal.toLocaleString()}</div><div class="kpi-sub">Across ${countries} countries</div></div>
+    <div class="kpi"><div class="kpi-label">Filtered view value</div><div class="kpi-value ${filtVal < totalVal ? 'amber' : ''}">$${filtVal.toLocaleString()}</div><div class="kpi-sub">${filteredItems.length} of ${inventory.length} items</div></div>
+    <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${lowCount > 0 ? 'amber' : 'green'}">${lowCount}</div><div class="kpi-sub">${lowCount > 0 ? 'Items below minimum' : 'All sufficient'}</div></div>
+    <div class="kpi"><div class="kpi-label">Total items tracked</div><div class="kpi-value">${inventory.length}</div><div class="kpi-sub">Active locations: ${[...new Set(inventory.map(i => i.location))].length}</div></div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════
+function showTab(tab) {
+  ['inventory','upload','consumption','history','users'].forEach(t => {
+    const p = document.getElementById('pane-' + t); if (p) p.style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach((b, i) => {
+    const names = ['inventory','upload','consumption','history','users'];
+    b.classList.toggle('active', names[i] === tab);
+  });
+  if (tab === 'history') renderHistory();
+  if (tab === 'consumption') renderConsumption();
+  if (tab === 'users') renderUsers();
+}
+
+// ═══════════════════════════════════════════════════
+// ITEM MODAL (admin only)
+// ═══════════════════════════════════════════════════
+function openItemModal(id) {
+  editingId = id || null;
+  document.getElementById('modal-title').textContent = id ? 'Edit item' : 'Add new item';
+  if (id) {
+    const it = inventory.find(i => i.id === id);
+    if (!it) return;
+    document.getElementById('a-serial').value = it.serial_number;
+    document.getElementById('a-name').value = it.name;
+    document.getElementById('a-type').value = it.type;
+    document.getElementById('a-qty').value = it.qty;
+    document.getElementById('a-cost').value = it.unit_cost;
+    document.getElementById('a-min').value = it.min_qty_alert;
+    document.getElementById('a-country').value = it.country;
+    fillAddLocations();
+    document.getElementById('a-location').value = it.location;
+  } else {
+    ['a-serial','a-name','a-cost'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('a-qty').value = 1;
+    document.getElementById('a-min').value = 2;
+    document.getElementById('a-type').value = 'Spare part';
+    document.getElementById('a-country').value = '';
+    document.getElementById('a-location').innerHTML = '<option value="">Select</option>';
+  }
+  document.getElementById('item-modal').classList.add('open');
+}
+
+function closeItemModal() { document.getElementById('item-modal').classList.remove('open'); }
+
+async function saveItem() {
+  const serial = document.getElementById('a-serial').value.trim();
+  const name = document.getElementById('a-name').value.trim();
+  const type = document.getElementById('a-type').value;
+  const qty = parseInt(document.getElementById('a-qty').value) || 0;
+  const unit_cost = parseFloat(document.getElementById('a-cost').value) || 0;
+  const min_qty_alert = parseInt(document.getElementById('a-min').value) || 0;
+  const country = document.getElementById('a-country').value;
+  const location = document.getElementById('a-location').value;
+  if (!serial || !name || !country || !location) return alert('Please fill all required fields.');
+
+  if (editingId) {
+    const { error } = await sb.from('inventory').update({ serial_number: serial, name, type, qty, unit_cost, min_qty_alert, country, location }).eq('id', editingId);
+    if (error) return alert('Error: ' + error.message);
+  } else {
+    const { error } = await sb.from('inventory').insert({ serial_number: serial, name, type, qty, unit_cost, min_qty_alert, country, location });
+    if (error) return alert('Error: ' + error.message);
+    await sb.from('movements').insert({ action: 'Added', serial_number: serial, item_name: name, qty, from_location: null, to_location: location, country, notes: 'Added manually', performed_by: currentUser.id });
+  }
+  closeItemModal();
+  await loadInventory();
+}
+
+// ═══════════════════════════════════════════════════
+// TRANSFER MODAL
+// ═══════════════════════════════════════════════════
+function openTransfer(serial) {
+  document.getElementById('t-serial').value = serial || '';
+  fillTransferInfo();
+  document.getElementById('t-qty').value = 1;
+  document.getElementById('t-notes').value = '';
+  document.getElementById('t-country').value = '';
+  document.getElementById('t-location').innerHTML = '<option value="">Select</option>';
+  document.getElementById('transfer-modal').classList.add('open');
+}
+function closeTransferModal() { document.getElementById('transfer-modal').classList.remove('open'); }
+
+async function submitTransfer() {
+  const serial = document.getElementById('t-serial').value.trim();
+  const toCountry = document.getElementById('t-country').value;
+  const toLoc = document.getElementById('t-location').value;
+  const qty = parseInt(document.getElementById('t-qty').value) || 0;
+  const notes = document.getElementById('t-notes').value;
+  if (!serial || !toCountry || !toLoc || qty < 1) return alert('Please fill all fields.');
+
+  const item = inventory.find(i => i.serial_number === serial);
+  if (!item) return alert('Serial number not found.');
+  if (qty > item.qty) return alert('Transfer quantity exceeds available stock.');
+
+  const fromLoc = item.location;
+  const fromCountry = item.country;
+
+  if (item.qty === qty) {
+    await sb.from('inventory').update({ location: toLoc, country: toCountry }).eq('id', item.id);
+  } else {
+    await sb.from('inventory').update({ qty: item.qty - qty }).eq('id', item.id);
+    const existing = inventory.find(i => i.serial_number === serial && i.location === toLoc);
+    if (existing) {
+      await sb.from('inventory').update({ qty: existing.qty + qty }).eq('id', existing.id);
+    } else {
+      await sb.from('inventory').insert({ serial_number: serial, name: item.name, type: item.type, country: toCountry, location: toLoc, qty, unit_cost: item.unit_cost, min_qty_alert: item.min_qty_alert });
+    }
+  }
+  await sb.from('movements').insert({ action: 'Transfer', serial_number: serial, item_name: item.name, qty, from_location: fromLoc, to_location: toLoc, country: toCountry, notes: notes || null, performed_by: currentUser.id });
+
+  closeTransferModal();
+  await loadInventory();
+}
+
+// ═══════════════════════════════════════════════════
+// BULK UPLOAD
+// ═══════════════════════════════════════════════════
+function exportTemplate(mode) {
+  const wb = XLSX.utils.book_new();
+  let headers, data, sheetName;
+  if (mode === 'update') {
+    sheetName = 'Inventory Update';
+    headers = ['serial_number','item_name','type','country','location','current_qty_in_system','new_qty_on_hand','qty_consumed','unit_cost','min_qty_alert','notes'];
+    data = inventory.map(it => [it.serial_number, it.name, it.type, it.country, it.location, it.qty, '', '', '', '', '']);
+  } else {
+    sheetName = 'New Items';
+    headers = ['serial_number','item_name','type','country','location','qty','unit_cost','min_qty_alert','notes'];
+    data = [['SN-XXXX-XXX','Example item','Spare part','Angola','Main Warehouse - Luanda',1,0,2,'']];
+  }
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+  ws['!cols'] = headers.map(() => ({ wch: 22 }));
+  const info = XLSX.utils.aoa_to_sheet([
+    ['INSTRUCTIONS'],[''],
+    ['Fill new_qty_on_hand with the physical count on site.'],
+    ['Fill qty_consumed if items were used since last update.'],
+    ['Do NOT change column headers or serial numbers.'],
+    ['Valid types: Spare part, Tool'],
+    ['Valid countries: ' + Object.keys(LOCATIONS).join(', ')],
+  ]);
+  XLSX.utils.book_append_sheet(wb, info, 'Instructions');
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  XLSX.writeFile(wb, mode === 'update' ? 'inventory_update_template.xlsx' : 'new_items_template.xlsx');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+function handleFileSelect(e) { processFile(e.target.files[0]); e.target.value = ''; }
+
+function processFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const sheetName = wb.SheetNames.find(n => n !== 'Instructions');
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: '' });
+      if (!rows.length) return;
+      const mode = 'new_qty_on_hand' in rows[0] ? 'update' : 'new';
+      pendingUpload = { rows, mode };
+      renderPreview(rows, mode);
+    } catch(err) { alert('Could not read file. Use a template exported from this system.'); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function renderPreview(rows, mode) {
+  document.getElementById('upload-preview').style.display = 'block';
+  const thead = document.getElementById('preview-thead');
+  const tbody = document.getElementById('preview-tbody');
+  let warnings = 0, changes = 0;
+  if (mode === 'update') {
+    thead.innerHTML = '<tr><th>Serial #</th><th>Name</th><th>System qty</th><th>New qty</th><th>Consumed</th><th>Status</th></tr>';
+    tbody.innerHTML = rows.map(r => {
+      const item = inventory.find(i => i.serial_number === String(r.serial_number || '').trim());
+      if (!item) { warnings++; return `<tr><td colspan="6"><span class="badge badge-low">Serial ${r.serial_number} not found — skipped</span></td></tr>`; }
+      const newQty = r.new_qty_on_hand !== '' ? parseInt(r.new_qty_on_hand) : null;
+      const consumed = r.qty_consumed !== '' ? parseInt(r.qty_consumed) : 0;
+      if (newQty !== null || consumed > 0) changes++;
+      return `<tr>
+        <td style="font-family:monospace;font-size:11px">${item.serial_number}</td>
+        <td>${item.name}</td><td>${item.qty}</td>
+        <td>${newQty !== null ? newQty : '—'}</td>
+        <td style="color:${consumed > 0 ? 'var(--red-text)' : 'var(--text3)'}">${consumed || '—'}</td>
+        <td><span class="badge badge-ok">Ready</span></td>
+      </tr>`;
+    }).join('');
+  } else {
+    thead.innerHTML = '<tr><th>Serial #</th><th>Name</th><th>Type</th><th>Country</th><th>Qty</th><th>Status</th></tr>';
+    tbody.innerHTML = rows.map(r => {
+      const dup = inventory.find(i => i.serial_number === String(r.serial_number || '').trim());
+      if (dup) { warnings++; return `<tr><td colspan="6"><span class="badge badge-low">Duplicate ${r.serial_number} — skipped</span></td></tr>`; }
+      changes++;
+      return `<tr><td style="font-family:monospace;font-size:11px">${r.serial_number}</td><td>${r.item_name}</td><td>${r.type}</td><td>${r.country}</td><td>${r.qty}</td><td><span class="badge badge-ok">Will add</span></td></tr>`;
+    }).join('');
+  }
+  const notices = document.getElementById('preview-notices');
+  notices.innerHTML = '';
+  if (warnings) notices.innerHTML += `<div class="notice notice-warn">${warnings} row(s) will be skipped.</div>`;
+  if (changes) notices.innerHTML += `<div class="notice notice-info">${changes} change(s) ready to apply. Review before confirming.</div>`;
+}
+
+function cancelUpload() { document.getElementById('upload-preview').style.display = 'none'; pendingUpload = null; }
+
+async function confirmUpload() {
+  if (!pendingUpload) return;
+  const { rows, mode } = pendingUpload;
+  const today = new Date().toISOString().slice(0, 10);
+
+  if (mode === 'update') {
+    for (const r of rows) {
+      const item = inventory.find(i => i.serial_number === String(r.serial_number || '').trim());
+      if (!item) continue;
+      const newQty = r.new_qty_on_hand !== '' ? parseInt(r.new_qty_on_hand) : null;
+      const consumed = r.qty_consumed !== '' ? parseInt(r.qty_consumed) : 0;
+      if (consumed > 0) {
+        await sb.from('consumption_log').insert({ serial_number: item.serial_number, item_name: item.name, country: item.country, location: item.location, qty: consumed, unit_cost: item.unit_cost, notes: r.notes || 'Bulk upload', performed_by: currentUser.id });
+        await sb.from('movements').insert({ action: 'Consumed', serial_number: item.serial_number, item_name: item.name, qty: consumed, from_location: item.location, to_location: null, country: item.country, notes: r.notes || 'Bulk upload', performed_by: currentUser.id });
+      }
+      if (newQty !== null && newQty !== item.qty) {
+        await sb.from('inventory').update({ qty: newQty }).eq('id', item.id);
+        await sb.from('movements').insert({ action: 'Bulk upload', serial_number: item.serial_number, item_name: item.name, qty: Math.abs(newQty - item.qty), from_location: item.location, to_location: item.location, country: item.country, notes: `Qty adjusted from ${item.qty} to ${newQty}. ${r.notes || ''}`, performed_by: currentUser.id });
+      }
+    }
+  } else {
+    for (const r of rows) {
+      if (inventory.find(i => i.serial_number === String(r.serial_number || '').trim())) continue;
+      await sb.from('inventory').insert({ serial_number: String(r.serial_number), name: r.item_name, type: r.type, country: r.country, location: r.location, qty: parseInt(r.qty) || 0, unit_cost: parseFloat(r.unit_cost) || 0, min_qty_alert: parseInt(r.min_qty_alert) || 2 });
+      await sb.from('movements').insert({ action: 'Bulk upload', serial_number: String(r.serial_number), item_name: r.item_name, qty: parseInt(r.qty) || 0, from_location: null, to_location: r.location, country: r.country, notes: r.notes || 'Added via bulk upload', performed_by: currentUser.id });
+    }
+  }
+  pendingUpload = null;
+  document.getElementById('upload-preview').style.display = 'none';
+  document.getElementById('preview-notices').innerHTML = '<div class="notice notice-success">Changes applied successfully.</div>';
+  await loadInventory();
+}
+
+// ═══════════════════════════════════════════════════
+// CONSUMPTION
+// ═══════════════════════════════════════════════════
+async function renderConsumption() {
+  const country = document.getElementById('c-country').value;
+  let query = sb.from('consumption_log').select('*').order('created_at', { ascending: false });
+  if (country) query = query.eq('country', country);
+  const { data } = await query;
+  const log = data || [];
+  const totalVal = log.reduce((s, c) => s + c.qty * c.unit_cost, 0);
+  document.getElementById('consumption-kpis').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Total consumed value</div><div class="kpi-value red">$${totalVal.toLocaleString()}</div><div class="kpi-sub">${log.length} event(s)</div></div>
+    <div class="kpi"><div class="kpi-label">Total consumed units</div><div class="kpi-value">${log.reduce((s, c) => s + c.qty, 0)}</div><div class="kpi-sub">Filtered selection</div></div>
+  `;
+  const tbody = document.getElementById('consumption-body');
+  if (!log.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">No consumption recorded yet.</td></tr>'; return; }
+  tbody.innerHTML = log.map(c => `<tr>
+    <td style="font-family:monospace;font-size:11px">${c.serial_number}</td>
+    <td>${c.item_name}</td><td style="font-size:12px">${c.country}</td><td style="font-size:12px">${c.location}</td>
+    <td style="color:var(--red-text);font-weight:500">${c.qty}</td>
+    <td>$${c.unit_cost.toLocaleString()}</td>
+    <td style="font-weight:500;color:var(--red-text)">$${(c.qty * c.unit_cost).toLocaleString()}</td>
+    <td style="font-size:12px">${c.created_at.slice(0,10)}</td>
+  </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════════
+async function renderHistory() {
+  const type = document.getElementById('h-type').value;
+  const country = document.getElementById('h-country').value;
+  let query = sb.from('movements').select('*, profiles(full_name)').order('created_at', { ascending: false }).limit(200);
+  if (type) query = query.eq('action', type);
+  if (country) query = query.eq('country', country);
+  const { data } = await query;
+  const log = data || [];
+  const el = document.getElementById('history-list');
+  if (!log.length) { el.innerHTML = '<p style="color:var(--text3);font-size:13px;padding:1rem 0">No history entries match the filters.</p>'; return; }
+  const colors = { Transfer: 'var(--blue-bg)', Added: 'var(--green-bg)', Consumed: 'var(--red-bg)', 'Bulk upload': 'var(--amber-bg)' };
+  const badges = { Transfer: 'badge-transfer', Added: 'badge-ok', Consumed: 'badge-consumed', 'Bulk upload': 'badge-bulk' };
+  el.innerHTML = log.map(h => `
+    <div class="hist-row">
+      <div class="hist-dot" style="background:${colors[h.action] || 'var(--bg2)'}">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+      </div>
+      <div style="flex:1">
+        <div><span class="badge ${badges[h.action] || ''}" style="margin-right:6px">${h.action}</span><strong>${h.item_name}</strong> <span style="font-family:monospace;font-size:11px;color:var(--text3)">${h.serial_number}</span></div>
+        <div class="hist-meta">${h.created_at.slice(0,10)} · Qty: ${h.qty} · ${h.from_location || '—'} → ${h.to_location || '—'} (${h.country})</div>
+        ${h.notes ? `<div class="hist-meta" style="font-style:italic">${h.notes}</div>` : ''}
+        ${h.profiles ? `<div class="hist-meta">By: ${h.profiles.full_name}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// USER MANAGEMENT (admin only)
+// ═══════════════════════════════════════════════════
+async function renderUsers() {
+  if (currentProfile?.role !== 'admin') return;
+  const { data } = await sb.from('profiles').select('*').order('full_name');
+  const el = document.getElementById('users-list');
+  if (!data?.length) { el.innerHTML = '<p style="color:var(--text3);font-size:13px">No users found.</p>'; return; }
+  el.innerHTML = `<div class="table-wrap"><table style="min-width:500px">
+    <thead><tr><th>Name</th><th>Role</th><th>Assigned countries</th><th>Actions</th></tr></thead>
+    <tbody>${data.map(u => `<tr>
+      <td>${u.full_name}</td>
+      <td><span class="badge ${u.role === 'admin' ? 'badge-tool' : u.role === 'supervisor' ? 'badge-low' : 'badge-ok'}">${u.role}</span></td>
+      <td style="font-size:12px">${u.assigned_countries?.length ? u.assigned_countries.join(', ') : 'All countries'}</td>
+      <td><button class="btn btn-sm" onclick="editUser('${u.id}','${u.role}')">Edit role</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+async function editUser(id, currentRole) {
+  const newRole = prompt(`Change role for user.\nCurrent: ${currentRole}\nEnter new role (admin / supervisor / viewer):`);
+  if (!newRole || !['admin','supervisor','viewer'].includes(newRole)) return;
+  const countriesStr = newRole === 'supervisor' ? prompt('Enter assigned countries (comma-separated), or leave blank for all:\nOptions: ' + Object.keys(LOCATIONS).join(', ')) : '';
+  const countries = countriesStr ? countriesStr.split(',').map(c => c.trim()).filter(Boolean) : [];
+  await sb.from('profiles').update({ role: newRole, assigned_countries: countries }).eq('id', id);
+  renderUsers();
+}
+
+init();
+</script>
+</body>
+</html>
