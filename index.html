@@ -352,9 +352,6 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════
-// CONFIG — Replace with your Supabase project details
-// ═══════════════════════════════════════════════════
 const SUPABASE_URL = 'https://cqpsofmaaktsjtlkariw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxcHNvZm1hYWt0c2p0bGthcml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5ODM0MTIsImV4cCI6MjA5MTU1OTQxMn0.O5t-sDLAgvmy-Z9P_FVV2AS9ciewG33ZQy0HDbOA7yo';
 
@@ -778,96 +775,283 @@ async function submitTransfer() {
 // BULK UPLOAD
 // ═══════════════════════════════════════════════════
 function exportTemplate(mode) {
-  const wb = XLSX.utils.book_new();
   const countries = Object.keys(LOCATIONS).sort();
   const allLocs = Object.values(LOCATIONS).flat();
   const types = ['Spare part', 'Tool'];
 
-  let headers, data, sheetName;
-  let lockedCols = [];   // 0-based column indexes to protect
-  let dropdownCols = []; // { col, list } for data validation dropdowns
+  // ── Build XML helpers ──────────────────────────────────────────────────
+  const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-  if (mode === 'update') {
-    sheetName = 'Inventory Update';
-    headers = ['serial_number','item_name','type','country','location','current_qty_in_system','new_qty_on_hand','qty_consumed','unit_cost','min_qty_alert','notes'];
-    data = inventory.map(it => [it.serial_number, it.name, it.type, it.country, it.location, it.qty, '', '', '', '', '']);
-    // Lock: serial(0), name(1), type(2), country(3), location(4), system_qty(5), unit_cost(8), min_qty(9)
-    lockedCols = [0,1,2,3,4,5,8,9];
-    // Editable cols only: new_qty(6), consumed(7), notes(10)
-  } else {
-    sheetName = 'New Items';
-    headers = ['serial_number','item_name','type','country','location','qty','unit_cost','min_qty_alert','notes'];
-    data = [['SN-XXXX-XXX','Example item name','Spare part','Angola','Main Warehouse - Luanda',1,0,2,'Optional notes']];
-    // For new items: lock nothing, but add dropdowns for type(2), country(3), location(4)
-    dropdownCols = [
-      { col: 2, list: types },
-      { col: 3, list: countries },
-      { col: 4, list: allLocs },
-    ];
+  // Shared strings table
+  const sst = [];
+  const sstMap = {};
+  function si(val) {
+    const s = String(val ?? '');
+    if (!(s in sstMap)) { sstMap[s] = sst.length; sst.push(s); }
+    return sstMap[s];
   }
 
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
-  ws['!cols'] = headers.map(() => ({ wch: 24 }));
+  // Style indexes — we'll define 5 styles:
+  // 0 = default, 1 = header (blue bg, bold), 2 = locked/grey, 3 = editable/yellow, 4 = bold-text (instructions)
+  const STYLE_DEFAULT  = 0;
+  const STYLE_HEADER   = 1;
+  const STYLE_LOCKED   = 2;
+  const STYLE_EDITABLE = 3;
 
-  // Style header row bold + background
-  const headerStyle = { font: { bold: true }, fill: { fgColor: { rgb: 'D9E1F2' } }, alignment: { horizontal: 'center' } };
-  headers.forEach((_, ci) => {
-    const addr = XLSX.utils.encode_cell({ r: 0, c: ci });
-    if (ws[addr]) ws[addr].s = headerStyle;
-  });
+  function colLetter(n) {
+    let s = '';
+    n++;
+    while (n > 0) { n--; s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n / 26); }
+    return s;
+  }
 
-  // Style locked cells in data rows grey + lock hint
-  const lockedStyle = { fill: { fgColor: { rgb: 'F2F2F2' } }, font: { color: { rgb: '888888' } }, protection: { locked: true } };
-  const editableStyle = { fill: { fgColor: { rgb: 'FFFDE7' } }, protection: { locked: false } };
+  function cellAddr(r, c) { return colLetter(c) + (r + 1); }
 
-  if (mode === 'update') {
-    data.forEach((_, ri) => {
-      headers.forEach((_, ci) => {
-        const addr = XLSX.utils.encode_cell({ r: ri + 1, c: ci });
-        if (ws[addr]) ws[addr].s = lockedCols.includes(ci) ? lockedStyle : editableStyle;
+  // Build a worksheet XML from rows array
+  // cellMeta: { 'A1': { s: styleIdx, locked: bool } }
+  function buildSheetXml(rows, cellMeta, sheetProtection, dataValidations) {
+    let xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    xml += '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"';
+    xml += ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
+
+    // Column widths
+    xml += '<cols>';
+    for (let i = 0; i < (rows[0]?.length || 1); i++) {
+      xml += `<col min="${i+1}" max="${i+1}" width="24" customWidth="1"/>`;
+    }
+    xml += '</cols>';
+
+    xml += '<sheetData>';
+    rows.forEach((row, ri) => {
+      xml += `<row r="${ri+1}">`;
+      row.forEach((val, ci) => {
+        const addr = cellAddr(ri, ci);
+        const meta = cellMeta?.[addr] || {};
+        const sIdx = meta.s ?? STYLE_DEFAULT;
+        const locked = meta.locked !== false; // default locked=true in Excel
+        if (val === '' || val == null) {
+          xml += `<c r="${addr}" s="${sIdx}"><v></v></c>`;
+        } else if (typeof val === 'number') {
+          xml += `<c r="${addr}" t="n" s="${sIdx}"><v>${val}</v></c>`;
+        } else {
+          xml += `<c r="${addr}" t="s" s="${sIdx}"><v>${si(val)}</v></c>`;
+        }
       });
+      xml += '</row>';
     });
-    // Sheet protection: locked cells cannot be edited; editable cells (yellow) still free
-    ws['!protect'] = { password: '', sheet: true, selectLockedCells: true, selectUnlockedCells: true, formatCells: false, formatColumns: false, formatRows: false, insertRows: false, deleteRows: false };
+    xml += '</sheetData>';
+
+    // Data validations (dropdowns)
+    if (dataValidations?.length) {
+      xml += '<dataValidations count="' + dataValidations.length + '">';
+      dataValidations.forEach(dv => {
+        xml += `<dataValidation type="list" sqref="${dv.sqref}" showErrorMessage="1" errorTitle="Invalid entry" error="Please choose from the dropdown list." showDropDown="0">`;
+        xml += `<formula1>"${esc(dv.values.join(','))}"</formula1>`;
+        xml += '</dataValidation>';
+      });
+      xml += '</dataValidations>';
+    }
+
+    // Sheet protection — locks the sheet; cells with protection locked=false stay editable
+    if (sheetProtection) {
+      xml += '<sheetProtection sheet="1" objects="1" scenarios="1" selectLockedCells="0" selectUnlockedCells="0" formatCells="1" formatColumns="1" formatRows="1" insertRows="1" deleteRows="1"/>';
+    }
+
+    xml += '</worksheet>';
+    return xml;
   }
 
-  // Data validation dropdowns (for new items template)
-  if (dropdownCols.length) {
-    ws['!dataValidation'] = dropdownCols.map(({ col, list }) => ({
-      type: 'list',
-      sqref: XLSX.utils.encode_range({ s: { r: 1, c: col }, e: { r: 200, c: col } }),
-      formula1: '"' + list.join(',') + '"',
-      showDropDown: false,
-      showErrorMessage: true,
-      errorTitle: 'Invalid value',
-      error: 'Please select a value from the dropdown list.',
-    }));
+  // ── Styles XML ─────────────────────────────────────────────────────────
+  function buildStylesXml() {
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <fonts count="3">
+    <font><sz val="11"/><name val="Calibri"/></font>
+    <font><sz val="11"/><name val="Calibri"/><b/></font>
+    <font><sz val="11"/><name val="Calibri"/><color rgb="FF888888"/></font>
+  </fonts>
+  <fills count="5">
+    <fill><patternFill patternType="none"/></fill>
+    <fill><patternFill patternType="gray125"/></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFD9E1F2"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFFFFDE7"/></patternFill></fill>
+  </fills>
+  <borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
+  <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+  <cellXfs count="4">
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"><protection locked="1"/></xf>
+    <xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment horizontal="center"/><protection locked="1"/></xf>
+    <xf numFmtId="0" fontId="2" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1"><protection locked="1"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="4" borderId="0" xfId="0" applyFill="1"><protection locked="0"/></xf>
+  </cellXfs>
+</styleSheet>`;
   }
 
-  const infoData = [
-    ['INSTRUCTIONS — Read before filling'],
-    [''],
-    mode === 'update'
-      ? ['GREY cells are locked — do not attempt to edit them.']
-      : ['Fill every row completely. Use the dropdowns for Type, Country and Location.'],
-    mode === 'update'
-      ? ['YELLOW cells are editable — fill new_qty_on_hand and/or qty_consumed.']
-      : ['Serial number must be unique — check existing inventory before adding.'],
-    [''],
-    ['Valid types: ' + types.join(', ')],
-    ['Valid countries: ' + countries.join(', ')],
-    [''],
-    ['Do NOT rename or reorder columns.'],
-    ['Save as .xlsx before uploading.'],
-  ];
-  const info = XLSX.utils.aoa_to_sheet(infoData.filter(Boolean));
-  info['!cols'] = [{ wch: 60 }];
-  // Bold the first row of instructions
-  if (info['A1']) info['A1'].s = { font: { bold: true, sz: 13 } };
+  // ── SST XML ────────────────────────────────────────────────────────────
+  function buildSstXml() {
+    let xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`;
+    xml += `<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${sst.length}" uniqueCount="${sst.length}">`;
+    sst.forEach(s => { xml += `<si><t xml:space="preserve">${esc(s)}</t></si>`; });
+    xml += '</sst>';
+    return xml;
+  }
 
-  XLSX.utils.book_append_sheet(wb, info, 'Instructions');
-  XLSX.utils.book_append_sheet(wb, ws, sheetName);
-  XLSX.writeFile(wb, mode === 'update' ? 'inventory_update_template.xlsx' : 'new_items_template.xlsx');
+  // ── Workbook XML ───────────────────────────────────────────────────────
+  function buildWorkbookXml(sheets) {
+    let xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`;
+    xml += `<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">`;
+    xml += '<sheets>';
+    sheets.forEach((s, i) => {
+      xml += `<sheet name="${esc(s.name)}" sheetId="${i+1}" r:id="rId${i+3}"/>`;
+    });
+    xml += '</sheets></workbook>';
+    return xml;
+  }
+
+  function buildWorkbookRels(sheets) {
+    let xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`;
+    xml += `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`;
+    xml += `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>`;
+    xml += `<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>`;
+    sheets.forEach((s, i) => {
+      xml += `<Relationship Id="rId${i+3}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`;
+    });
+    xml += '</Relationships>';
+    return xml;
+  }
+
+  function buildContentTypes(sheets) {
+    let xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`;
+    xml += `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">`;
+    xml += `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>`;
+    xml += `<Default Extension="xml" ContentType="application/xml"/>`;
+    xml += `<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>`;
+    xml += `<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>`;
+    xml += `<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>`;
+    sheets.forEach((s, i) => {
+      xml += `<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`;
+    });
+    xml += '</Types>';
+    return xml;
+  }
+
+  function buildRootRels() {
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`;
+  }
+
+  // ── ZIP builder using JSZip (loaded via CDN) ───────────────────────────
+  async function buildAndDownload() {
+    // Dynamically load JSZip if not present
+    if (!window.JSZip) {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    let dataRows, headers, sheetName, cellMeta, protect, dataValidations;
+    const maxDataRows = 500;
+
+    if (mode === 'update') {
+      sheetName = 'Inventory Update';
+      headers = ['serial_number','item_name','type','country','location','current_qty_in_system','new_qty_on_hand','qty_consumed','notes'];
+      // lockedCols (0-based): 0=serial,1=name,2=type,3=country,4=location,5=system_qty
+      // editableCols: 6=new_qty,7=consumed,8=notes
+      const lockedCols = [0,1,2,3,4,5];
+      const editableCols = [6,7,8];
+      dataRows = inventory.map(it => [it.serial_number, it.name, it.type, it.country, it.location, it.qty, '', '', '']);
+
+      cellMeta = {};
+      // Header row — all styled as header
+      headers.forEach((_, ci) => { cellMeta[cellAddr(0, ci)] = { s: STYLE_HEADER }; });
+      // Data rows
+      dataRows.forEach((_, ri) => {
+        lockedCols.forEach(ci  => { cellMeta[cellAddr(ri+1, ci)] = { s: STYLE_LOCKED }; });
+        editableCols.forEach(ci => { cellMeta[cellAddr(ri+1, ci)] = { s: STYLE_EDITABLE }; });
+      });
+      protect = true;
+      dataValidations = [];
+    } else {
+      sheetName = 'New Items';
+      headers = ['serial_number','item_name','type','country','location','qty','unit_cost','min_qty_alert','notes'];
+      dataRows = [['SN-XXXX-XXX','Example item name','Spare part','Angola','Main Warehouse - Luanda',1,0,2,'Optional notes']];
+      cellMeta = {};
+      headers.forEach((_, ci) => { cellMeta[cellAddr(0, ci)] = { s: STYLE_HEADER }; });
+      // No locking for new items — all editable (yellow)
+      dataRows.forEach((_, ri) => {
+        headers.forEach((_, ci) => { cellMeta[cellAddr(ri+1, ci)] = { s: STYLE_EDITABLE }; });
+      });
+      protect = false;
+      dataValidations = [
+        { sqref: `C2:C${maxDataRows}`, values: types },
+        { sqref: `D2:D${maxDataRows}`, values: countries },
+        { sqref: `E2:E${maxDataRows}`, values: allLocs },
+      ];
+    }
+
+    // Instructions sheet rows
+    const infoRows = mode === 'update' ? [
+      ['INSTRUCTIONS — Read before filling'],
+      [''],
+      ['GREY cells (serial, name, type, country, location, system qty) are LOCKED — cannot be edited.'],
+      ['YELLOW cells are editable: fill new_qty_on_hand and/or qty_consumed as needed.'],
+      ['Leave yellow cells blank if there is no change for that item.'],
+      [''],
+      ['Do NOT rename or reorder columns.'],
+      ['Save the file as .xlsx before uploading back to the system.'],
+    ] : [
+      ['INSTRUCTIONS — Read before filling'],
+      [''],
+      ['Fill every row with a new inventory item.'],
+      ['Type, Country, and Location columns have dropdown validation — click the cell to see options.'],
+      ['Serial number must be unique — check existing inventory before adding.'],
+      [''],
+      ['Valid types: ' + types.join(', ')],
+      ['Valid countries: ' + countries.join(', ')],
+      [''],
+      ['Do NOT rename or reorder columns.'],
+      ['Save the file as .xlsx before uploading back to the system.'],
+    ];
+    const infoMeta = { 'A1': { s: STYLE_HEADER } };
+
+    const allRows_main = [headers, ...dataRows];
+    const allRows_info = infoRows;
+
+    // Pre-populate SST by scanning all cells
+    [[...allRows_main, ...allRows_info]].flat().forEach(row => row.forEach(v => { if (typeof v === 'string' && v) si(v); }));
+
+    const mainSheetXml = buildSheetXml(allRows_main, cellMeta, protect, dataValidations);
+    const infoSheetXml = buildSheetXml(allRows_info, infoMeta, false, []);
+
+    // Must call buildSstXml AFTER all si() calls
+    const sheets = [{ name: 'Instructions' }, { name: sheetName }];
+
+    const zip = new window.JSZip();
+    zip.file('[Content_Types].xml', buildContentTypes(sheets));
+    zip.file('_rels/.rels', buildRootRels());
+    zip.file('xl/workbook.xml', buildWorkbookXml(sheets));
+    zip.file('xl/_rels/workbook.xml.rels', buildWorkbookRels(sheets));
+    zip.file('xl/styles.xml', buildStylesXml());
+    zip.file('xl/sharedStrings.xml', buildSstXml());
+    zip.file('xl/worksheets/sheet1.xml', infoSheetXml);
+    zip.file('xl/worksheets/sheet2.xml', mainSheetXml);
+
+    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = mode === 'update' ? 'inventory_update_template.xlsx' : 'new_items_template.xlsx';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  buildAndDownload().catch(e => alert('Export failed: ' + e.message));
 }
 
 function handleDrop(e) {
