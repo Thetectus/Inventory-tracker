@@ -8,7 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root {
-    --bg: #ffffff; --bg2: #ffcccc; --bg3: #efefed;
+    --bg: #ffffff; --bg2: #f5f5f4; --bg3: #efefed;
     --text: #1a1a18; --text2: #6b6b67; --text3: #9d9d98;
     --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
     --blue-bg: #e6f1fb; --blue-text: #0c447c; --blue-border: #85b7eb;
@@ -194,7 +194,7 @@
       <h1>Inventory tracker</h1>
     </div>
     <div class="navbar-right">
-      <span id="user-name" style="font-size:13px;color:var(--text2)"></span>
+      <span id="company-name" style="font-size:11px;color:var(--text3);margin-right:4px"></span><span id="user-name" style="font-size:13px;color:var(--text2)"></span>
       <span id="role-pill" class="role-pill"></span>
       <button class="btn-signout" onclick="signOut()">Sign out</button>
     </div>
@@ -409,10 +409,19 @@ async function signUp() {
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
   const role = document.getElementById('signup-role').value;
-  if (!name || !email || !password) return showAuthMsg('Please fill all fields.', 'error');
-  const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name, role } } });
+  if (!name || !email || !password) return showAuthMsg('Preenche todos os campos.', 'error');
+
+  // Lê tenant_id do URL (ex: ?tenant=uuid&slug=empresa-x)
+  const params = new URLSearchParams(window.location.search);
+  const tenantId = params.get('tenant');
+  if (!tenantId) return showAuthMsg('Link de convite inválido. Pede um novo link ao administrador FieldTrack.', 'error');
+
+  const { error } = await sb.auth.signUp({
+    email, password,
+    options: { data: { full_name: name, role, tenant_id: tenantId } }
+  });
   if (error) showAuthMsg(error.message, 'error');
-  else showAuthMsg('Account created! Check your email to confirm, then sign in.', 'success');
+  else showAuthMsg('Conta criada! Confirma o email e depois entra.', 'success');
 }
 
 async function signOut() {
@@ -436,13 +445,35 @@ function hideAuthMsg() { document.getElementById('auth-msg').style.display = 'no
 // ═══════════════════════════════════════════════════
 async function loadApp(user) {
   currentUser = user;
-  const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
+  const { data: profile } = await sb.from('profiles').select('*, tenants(name, plan, active)').eq('id', user.id).single();
   currentProfile = profile;
+
+  // Bloquear se empresa suspensa
+  if (profile?.tenants && !profile.tenants.active) {
+    document.getElementById('auth-screen').style.display = 'flex';
+    showAuthMsg('A conta da sua empresa está suspensa. Contacte o suporte FieldTrack.', 'error');
+    await sb.auth.signOut();
+    return;
+  }
+
+  // Bloquear se sem tenant (utilizador não criado via link de convite)
+  if (!profile?.tenant_id) {
+    document.getElementById('auth-screen').style.display = 'flex';
+    showAuthMsg('Conta sem empresa associada. Usa o link de convite enviado pelo administrador.', 'error');
+    await sb.auth.signOut();
+    return;
+  }
 
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'flex';
   document.getElementById('app-screen').style.flexDirection = 'column';
   document.getElementById('user-name').textContent = profile?.full_name || user.email;
+
+  // Mostrar nome da empresa na navbar
+  if (profile?.tenants?.name) {
+    const companyEl = document.getElementById('company-name');
+    if (companyEl) companyEl.textContent = profile.tenants.name;
+  }
 
   const rolePill = document.getElementById('role-pill');
   rolePill.textContent = profile?.role || 'viewer';
@@ -717,9 +748,9 @@ async function saveItem() {
     const { error } = await sb.from('inventory').update({ serial_number: serial, name, type, qty, unit_cost, min_qty_alert, country, location }).eq('id', editingId);
     if (error) return alert('Error: ' + error.message);
   } else {
-    const { error } = await sb.from('inventory').insert({ serial_number: serial, name, type, qty, unit_cost, min_qty_alert, country, location });
+    const { error } = await sb.from('inventory').insert({ serial_number: serial, name, type, qty, unit_cost, min_qty_alert, country, location, tenant_id: currentProfile.tenant_id });
     if (error) return alert('Error: ' + error.message);
-    await sb.from('movements').insert({ action: 'Added', serial_number: serial, item_name: name, qty, from_location: null, to_location: location, country, notes: 'Added manually', performed_by: currentUser.id });
+    await sb.from('movements').insert({ action: 'Added', serial_number: serial, item_name: name, qty, from_location: null, to_location: location, country, notes: 'Added manually', performed_by: currentUser.id, tenant_id: currentProfile.tenant_id });
   }
   closeItemModal();
   await loadInventory();
