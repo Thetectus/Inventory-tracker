@@ -1,1 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FieldTrack — Painel Super-Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg:#ffffff;--bg2:#f5f5f4;--bg3:#efefed;
+    --text:#1a1a18;--text2:#6b6b67;--text3:#9d9d98;
+    --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+    --blue:#0c447c;--blue-bg:#e6f1fb;--blue-border:#85b7eb;
+    --green:#27500a;--green-bg:#eaf3de;
+    --amber:#633806;--amber-bg:#faeeda;
+    --red:#791f1f;--red-bg:#fcebeb;
+    --radius:8px;--radius-lg:12px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:14px;min-height:100vh}
+  .navbar{background:#0d1b2a;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
+  .navbar h1{font-size:15px;font-weight:500;color:#fff}
+  .navbar span{font-size:12px;color:#6b9cc4;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:20px}
+  .main{max-width:1100px;margin:0 auto;padding:1.5rem}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.5rem}
+  .kpi{background:var(--bg);border-radius:var(--radius);padding:12px 14px;border:0.5px solid var(--border)}
+  .kpi-label{font-size:12px;color:var(--text2);margin-bottom:4px}
+  .kpi-value{font-size:22px;font-weight:500}
+  .section{background:var(--bg);border-radius:var(--radius-lg);border:0.5px solid var(--border);margin-bottom:1.5rem;overflow:hidden}
+  .section-head{padding:14px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .section-head h2{font-size:15px;font-weight:500}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:var(--bg2);padding:8px 14px;text-align:left;font-weight:500;font-size:12px;color:var(--text2);border-bottom:0.5px solid var(--border);white-space:nowrap}
+  td{padding:10px 14px;border-bottom:0.5px solid var(--border);color:var(--text)}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--bg2)}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+  .badge-starter{background:var(--bg2);color:var(--text2)}
+  .badge-professional{background:var(--blue-bg);color:var(--blue)}
+  .badge-enterprise{background:var(--amber-bg);color:var(--amber)}
+  .badge-active{background:var(--green-bg);color:var(--green)}
+  .badge-inactive{background:var(--red-bg);color:var(--red)}
+  .btn{padding:6px 14px;border:0.5px solid var(--border2);border-radius:var(--radius);background:transparent;cursor:pointer;font-size:13px;color:var(--text)}
+  .btn:hover{background:var(--bg2)}
+  .btn-primary{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border)}
+  .btn-sm{padding:3px 10px;font-size:12px}
+  .btn-danger{background:var(--red-bg);color:var(--red);border-color:#f09595}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;padding:1rem}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--bg);border-radius:var(--radius-lg);padding:1.5rem;width:100%;max-width:480px;border:0.5px solid var(--border)}
+  .modal h2{font-size:16px;font-weight:500;margin-bottom:1.25rem}
+  .field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+  .field label{font-size:12px;color:var(--text2)}
+  .field input,.field select{padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px;outline:none}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:1rem}
+  .notice{border-radius:var(--radius);padding:8px 12px;font-size:12px;margin-bottom:.75rem}
+  .notice-warn{background:var(--amber-bg);color:var(--amber)}
+  .notice-info{background:var(--blue-bg);color:var(--blue)}
+  #auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem}
+  .auth-card{background:var(--bg);border-radius:var(--radius-lg);padding:2rem;max-width:360px;width:100%;border:0.5px solid var(--border)}
+  .auth-card h1{font-size:18px;font-weight:500;margin-bottom:.5rem}
+  .auth-card p{font-size:13px;color:var(--text2);margin-bottom:1.5rem}
+  .btn-full{width:100%;padding:9px;border:none;border-radius:var(--radius);background:#0d1b2a;color:#fff;font-size:14px;font-weight:500;cursor:pointer}
+  .btn-full:hover{opacity:.88}
+  .err{font-size:12px;color:var(--red);margin-top:8px;text-align:center}
+  .invite-box{background:var(--bg2);border-radius:var(--radius);padding:12px;font-size:12px;color:var(--text2);margin-top:12px;border:0.5px solid var(--border)}
+  .invite-box code{font-family:monospace;background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px;color:var(--text);display:block;margin:6px 0;word-break:break-all}
+  #app-screen{display:none}
+</style>
+</head>
+<body>
 
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <h1>FieldTrack Admin</h1>
+    <p>Painel exclusivo de gestão de empresas</p>
+    <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="superadmin@fieldtrack.io"></div>
+    <div class="field"><label>Password</label><input type="password" id="login-password"></div>
+    <button class="btn-full" onclick="doLogin()">Entrar</button>
+    <div id="login-err" class="err" style="display:none"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <nav class="navbar">
+    <h1>FieldTrack — Super Admin</h1>
+    <span id="admin-email"></span>
+  </nav>
+  <div class="main">
+    <div class="kpi-grid" id="kpis"></div>
+
+    <div class="section">
+      <div class="section-head">
+        <h2>Empresas registadas</h2>
+        <button class="btn btn-primary" onclick="openNewTenant()">+ Nova empresa</button>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Empresa</th><th>Slug</th><th>Plano</th><th>Utilizadores</th>
+          <th>Itens</th><th>Valor inventário</th><th>Estado</th><th>Criada</th><th>Acções</th>
+        </tr></thead>
+        <tbody id="tenants-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Nova empresa -->
+<div class="modal-overlay" id="modal-new">
+  <div class="modal">
+    <h2>Criar nova empresa</h2>
+    <div class="notice notice-info">Após criar a empresa, copia o link de convite e envia ao administrador do cliente.</div>
+    <div class="field"><label>Nome da empresa</label><input type="text" id="nt-name" placeholder="TotalEnergies Angola"></div>
+    <div class="field"><label>Slug (identificador único)</label><input type="text" id="nt-slug" placeholder="totalenergies-angola" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"></div>
+    <div class="field"><label>Plano</label>
+      <select id="nt-plan" onchange="updatePlanLimits()">
+        <option value="starter">Starter — até 5 utilizadores, 3 localizações ($299/mês)</option>
+        <option value="professional" selected>Professional — até 15 utilizadores, 10 localizações ($799/mês)</option>
+        <option value="enterprise">Enterprise — ilimitado ($1,999+/mês)</option>
+      </select>
+    </div>
+    <div class="field"><label>Email de facturação</label><input type="email" id="nt-billing" placeholder="admin@empresa.com"></div>
+    <div id="invite-result" style="display:none" class="invite-box">
+      <strong>Empresa criada.</strong> Envia este link ao administrador do cliente:<br>
+      <code id="invite-link"></code>
+      Ao clicar no link, o cliente cria a sua conta e fica automaticamente ligado à empresa.
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-new')">Cancelar</button>
+      <button class="btn btn-primary" onclick="createTenant()">Criar empresa</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Editar plano -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <h2>Editar empresa</h2>
+    <input type="hidden" id="edit-id">
+    <div class="field"><label>Plano</label>
+      <select id="edit-plan">
+        <option value="starter">Starter</option>
+        <option value="professional">Professional</option>
+        <option value="enterprise">Enterprise</option>
+      </select>
+    </div>
+    <div class="field"><label>Estado</label>
+      <select id="edit-active">
+        <option value="true">Activa</option>
+        <option value="false">Suspensa</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-edit')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTenant()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://cqpsofmaaktsjtlkariw.supabase.co';
+// ATENÇÃO: usa a SERVICE_ROLE key aqui — NUNCA partilhes este ficheiro
+// A service_role key está em Supabase → Settings → API → service_role
+const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxcHNvZm1hYWt0c2p0bGthcml3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTk4MzQxMiwiZXhwIjoyMDkxNTU5NDEyfQ.zpduCaj1pmdm9BQtNSmsKdpTUkhpBeHYxS2D_yN3udM';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+  auth: { autoRefreshToken: false, persistSession: false }
+});
+
+const PLAN_LIMITS = {
+  starter:      { max_users: 5,   max_locations: 3 },
+  professional: { max_users: 15,  max_locations: 10 },
+  enterprise:   { max_users: 999, max_locations: 999 },
+};
+
+let tenants = [];
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value;
+  const pass  = document.getElementById('login-password').value;
+  // Super-admin login hardcoded para simplicidade
+  // Em produção: verificar contra uma tabela de super-admins
+  if (email === 'kikocarujo@gmail.com' && pass === 'Carujo99') {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    document.getElementById('admin-email').textContent = email;
+    await loadDashboard();
+  } else {
+    document.getElementById('login-err').textContent = 'Credenciais inválidas.';
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+async function loadDashboard() {
+  const { data, error } = await sb.from('tenant_summary').select('*').order('created_at', { ascending: false });
+  if (error) { console.error(error); return; }
+  tenants = data || [];
+  renderKPIs();
+  renderTable();
+}
+
+function renderKPIs() {
+  const totalRevenue = tenants.reduce((s, t) => {
+    const p = { starter: 299, professional: 799, enterprise: 1999 };
+    return s + (t.active ? (p[t.plan] || 0) : 0);
+  }, 0);
+  const totalValue = tenants.reduce((s, t) => s + (t.inventory_value || 0), 0);
+  document.getElementById('kpis').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Empresas activas</div><div class="kpi-value">${tenants.filter(t=>t.active).length}</div></div>
+    <div class="kpi"><div class="kpi-label">MRR estimado</div><div class="kpi-value" style="color:var(--blue)">$${totalRevenue.toLocaleString()}</div></div>
+    <div class="kpi"><div class="kpi-label">Total utilizadores</div><div class="kpi-value">${tenants.reduce((s,t)=>s+(t.total_users||0),0)}</div></div>
+    <div class="kpi"><div class="kpi-label">Inventário total gerido</div><div class="kpi-value">$${Math.round(totalValue).toLocaleString()}</div></div>
+    <div class="kpi"><div class="kpi-label">ARR estimado</div><div class="kpi-value" style="color:var(--green)">$${(totalRevenue*12).toLocaleString()}</div></div>
+  `;
+}
+
+function renderTable() {
+  const planBadge = p => `<span class="badge badge-${p}">${p}</span>`;
+  const activeBadge = a => a ? `<span class="badge badge-active">Activa</span>` : `<span class="badge badge-inactive">Suspensa</span>`;
+  document.getElementById('tenants-body').innerHTML = tenants.map(t => `
+    <tr>
+      <td style="font-weight:500">${t.name}</td>
+      <td style="font-family:monospace;font-size:12px;color:var(--text2)">${t.slug}</td>
+      <td>${planBadge(t.plan)}</td>
+      <td style="text-align:center">${t.total_users || 0}</td>
+      <td style="text-align:center">${t.total_items || 0}</td>
+      <td>$${Math.round(t.inventory_value || 0).toLocaleString()}</td>
+      <td>${activeBadge(t.active)}</td>
+      <td style="font-size:12px;color:var(--text2)">${new Date(t.created_at).toLocaleDateString('pt-PT')}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="openEdit('${t.id}','${t.plan}',${t.active})" style="margin-right:4px">Editar</button>
+        <button class="btn btn-sm" onclick="copyInvite('${t.id}','${t.slug}')">Link convite</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openNewTenant() {
+  document.getElementById('invite-result').style.display = 'none';
+  document.getElementById('nt-name').value = '';
+  document.getElementById('nt-slug').value = '';
+  document.getElementById('nt-billing').value = '';
+  document.getElementById('modal-new').classList.add('open');
+}
+
+async function createTenant() {
+  const name    = document.getElementById('nt-name').value.trim();
+  const slug    = document.getElementById('nt-slug').value.trim();
+  const plan    = document.getElementById('nt-plan').value;
+  const billing = document.getElementById('nt-billing').value.trim();
+  if (!name || !slug) return alert('Preenche o nome e o slug.');
+
+  const limits = PLAN_LIMITS[plan];
+  const { data, error } = await sb.from('tenants').insert({
+    name, slug, plan, billing_email: billing,
+    max_users: limits.max_users,
+    max_locations: limits.max_locations,
+    active: true
+  }).select().single();
+
+  if (error) return alert('Erro: ' + error.message);
+
+  const inviteUrl = `https://myinventorytracker.vercel.app/?tenant=${data.id}&slug=${slug}`;
+  document.getElementById('invite-link').textContent = inviteUrl;
+  document.getElementById('invite-result').style.display = 'block';
+  await loadDashboard();
+}
+
+function openEdit(id, plan, active) {
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-plan').value = plan;
+  document.getElementById('edit-active').value = String(active);
+  document.getElementById('modal-edit').classList.add('open');
+}
+
+async function saveTenant() {
+  const id     = document.getElementById('edit-id').value;
+  const plan   = document.getElementById('edit-plan').value;
+  const active = document.getElementById('edit-active').value === 'true';
+  const limits = PLAN_LIMITS[plan];
+  const { error } = await sb.from('tenants').update({
+    plan, active, max_users: limits.max_users, max_locations: limits.max_locations
+  }).eq('id', id);
+  if (error) return alert('Erro: ' + error.message);
+  closeModal('modal-edit');
+  await loadDashboard();
+}
+
+function copyInvite(id, slug) {
+  const url = `https://fieldtrack.vercel.app?tenant=${id}&slug=${slug}`;
+  navigator.clipboard.writeText(url).then(() => alert('Link copiado:\n' + url));
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+</script>
+</body>
+</html>
