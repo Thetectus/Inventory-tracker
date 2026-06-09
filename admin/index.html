@@ -75,7 +75,7 @@
   <div class="auth-card">
     <h1>FieldTrack Admin</h1>
     <p>Painel exclusivo de gestão de empresas</p>
-    <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="superadmin@fieldtrack.io"></div>
+    <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="kikocarujo@gmail.com"></div>
     <div class="field"><label>Password</label><input type="password" id="login-password"></div>
     <button class="btn-full" onclick="doLogin()">Entrar</button>
     <div id="login-err" class="err" style="display:none"></div>
@@ -168,7 +168,7 @@
 const SUPABASE_URL = 'https://cqpsofmaaktsjtlkariw.supabase.co';
 // ATENÇÃO: usa a SERVICE_ROLE key aqui — NUNCA partilhes este ficheiro
 // A service_role key está em Supabase → Settings → API → service_role
-const SUPABASE_SERVICE_KEY = 'COLOCA_AQUI_A_SERVICE_ROLE_KEY';
+const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxcHNvZm1hYWt0c2p0bGthcml3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTk4MzQxMiwiZXhwIjoyMDkxNTU5NDEyfQ.zpduCaj1pmdm9BQtNSmsKdpTUkhpBeHYxS2D_yN3udM';
 
 if (SUPABASE_SERVICE_KEY === 'COLOCA_AQUI_A_SERVICE_ROLE_KEY') {
   document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;padding:2rem;text-align:center">
@@ -195,7 +195,7 @@ async function doLogin() {
   const pass  = document.getElementById('login-password').value;
   // Super-admin login hardcoded para simplicidade
   // Em produção: verificar contra uma tabela de super-admins
-  if (email === 'superadmin@fieldtrack.io' && pass === 'MUDA_ESTA_PASSWORD') {
+  if (email === 'kikocarujo@gmail.com' && pass === 'Carujo99') {
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'block';
     document.getElementById('admin-email').textContent = email;
