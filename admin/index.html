@@ -112,6 +112,10 @@
   <div class="modal">
     <h2>Criar nova empresa</h2>
     <div class="notice notice-info">Após criar a empresa, copia o link de convite e envia ao administrador do cliente.</div>
+    <div class="notice notice-warn" style="font-size:11px">
+      <strong>Confirmação de email:</strong> Para fase de testes está desactivada no Supabase (Authentication → Settings → "Enable email confirmations" = OFF). 
+      Activa quando passares a produção real.
+    </div>
     <div class="field"><label>Nome da empresa</label><input type="text" id="nt-name" placeholder="TotalEnergies Angola"></div>
     <div class="field"><label>Slug (identificador único)</label><input type="text" id="nt-slug" placeholder="totalenergies-angola" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"></div>
     <div class="field"><label>Plano</label>
@@ -123,9 +127,10 @@
     </div>
     <div class="field"><label>Email de facturação</label><input type="email" id="nt-billing" placeholder="admin@empresa.com"></div>
     <div id="invite-result" style="display:none" class="invite-box">
-      <strong>Empresa criada.</strong> Envia este link ao administrador do cliente:<br>
-      <code id="invite-link"></code>
-      Ao clicar no link, o cliente cria a sua conta e fica automaticamente ligado à empresa.
+      <div style="font-weight:500;margin-bottom:6px;color:var(--green)">✓ Empresa criada com sucesso.</div>
+      <div style="font-size:12px;margin-bottom:6px">Envia este link ao administrador do cliente:</div>
+      <code id="invite-link" style="cursor:pointer" onclick="copyInviteFromBox(this)" title="Clica para copiar"></code>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">Clica no link para copiar. O cliente regista-se e fica automaticamente associado a esta empresa.</div>
     </div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('modal-new')">Cancelar</button>
@@ -163,8 +168,16 @@
 const SUPABASE_URL = 'https://cqpsofmaaktsjtlkariw.supabase.co';
 // ATENÇÃO: usa a SERVICE_ROLE key aqui — NUNCA partilhes este ficheiro
 // A service_role key está em Supabase → Settings → API → service_role
-const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxcHNvZm1hYWt0c2p0bGthcml3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTk4MzQxMiwiZXhwIjoyMDkxNTU5NDEyfQ.zpduCaj1pmdm9BQtNSmsKdpTUkhpBeHYxS2D_yN3udM';
+const SUPABASE_SERVICE_KEY = 'COLOCA_AQUI_A_SERVICE_ROLE_KEY';
 
+if (SUPABASE_SERVICE_KEY === 'COLOCA_AQUI_A_SERVICE_ROLE_KEY') {
+  document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;padding:2rem;text-align:center">
+    <div><div style="font-size:32px;margin-bottom:1rem">⚠️</div>
+    <h2 style="margin-bottom:.5rem">Service Role Key não configurada</h2>
+    <p style="color:#666;font-size:14px">Abre o ficheiro admin/index.html e substitui COLOCA_AQUI_A_SERVICE_ROLE_KEY<br>pela tua service_role key do Supabase (Settings → API → service_role)</p></div>
+  </div>`;
+  throw new Error('Service key not configured');
+}
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false }
 });
@@ -182,7 +195,7 @@ async function doLogin() {
   const pass  = document.getElementById('login-password').value;
   // Super-admin login hardcoded para simplicidade
   // Em produção: verificar contra uma tabela de super-admins
-  if (email === 'kikocarujo@gmail.com' && pass === 'Carujo99') {
+  if (email === 'superadmin@fieldtrack.io' && pass === 'MUDA_ESTA_PASSWORD') {
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'block';
     document.getElementById('admin-email').textContent = email;
@@ -262,10 +275,20 @@ async function createTenant() {
 
   if (error) return alert('Erro: ' + error.message);
 
-  const inviteUrl = `https://myinventorytracker.vercel.app/?tenant=${data.id}&slug=${slug}`;
+  const appBase = window.location.origin;
+  const inviteUrl = `${appBase}?tenant=${data.id}&slug=${slug}`;
   document.getElementById('invite-link').textContent = inviteUrl;
   document.getElementById('invite-result').style.display = 'block';
   await loadDashboard();
+}
+
+function copyInviteFromBox(el) {
+  navigator.clipboard.writeText(el.textContent.trim()).then(() => {
+    const orig = el.style.background;
+    el.style.background = '#d4edda';
+    el.title = 'Copiado!';
+    setTimeout(() => { el.style.background = orig; el.title = 'Clica para copiar'; }, 1500);
+  });
 }
 
 function openEdit(id, plan, active) {
@@ -289,7 +312,8 @@ async function saveTenant() {
 }
 
 function copyInvite(id, slug) {
-  const url = `https://fieldtrack.vercel.app?tenant=${id}&slug=${slug}`;
+  const appBase = window.location.origin;
+  const url = `${appBase}?tenant=${id}&slug=${slug}`;
   navigator.clipboard.writeText(url).then(() => alert('Link copiado:\n' + url));
 }
 
