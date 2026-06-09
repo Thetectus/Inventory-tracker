@@ -411,17 +411,33 @@ async function signUp() {
   const role = document.getElementById('signup-role').value;
   if (!name || !email || !password) return showAuthMsg('Preenche todos os campos.', 'error');
 
-  // Lê tenant_id do URL (ex: ?tenant=uuid&slug=empresa-x)
+  // Lê tenant_id do URL (?tenant=uuid&slug=...)
   const params = new URLSearchParams(window.location.search);
   const tenantId = params.get('tenant');
-  if (!tenantId) return showAuthMsg('Link de convite inválido. Pede um novo link ao administrador FieldTrack.', 'error');
+  if (!tenantId) return showAuthMsg('Link de convite inválido. Pede um novo link ao administrador.', 'error');
 
-  const { error } = await sb.auth.signUp({
+  const { data: signUpData, error } = await sb.auth.signUp({
     email, password,
     options: { data: { full_name: name, role, tenant_id: tenantId } }
   });
-  if (error) showAuthMsg(error.message, 'error');
-  else showAuthMsg('Conta criada! Confirma o email e depois entra.', 'success');
+  if (error) return showAuthMsg(error.message, 'error');
+
+  // Fallback: se o trigger não colocou o tenant_id, actualizamos directamente
+  // (acontece quando o email confirmation está activo — o perfil é criado depois)
+  if (signUpData?.user) {
+    // Pequena espera para o trigger handle_new_user correr
+    await new Promise(r => setTimeout(r, 800));
+    const { data: prof } = await sb.from('profiles').select('tenant_id').eq('id', signUpData.user.id).single();
+    if (prof && !prof.tenant_id) {
+      await sb.from('profiles').update({ tenant_id: tenantId, full_name: name }).eq('id', signUpData.user.id);
+    }
+  }
+
+  if (signUpData?.user?.identities?.length === 0) {
+    showAuthMsg('Este email já está registado. Tenta entrar directamente.', 'error');
+  } else {
+    showAuthMsg('Conta criada! Já podes entrar clicando em Sign in.', 'success');
+  }
 }
 
 async function signOut() {
@@ -456,10 +472,21 @@ async function loadApp(user) {
     return;
   }
 
-  // Bloquear se sem tenant (utilizador não criado via link de convite)
+  // Se não tem tenant_id mas está no URL, tenta recuperar automaticamente
   if (!profile?.tenant_id) {
+    const params = new URLSearchParams(window.location.search);
+    const tenantId = params.get('tenant');
+    if (tenantId) {
+      // Tenta associar agora (pode ter ficado pendente se email confirmation estava activo)
+      await sb.from('profiles').update({ tenant_id: tenantId }).eq('id', user.id);
+      // Recarrega o perfil
+      const { data: refreshed } = await sb.from('profiles').select('*, tenants(name, plan, active)').eq('id', user.id).single();
+      if (refreshed?.tenant_id) {
+        return loadApp(user); // retry com perfil actualizado
+      }
+    }
     document.getElementById('auth-screen').style.display = 'flex';
-    showAuthMsg('Conta sem empresa associada. Usa o link de convite enviado pelo administrador.', 'error');
+    showAuthMsg('Conta sem empresa associada. Abre o link de convite e tenta novamente.', 'error');
     await sb.auth.signOut();
     return;
   }
