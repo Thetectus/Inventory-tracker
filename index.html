@@ -461,58 +461,75 @@ function hideAuthMsg() { document.getElementById('auth-msg').style.display = 'no
 // ═══════════════════════════════════════════════════
 async function loadApp(user) {
   currentUser = user;
-  const { data: profile } = await sb.from('profiles').select('*, tenants(name, plan, active)').eq('id', user.id).single();
-  currentProfile = profile;
 
-  // Bloquear se empresa suspensa
-  if (profile?.tenants && !profile.tenants.active) {
-    document.getElementById('auth-screen').style.display = 'flex';
-    showAuthMsg('A conta da sua empresa está suspensa. Contacte o suporte FieldTrack.', 'error');
-    await sb.auth.signOut();
+  // Query 1: perfil simples (sem join — mais robusto com RLS)
+  const { data: profile, error: profileErr } = await sb
+    .from('profiles')
+    .select('id, full_name, role, tenant_id, assigned_countries')
+    .eq('id', user.id)
+    .single();
+
+  if (profileErr || !profile) {
+    showAuthScreen();
+    showAuthMsg('Erro ao carregar perfil. Tenta novamente.', 'error');
     return;
   }
 
-  // Se não tem tenant_id mas está no URL, tenta recuperar automaticamente
-  if (!profile?.tenant_id) {
+  // Se não tem tenant_id: tenta recuperar do URL antes de bloquear
+  if (!profile.tenant_id) {
     const params = new URLSearchParams(window.location.search);
     const tenantId = params.get('tenant');
     if (tenantId) {
-      // Tenta associar agora (pode ter ficado pendente se email confirmation estava activo)
-      await sb.from('profiles').update({ tenant_id: tenantId }).eq('id', user.id);
-      // Recarrega o perfil
-      const { data: refreshed } = await sb.from('profiles').select('*, tenants(name, plan, active)').eq('id', user.id).single();
-      if (refreshed?.tenant_id) {
-        return loadApp(user); // retry com perfil actualizado
+      const { error: updErr } = await sb
+        .from('profiles')
+        .update({ tenant_id: tenantId })
+        .eq('id', user.id);
+      if (!updErr) {
+        // Recarrega com o tenant_id agora definido
+        profile.tenant_id = tenantId;
       }
     }
-    document.getElementById('auth-screen').style.display = 'flex';
-    showAuthMsg('Conta sem empresa associada. Abre o link de convite e tenta novamente.', 'error');
+    if (!profile.tenant_id) {
+      showAuthScreen();
+      showAuthMsg('Conta sem empresa associada. Abre o link de convite e tenta novamente.', 'error');
+      await sb.auth.signOut();
+      return;
+    }
+  }
+
+  // Query 2: dados do tenant (separada para não falhar o login se o join falhar)
+  const { data: tenant } = await sb
+    .from('tenants')
+    .select('name, plan, active')
+    .eq('id', profile.tenant_id)
+    .single();
+
+  // Bloquear se empresa suspensa
+  if (tenant && !tenant.active) {
+    showAuthScreen();
+    showAuthMsg('A conta da sua empresa está suspensa. Contacte o suporte.', 'error');
     await sb.auth.signOut();
     return;
   }
 
+  currentProfile = { ...profile, tenants: tenant };
+
+  // Mostrar app
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'flex';
   document.getElementById('app-screen').style.flexDirection = 'column';
-  document.getElementById('user-name').textContent = profile?.full_name || user.email;
+  document.getElementById('user-name').textContent = profile.full_name || user.email;
 
-  // Mostrar nome da empresa na navbar
-  if (profile?.tenants?.name) {
-    const companyEl = document.getElementById('company-name');
-    if (companyEl) companyEl.textContent = profile.tenants.name;
-  }
+  const companyEl = document.getElementById('company-name');
+  if (companyEl && tenant?.name) companyEl.textContent = tenant.name;
 
   const rolePill = document.getElementById('role-pill');
-  rolePill.textContent = profile?.role || 'viewer';
-  rolePill.className = 'role-pill role-' + (profile?.role || 'viewer');
+  rolePill.textContent = profile.role || 'viewer';
+  rolePill.className = 'role-pill role-' + (profile.role || 'viewer');
 
-  if (profile?.role === 'admin') {
-    document.getElementById('btn-add').style.display = '';
-    document.getElementById('tab-users').style.display = '';
-  }
-  if (profile?.role === 'viewer') {
-    document.getElementById('tab-upload').style.display = 'none';
-  }
+  document.getElementById('btn-add').style.display         = profile.role === 'admin' ? '' : 'none';
+  document.getElementById('tab-users').style.display       = profile.role === 'admin' ? '' : 'none';
+  document.getElementById('tab-upload').style.display      = profile.role === 'viewer' ? 'none' : '';
 
   populateFilters();
   await loadInventory();
