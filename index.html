@@ -143,6 +143,44 @@
   .user-row:last-child { border-bottom: none; }
   .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--blue-bg); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--blue-text); flex-shrink: 0; }
 
+  /* DASHBOARD */
+  .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 14px; margin-bottom: 1.25rem; }
+  .dash-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; }
+  .dash-card h3 { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  .dash-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .dash-row:last-child { border-bottom: none; }
+  .dash-bar-wrap { margin-top: 4px; }
+  .dash-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+  .dash-bar-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+  .stat-big { font-size: 28px; font-weight: 500; margin-bottom: 2px; }
+  .stat-label { font-size: 12px; color: var(--text2); }
+  .stat-delta { font-size: 11px; margin-top: 2px; }
+  .stat-delta.up { color: #3b6d11; } .stat-delta.down { color: #a32d2d; }
+
+  /* TRANSFER APPROVAL */
+  .approval-card { border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; background: var(--bg); }
+  .approval-card.pending { border-left: 3px solid var(--amber-text); }
+  .approval-card.approved { border-left: 3px solid var(--green-text); opacity: .7; }
+  .approval-card.rejected { border-left: 3px solid var(--red-text); opacity: .7; }
+  .approval-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .approval-title { font-size: 13px; font-weight: 500; }
+  .approval-meta { font-size: 11px; color: var(--text3); margin-top: 3px; }
+  .approval-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .btn-approve { background: var(--green-bg); color: var(--green-text); border-color: var(--green-border); }
+  .btn-reject  { background: var(--red-bg);   color: var(--red-text);   border-color: var(--red-border);   }
+  .badge-pending  { background: var(--amber-bg); color: var(--amber-text); }
+  .badge-approved { background: var(--green-bg); color: var(--green-text); }
+  .badge-rejected { background: var(--red-bg);   color: var(--red-text);   }
+  .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber-text); display: inline-block; margin-left: 4px; vertical-align: middle; }
+
+  /* REPORT */
+  .report-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1rem 0; }
+  .report-card { border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; cursor: pointer; transition: background .12s; }
+  .report-card:hover { background: var(--bg2); }
+  .report-card h4 { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .report-card p { font-size: 12px; color: var(--text2); }
+  .report-icon { width: 32px; height: 32px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+
   @media (max-width: 600px) {
     .form-grid { grid-template-columns: 1fr; }
     .kpi-grid { grid-template-columns: 1fr 1fr; }
@@ -205,9 +243,12 @@
 
     <div class="tabs">
       <button class="tab active" onclick="showTab('inventory')">Inventory</button>
+      <button class="tab" onclick="showTab('dashboard')" id="tab-dashboard">Dashboard</button>
       <button class="tab" onclick="showTab('upload')" id="tab-upload">Bulk upload</button>
+      <button class="tab" onclick="showTab('approvals')" id="tab-approvals">Approvals<span class="notif-dot" id="approvals-dot" style="display:none"></span></button>
       <button class="tab" onclick="showTab('consumption')">Consumption</button>
       <button class="tab" onclick="showTab('history')">Movement history</button>
+      <button class="tab" onclick="showTab('reports')">Reports</button>
       <button class="tab" onclick="showTab('users')" id="tab-users" style="display:none">Users</button>
     </div>
 
@@ -304,6 +345,90 @@
     <div id="pane-users" style="display:none">
       <div class="notice notice-info">Manage team access. Only admins can change roles and country assignments.</div>
       <div id="users-list"><div class="loading-state"><div class="spinner"></div> Loading...</div></div>
+    </div>
+
+    <!-- DASHBOARD PANE -->
+    <div id="pane-dashboard" style="display:none">
+      <div id="dash-content"><div class="loading-state"><div class="spinner"></div> Loading dashboard...</div></div>
+    </div>
+
+    <!-- APPROVALS PANE -->
+    <div id="pane-approvals" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+        <div style="font-size:15px;font-weight:500">Transfer requests</div>
+        <div class="filters" style="margin:0">
+          <div class="filter-group"><label>Status</label>
+            <select id="apr-status" onchange="renderApprovals()">
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="">All</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="approvals-list"><div class="loading-state"><div class="spinner"></div> Loading...</div></div>
+    </div>
+
+    <!-- REPORTS PANE -->
+    <div id="pane-reports" style="display:none">
+      <div style="font-size:15px;font-weight:500;margin-bottom:.5rem">Export reports</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:1rem">Generate detailed reports of your inventory, consumption, and movements.</div>
+
+      <div style="font-size:13px;font-weight:500;margin-bottom:.75rem">Filter report data</div>
+      <div class="filters" style="margin-bottom:1.25rem">
+        <div class="filter-group"><label>Country</label><select id="rep-country"><option value="">All countries</option></select></div>
+        <div class="filter-group"><label>Location</label><select id="rep-location"><option value="">All locations</option></select></div>
+        <div class="filter-group"><label>Type</label><select id="rep-type"><option value="">All types</option><option>Spare part</option><option>Tool</option></select></div>
+        <div class="filter-group"><label>Date from</label><input type="date" id="rep-from" style="padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px"></div>
+        <div class="filter-group"><label>Date to</label><input type="date" id="rep-to" style="padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px"></div>
+      </div>
+
+      <div class="report-options">
+        <div class="report-card" onclick="generateReport('inventory','xlsx')">
+          <div class="report-icon" style="background:var(--green-bg)">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--green-text)" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2"/><path d="M6 6h6M6 9h6M6 12h4"/></svg>
+          </div>
+          <h4>Inventory snapshot — Excel</h4>
+          <p>Current stock by location with quantities and values. Ideal for analysis and cross-referencing.</p>
+        </div>
+        <div class="report-card" onclick="generateReport('inventory','pdf')">
+          <div class="report-icon" style="background:var(--red-bg)">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--red-text)" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2"/><path d="M6 6h6M6 9h6M6 12h4"/></svg>
+          </div>
+          <h4>Inventory snapshot — PDF</h4>
+          <p>Printable inventory report for meetings and audits. Includes totals and low stock alerts.</p>
+        </div>
+        <div class="report-card" onclick="generateReport('consumption','xlsx')">
+          <div class="report-icon" style="background:var(--amber-bg)">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--amber-text)" stroke-width="1.5"><path d="M9 2v14M2 9h14"/><circle cx="9" cy="9" r="7"/></svg>
+          </div>
+          <h4>Consumption report — Excel</h4>
+          <p>All consumed items with cost breakdown by country and location.</p>
+        </div>
+        <div class="report-card" onclick="generateReport('consumption','pdf')">
+          <div class="report-icon" style="background:var(--blue-bg)">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--blue-text)" stroke-width="1.5"><path d="M9 2v14M2 9h14"/><circle cx="9" cy="9" r="7"/></svg>
+          </div>
+          <h4>Consumption report — PDF</h4>
+          <p>Printable consumption summary for management review.</p>
+        </div>
+        <div class="report-card" onclick="generateReport('movements','xlsx')">
+          <div class="report-icon" style="background:var(--bg2)">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--text2)" stroke-width="1.5"><path d="M2 9h14M11 5l4 4-4 4"/></svg>
+          </div>
+          <h4>Movement history — Excel</h4>
+          <p>Full audit trail of all transfers, additions and consumptions.</p>
+        </div>
+        <div class="report-card" onclick="generateReport('movements','pdf')">
+          <div class="report-icon" style="background:var(--bg2)">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--text2)" stroke-width="1.5"><path d="M2 9h14M11 5l4 4-4 4"/></svg>
+          </div>
+          <h4>Movement history — PDF</h4>
+          <p>Printable movement history for compliance and audits.</p>
+        </div>
+      </div>
+      <div id="report-status"></div>
     </div>
   </div>
 </div>
@@ -533,6 +658,7 @@ async function loadApp(user) {
 
   populateFilters();
   await loadInventory();
+  if (profile.role === 'admin') checkPendingApprovals();
 }
 
 // ═══════════════════════════════════════════════════
@@ -734,16 +860,19 @@ function updateKPIs() {
 // TABS
 // ═══════════════════════════════════════════════════
 function showTab(tab) {
-  ['inventory','upload','consumption','history','users'].forEach(t => {
+  ['inventory','dashboard','upload','approvals','consumption','history','reports','users'].forEach(t => {
     const p = document.getElementById('pane-' + t); if (p) p.style.display = t === tab ? 'block' : 'none';
   });
-  document.querySelectorAll('.tab').forEach((b, i) => {
-    const names = ['inventory','upload','consumption','history','users'];
-    b.classList.toggle('active', names[i] === tab);
+  document.querySelectorAll('.tab').forEach(b => {
+    const fn = b.getAttribute('onclick') || '';
+    b.classList.toggle('active', fn.includes("'" + tab + "'"));
   });
-  if (tab === 'history') renderHistory();
+  if (tab === 'history')    renderHistory();
   if (tab === 'consumption') renderConsumption();
-  if (tab === 'users') renderUsers();
+  if (tab === 'users')      renderUsers();
+  if (tab === 'dashboard')  renderDashboard();
+  if (tab === 'approvals')  renderApprovals();
+  if (tab === 'reports')    initReportFilters();
 }
 
 // ═══════════════════════════════════════════════════
@@ -826,9 +955,33 @@ async function submitTransfer() {
   if (!item) return alert('Serial number not found.');
   if (qty > item.qty) return alert('Transfer quantity exceeds available stock.');
 
-  const fromLoc = item.location;
-  const fromCountry = item.country;
+  // Admins execute directly; supervisors create a request for approval
+  if (currentProfile.role === 'admin') {
+    await executeTransfer(item, serial, toCountry, toLoc, qty, notes);
+  } else {
+    const { error } = await sb.from('transfer_requests').insert({
+      serial_number: serial,
+      item_name: item.name,
+      qty,
+      from_location: item.location,
+      from_country: item.country,
+      to_location: toLoc,
+      to_country: toCountry,
+      notes: notes || null,
+      requested_by: currentUser.id,
+      tenant_id: currentProfile.tenant_id,
+      status: 'pending'
+    });
+    if (error) return alert('Error submitting request: ' + error.message);
+    closeTransferModal();
+    alert('Transfer request submitted. Awaiting admin approval.');
+    return;
+  }
+  closeTransferModal();
+  await loadInventory();
+}
 
+async function executeTransfer(item, serial, toCountry, toLoc, qty, notes) {
   if (item.qty === qty) {
     await sb.from('inventory').update({ location: toLoc, country: toCountry }).eq('id', item.id);
   } else {
@@ -840,10 +993,7 @@ async function submitTransfer() {
       await sb.from('inventory').insert({ serial_number: serial, name: item.name, type: item.type, country: toCountry, location: toLoc, qty, unit_cost: item.unit_cost, min_qty_alert: item.min_qty_alert, tenant_id: currentProfile.tenant_id });
     }
   }
-  await sb.from('movements').insert({ action: 'Transfer', serial_number: serial, item_name: item.name, qty, from_location: fromLoc, to_location: toLoc, country: toCountry, notes: notes || null, performed_by: currentUser.id, tenant_id: currentProfile.tenant_id });
-
-  closeTransferModal();
-  await loadInventory();
+  await sb.from('movements').insert({ action: 'Transfer', serial_number: serial, item_name: item.name, qty, from_location: item.location, to_location: toLoc, country: toCountry, notes: notes || null, performed_by: currentUser.id, tenant_id: currentProfile.tenant_id });
 }
 
 // ═══════════════════════════════════════════════════
@@ -1361,6 +1511,384 @@ async function editUser(id, currentRole) {
   const countries = countriesStr ? countriesStr.split(',').map(c => c.trim()).filter(Boolean) : [];
   await sb.from('profiles').update({ role: newRole, assigned_countries: countries }).eq('id', id);
   renderUsers();
+}
+
+// ═══════════════════════════════════════════════════
+// PENDING APPROVALS NOTIFICATION DOT
+// ═══════════════════════════════════════════════════
+async function checkPendingApprovals() {
+  const { count } = await sb.from('transfer_requests')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', currentProfile.tenant_id)
+    .eq('status', 'pending');
+  const dot = document.getElementById('approvals-dot');
+  if (dot) dot.style.display = count > 0 ? 'inline-block' : 'none';
+}
+
+// ═══════════════════════════════════════════════════
+// APPROVALS
+// ═══════════════════════════════════════════════════
+async function renderApprovals() {
+  const status = document.getElementById('apr-status').value;
+  let query = sb.from('transfer_requests')
+    .select('*, requested_by_profile:profiles!transfer_requests_requested_by_fkey(full_name)')
+    .eq('tenant_id', currentProfile.tenant_id)
+    .order('created_at', { ascending: false });
+  if (status) query = query.eq('status', status);
+  const { data, error } = await query;
+  const el = document.getElementById('approvals-list');
+  if (error || !data?.length) {
+    el.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">No ${status || ''} transfer requests.</div>`;
+    return;
+  }
+  const isAdmin = currentProfile.role === 'admin';
+  el.innerHTML = data.map(r => `
+    <div class="approval-card ${r.status}">
+      <div class="approval-head">
+        <div>
+          <div class="approval-title">${r.item_name} <span style="font-family:monospace;font-size:11px;color:var(--text3)">${r.serial_number}</span></div>
+          <div class="approval-meta">
+            Qty: <strong>${r.qty}</strong> &nbsp;·&nbsp;
+            From: ${r.from_location} (${r.from_country}) &nbsp;→&nbsp; To: ${r.to_location} (${r.to_country})
+          </div>
+          <div class="approval-meta">
+            Requested by ${r.requested_by_profile?.full_name || 'Unknown'} &nbsp;·&nbsp;
+            ${new Date(r.created_at).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'})}
+            ${r.notes ? ' &nbsp;·&nbsp; ' + r.notes : ''}
+          </div>
+          ${r.review_notes ? `<div class="approval-meta" style="font-style:italic">Review note: ${r.review_notes}</div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <span class="badge badge-${r.status}">${r.status}</span>
+          ${isAdmin && r.status === 'pending' ? `
+            <div class="approval-actions">
+              <button class="btn btn-sm btn-approve" onclick="reviewTransfer(${r.id}, 'approved')">Approve</button>
+              <button class="btn btn-sm btn-reject"  onclick="reviewTransfer(${r.id}, 'rejected')">Reject</button>
+            </div>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function reviewTransfer(requestId, decision) {
+  const reviewNotes = decision === 'rejected'
+    ? prompt('Reason for rejection (optional):')
+    : null;
+
+  const { data: req } = await sb.from('transfer_requests').select('*').eq('id', requestId).single();
+  if (!req) return;
+
+  const { error: upErr } = await sb.from('transfer_requests').update({
+    status: decision,
+    reviewed_by: currentUser.id,
+    review_notes: reviewNotes || null,
+    reviewed_at: new Date().toISOString()
+  }).eq('id', requestId);
+  if (upErr) return alert('Error: ' + upErr.message);
+
+  if (decision === 'approved') {
+    const item = inventory.find(i => i.serial_number === req.serial_number && i.tenant_id === currentProfile.tenant_id);
+    if (item) await executeTransfer(item, req.serial_number, req.to_country, req.to_location, req.qty, req.notes);
+  }
+
+  checkPendingApprovals();
+  renderApprovals();
+  if (decision === 'approved') await loadInventory();
+}
+
+// ═══════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════
+async function renderDashboard() {
+  const el = document.getElementById('dash-content');
+  el.innerHTML = '<div class="loading-state"><div class="spinner"></div> Loading dashboard...</div>';
+
+  const [invRes, conRes, movRes, reqRes] = await Promise.all([
+    sb.from('inventory').select('*').eq('tenant_id', currentProfile.tenant_id),
+    sb.from('consumption_log').select('*').eq('tenant_id', currentProfile.tenant_id),
+    sb.from('movements').select('*').eq('tenant_id', currentProfile.tenant_id).order('created_at', {ascending:false}).limit(5),
+    sb.from('transfer_requests').select('*').eq('tenant_id', currentProfile.tenant_id).eq('status','pending'),
+  ]);
+
+  const inv = invRes.data || [];
+  const con = conRes.data || [];
+  const mov = movRes.data || [];
+  const pendingReqs = reqRes.data || [];
+
+  const totalValue = inv.reduce((s,i) => s + i.qty * i.unit_cost, 0);
+  const totalConsumed = con.reduce((s,c) => s + c.qty * c.unit_cost, 0);
+  const lowStock = inv.filter(i => i.qty < i.min_qty_alert);
+  const countries = [...new Set(inv.map(i => i.country))];
+
+  // Value by country
+  const byCountry = {};
+  inv.forEach(i => { byCountry[i.country] = (byCountry[i.country] || 0) + i.qty * i.unit_cost; });
+  const sortedCountries = Object.entries(byCountry).sort((a,b) => b[1]-a[1]);
+  const maxCountryVal = sortedCountries[0]?.[1] || 1;
+
+  // Consumption by country
+  const conByCountry = {};
+  con.forEach(c => { conByCountry[c.country] = (conByCountry[c.country] || 0) + c.qty * c.unit_cost; });
+
+  const isViewer = currentProfile.role === 'viewer';
+  const fmt = n => '$' + Math.round(n).toLocaleString();
+
+  el.innerHTML = `
+    <!-- Top KPIs -->
+    <div class="kpi-grid" style="margin-bottom:1.25rem">
+      <div class="kpi"><div class="kpi-label">Total inventory value</div><div class="kpi-value">${isViewer ? inv.reduce((s,i)=>s+i.qty,0) + ' units' : fmt(totalValue)}</div><div class="kpi-sub">${inv.length} items · ${countries.length} countries</div></div>
+      ${isViewer ? '' : `<div class="kpi"><div class="kpi-label">Total consumed</div><div class="kpi-value red">${fmt(totalConsumed)}</div><div class="kpi-sub">${con.length} events</div></div>`}
+      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${lowStock.length > 0 ? 'amber' : 'green'}">${lowStock.length}</div><div class="kpi-sub">${lowStock.length > 0 ? 'Items below minimum' : 'All sufficient'}</div></div>
+      <div class="kpi"><div class="kpi-label">Pending transfers</div><div class="kpi-value ${pendingReqs.length > 0 ? 'amber' : 'green'}">${pendingReqs.length}</div><div class="kpi-sub">Awaiting approval</div></div>
+    </div>
+
+    <div class="dash-grid">
+
+      <!-- Value by country -->
+      <div class="dash-card">
+        <h3>Inventory value by country</h3>
+        ${sortedCountries.map(([country, val]) => `
+          <div class="dash-bar-wrap">
+            <div class="dash-row" style="padding-bottom:2px">
+              <span>${country}</span>
+              <span style="font-weight:500">${isViewer ? '' : fmt(val)}</span>
+            </div>
+            <div class="dash-bar">
+              <div class="dash-bar-fill" style="width:${Math.round(val/maxCountryVal*100)}%;background:var(--blue-text)"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Low stock -->
+      <div class="dash-card">
+        <h3>⚠ Low stock items</h3>
+        ${lowStock.length === 0
+          ? '<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">All items above minimum stock ✓</div>'
+          : lowStock.slice(0,8).map(i => `
+            <div class="dash-row">
+              <div>
+                <div style="font-size:13px">${i.name}</div>
+                <div style="font-size:11px;color:var(--text3)">${i.location} · ${i.country}</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:500;color:var(--amber-text)">${i.qty} left</div>
+                <div style="font-size:11px;color:var(--text3)">min: ${i.min_qty_alert}</div>
+              </div>
+            </div>`).join('')
+        }
+      </div>
+
+      <!-- Recent movements -->
+      <div class="dash-card">
+        <h3>Recent movements</h3>
+        ${mov.length === 0
+          ? '<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">No movements yet</div>'
+          : mov.map(m => `
+            <div class="dash-row">
+              <div>
+                <span class="badge badge-${m.action==='Consumed'?'consumed':m.action==='Transfer'?'transfer':'bulk'}" style="margin-right:6px">${m.action}</span>
+                <span style="font-size:13px">${m.item_name}</span>
+              </div>
+              <div style="font-size:11px;color:var(--text3)">${new Date(m.created_at).toLocaleDateString('en-GB')}</div>
+            </div>`).join('')
+        }
+      </div>
+
+      <!-- Consumption by country -->
+      ${isViewer ? '' : `<div class="dash-card">
+        <h3>Consumption by country</h3>
+        ${Object.entries(conByCountry).length === 0
+          ? '<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">No consumption recorded yet</div>'
+          : Object.entries(conByCountry).sort((a,b)=>b[1]-a[1]).map(([c,v]) => `
+            <div class="dash-row"><span>${c}</span><span style="font-weight:500;color:var(--red-text)">${fmt(v)}</span></div>`).join('')
+        }
+      </div>`}
+
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════
+// REPORTS
+// ═══════════════════════════════════════════════════
+function initReportFilters() {
+  const countries = Object.keys(LOCATIONS).sort();
+  const rc = document.getElementById('rep-country');
+  const rl = document.getElementById('rep-location');
+  if (rc && rc.options.length <= 1) {
+    countries.forEach(c => { const o = document.createElement('option'); o.value=c; o.textContent=c; rc.appendChild(o); });
+  }
+  rc.onchange = () => {
+    rl.innerHTML = '<option value="">All locations</option>';
+    const locs = rc.value ? LOCATIONS[rc.value] : Object.values(LOCATIONS).flat();
+    locs.forEach(l => { const o = document.createElement('option'); o.value=l; o.textContent=l; rl.appendChild(o); });
+  };
+}
+
+async function generateReport(type, format) {
+  const country  = document.getElementById('rep-country').value;
+  const location = document.getElementById('rep-location').value;
+  const rtype    = document.getElementById('rep-type').value;
+  const dateFrom = document.getElementById('rep-from').value;
+  const dateTo   = document.getElementById('rep-to').value;
+  const statusEl = document.getElementById('report-status');
+  statusEl.innerHTML = '<div class="notice notice-info">Generating report...</div>';
+
+  const tenantName = currentProfile.tenants?.name || 'FieldTrack';
+  const dateLabel  = dateFrom && dateTo ? `${dateFrom} to ${dateTo}` : dateFrom ? `From ${dateFrom}` : dateTo ? `To ${dateTo}` : 'All dates';
+  const now        = new Date().toLocaleDateString('en-GB');
+
+  if (type === 'inventory') {
+    let data = [...inventory];
+    if (country)  data = data.filter(i => i.country === country);
+    if (location) data = data.filter(i => i.location === location);
+    if (rtype)    data = data.filter(i => i.type === rtype);
+    const totalVal = data.reduce((s,i) => s+i.qty*i.unit_cost, 0);
+
+    if (format === 'xlsx') {
+      const rows = [
+        [`${tenantName} — Inventory Report`, '', '', '', '', '', ''],
+        [`Generated: ${now}`, '', '', '', '', '', ''],
+        [''],
+        ['Serial #', 'Name', 'Type', 'Country', 'Location', 'Qty', 'Unit cost', 'Total value', 'Status'],
+        ...data.map(i => [i.serial_number, i.name, i.type, i.country, i.location, i.qty, i.unit_cost, i.qty*i.unit_cost, i.qty < i.min_qty_alert ? 'Low stock' : 'OK']),
+        [''],
+        ['', '', '', '', 'TOTAL', data.reduce((s,i)=>s+i.qty,0), '', totalVal, '']
+      ];
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = [14,24,12,14,24,8,12,14,12].map(w=>({wch:w}));
+      XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+      XLSX.writeFile(wb, `FieldTrack_Inventory_${now.replace(/\//g,'-')}.xlsx`);
+      statusEl.innerHTML = `<div class="notice notice-success">Excel report downloaded — ${data.length} items.</div>`;
+
+    } else {
+      const isViewer = currentProfile.role === 'viewer';
+      const rows = data.map(i => `
+        <tr style="background:${i.qty<i.min_qty_alert?'#fffbe6':'white'}">
+          <td style="font-family:monospace;font-size:11px">${i.serial_number}</td>
+          <td>${i.name}</td><td>${i.type}</td><td>${i.country}</td><td>${i.location}</td>
+          <td style="text-align:center">${i.qty}</td>
+          ${isViewer?'':`<td style="text-align:right">$${i.unit_cost.toLocaleString()}</td><td style="text-align:right;font-weight:500">$${(i.qty*i.unit_cost).toLocaleString()}</td>`}
+          <td><span style="padding:2px 7px;border-radius:10px;font-size:11px;background:${i.qty<i.min_qty_alert?'#faeeda':'#eaf3de'};color:${i.qty<i.min_qty_alert?'#633806':'#27500a'}">${i.qty<i.min_qty_alert?'Low':'OK'}</span></td>
+        </tr>`).join('');
+
+      const html = buildPDFHtml(tenantName, 'Inventory Report', dateLabel, now,
+        `<table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:#0c447c;color:white">${['Serial #','Name','Type','Country','Location','Qty',...(isViewer?[]:['Unit cost','Total value']),'Status'].map(h=>`<th style="padding:7px 10px;text-align:left">${h}</th>`).join('')}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        ${isViewer?'':`<div style="margin-top:1rem;padding:10px;background:#f5f5f4;border-radius:6px;font-size:13px"><strong>Total items:</strong> ${data.length} &nbsp;·&nbsp; <strong>Total qty:</strong> ${data.reduce((s,i)=>s+i.qty,0)} &nbsp;·&nbsp; <strong>Total value:</strong> $${Math.round(totalVal).toLocaleString()}</div>`}`
+      );
+      printHTML(html);
+      statusEl.innerHTML = `<div class="notice notice-success">PDF opened in new tab — use Ctrl+P to print or save.</div>`;
+    }
+
+  } else if (type === 'consumption') {
+    let { data: con } = await sb.from('consumption_log').select('*').eq('tenant_id', currentProfile.tenant_id).order('created_at',{ascending:false});
+    con = con || [];
+    if (country)  con = con.filter(c => c.country === country);
+    if (location) con = con.filter(c => c.location === location);
+    if (dateFrom) con = con.filter(c => c.created_at >= dateFrom);
+    if (dateTo)   con = con.filter(c => c.created_at <= dateTo + 'T23:59:59');
+    const totalCon = con.reduce((s,c)=>s+c.qty*c.unit_cost,0);
+
+    if (format === 'xlsx') {
+      const rows = [
+        [`${tenantName} — Consumption Report`, '', '', '', '', ''],
+        [`Generated: ${now}  |  Period: ${dateLabel}`],[''],
+        ['Date','Serial #','Name','Country','Location','Qty','Unit cost','Total value'],
+        ...con.map(c=>[c.created_at.slice(0,10),c.serial_number,c.item_name,c.country,c.location,c.qty,c.unit_cost,c.qty*c.unit_cost]),
+        [''],['','','','','TOTAL',con.reduce((s,c)=>s+c.qty,0),'',totalCon]
+      ];
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = [12,14,22,14,22,8,12,14].map(w=>({wch:w}));
+      XLSX.utils.book_append_sheet(wb, ws, 'Consumption');
+      XLSX.writeFile(wb, `FieldTrack_Consumption_${now.replace(/\//g,'-')}.xlsx`);
+      statusEl.innerHTML = `<div class="notice notice-success">Excel report downloaded — ${con.length} events.</div>`;
+    } else {
+      const isViewer = currentProfile.role === 'viewer';
+      const rows = con.map(c=>`<tr><td style="font-size:11px">${c.created_at.slice(0,10)}</td><td style="font-family:monospace;font-size:11px">${c.serial_number}</td><td>${c.item_name}</td><td>${c.country}</td><td>${c.location}</td><td style="text-align:center">${c.qty}</td>${isViewer?'':`<td style="text-align:right">$${c.unit_cost.toLocaleString()}</td><td style="text-align:right;font-weight:500;color:#a32d2d">$${(c.qty*c.unit_cost).toLocaleString()}</td>`}</tr>`).join('');
+      const html = buildPDFHtml(tenantName, 'Consumption Report', dateLabel, now,
+        `<table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:#0c447c;color:white">${['Date','Serial #','Name','Country','Location','Qty',...(isViewer?[]:['Unit cost','Total value'])].map(h=>`<th style="padding:7px 10px;text-align:left">${h}</th>`).join('')}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        ${isViewer?'':`<div style="margin-top:1rem;padding:10px;background:#f5f5f4;border-radius:6px;font-size:13px"><strong>Total events:</strong> ${con.length} &nbsp;·&nbsp; <strong>Total consumed value:</strong> $${Math.round(totalCon).toLocaleString()}</div>`}`
+      );
+      printHTML(html);
+      statusEl.innerHTML = `<div class="notice notice-success">PDF opened in new tab.</div>`;
+    }
+
+  } else if (type === 'movements') {
+    let { data: mov } = await sb.from('movements').select('*').eq('tenant_id', currentProfile.tenant_id).order('created_at',{ascending:false});
+    mov = mov || [];
+    if (country)  mov = mov.filter(m => m.country === country);
+    if (dateFrom) mov = mov.filter(m => m.created_at >= dateFrom);
+    if (dateTo)   mov = mov.filter(m => m.created_at <= dateTo + 'T23:59:59');
+
+    if (format === 'xlsx') {
+      const rows = [
+        [`${tenantName} — Movement History`, '', '', '', '', '', ''],
+        [`Generated: ${now}  |  Period: ${dateLabel}`],[''],
+        ['Date','Action','Serial #','Item name','Qty','From','To','Country','Notes'],
+        ...mov.map(m=>[m.created_at.slice(0,10),m.action,m.serial_number,m.item_name,m.qty,m.from_location||'—',m.to_location||'—',m.country,m.notes||''])
+      ];
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = [12,12,14,24,6,22,22,12,24].map(w=>({wch:w}));
+      XLSX.utils.book_append_sheet(wb, ws, 'Movements');
+      XLSX.writeFile(wb, `FieldTrack_Movements_${now.replace(/\//g,'-')}.xlsx`);
+      statusEl.innerHTML = `<div class="notice notice-success">Excel report downloaded — ${mov.length} movements.</div>`;
+    } else {
+      const rows = mov.map(m=>`<tr><td style="font-size:11px">${m.created_at.slice(0,10)}</td><td><span style="padding:2px 7px;border-radius:10px;font-size:10px;background:#e6f1fb;color:#0c447c">${m.action}</span></td><td style="font-family:monospace;font-size:11px">${m.serial_number}</td><td>${m.item_name}</td><td style="text-align:center">${m.qty}</td><td style="font-size:11px">${m.from_location||'—'}</td><td style="font-size:11px">${m.to_location||'—'}</td><td>${m.country}</td></tr>`).join('');
+      const html = buildPDFHtml(tenantName, 'Movement History', dateLabel, now,
+        `<table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:#0c447c;color:white">${['Date','Action','Serial #','Name','Qty','From','To','Country'].map(h=>`<th style="padding:7px 10px;text-align:left">${h}</th>`).join('')}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div style="margin-top:1rem;padding:10px;background:#f5f5f4;border-radius:6px;font-size:13px"><strong>Total movements:</strong> ${mov.length}</div>`
+      );
+      printHTML(html);
+      statusEl.innerHTML = `<div class="notice notice-success">PDF opened in new tab.</div>`;
+    }
+  }
+}
+
+function buildPDFHtml(company, title, period, date, tableHtml) {
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>${company} — ${title}</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin:0;padding:24px;color:#1a1a18;font-size:13px}
+    .header{border-bottom:2px solid #0c447c;padding-bottom:12px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end}
+    .header h1{font-size:20px;font-weight:600;color:#0c447c;margin:0 0 4px}
+    .header p{font-size:12px;color:#6b6b67;margin:0}
+    .header .meta{text-align:right;font-size:11px;color:#9d9d98}
+    table{width:100%;border-collapse:collapse}
+    th{background:#0c447c;color:white;padding:7px 10px;text-align:left;font-size:12px}
+    td{padding:6px 10px;border-bottom:0.5px solid #efefed}
+    tr:nth-child(even) td{background:#f9f9f8}
+    @media print{body{padding:0} @page{margin:1.5cm}}
+  </style></head><body>
+  <div class="header">
+    <div><h1>${title}</h1><p>${company}</p></div>
+    <div class="meta">Generated: ${date}<br>Period: ${period}</div>
+  </div>
+  ${tableHtml}
+  <div style="margin-top:2rem;padding-top:10px;border-top:0.5px solid #efefed;font-size:11px;color:#9d9d98;text-align:center">
+    Generated by FieldTrack — Confidential
+  </div>
+  </body></html>`;
+}
+
+function printHTML(html) {
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => w.print(), 800);
 }
 
 init();
