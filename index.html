@@ -837,10 +837,10 @@ async function submitTransfer() {
     if (existing) {
       await sb.from('inventory').update({ qty: existing.qty + qty }).eq('id', existing.id);
     } else {
-      await sb.from('inventory').insert({ serial_number: serial, name: item.name, type: item.type, country: toCountry, location: toLoc, qty, unit_cost: item.unit_cost, min_qty_alert: item.min_qty_alert });
+      await sb.from('inventory').insert({ serial_number: serial, name: item.name, type: item.type, country: toCountry, location: toLoc, qty, unit_cost: item.unit_cost, min_qty_alert: item.min_qty_alert, tenant_id: currentProfile.tenant_id });
     }
   }
-  await sb.from('movements').insert({ action: 'Transfer', serial_number: serial, item_name: item.name, qty, from_location: fromLoc, to_location: toLoc, country: toCountry, notes: notes || null, performed_by: currentUser.id });
+  await sb.from('movements').insert({ action: 'Transfer', serial_number: serial, item_name: item.name, qty, from_location: fromLoc, to_location: toLoc, country: toCountry, notes: notes || null, performed_by: currentUser.id, tenant_id: currentProfile.tenant_id });
 
   closeTransferModal();
   await loadInventory();
@@ -1205,26 +1205,28 @@ async function confirmUpload() {
       const newQty = r.new_qty_on_hand !== '' ? parseInt(r.new_qty_on_hand) : null;
       const consumed = r.qty_consumed !== '' ? parseInt(r.qty_consumed) : 0;
       if (consumed > 0) {
-        await sb.from('consumption_log').insert({ serial_number: item.serial_number, item_name: item.name, country: item.country, location: item.location, qty: consumed, unit_cost: item.unit_cost, notes: r.notes || 'Bulk upload', performed_by: currentUser.id });
-        await sb.from('movements').insert({ action: 'Consumed', serial_number: item.serial_number, item_name: item.name, qty: consumed, from_location: item.location, to_location: null, country: item.country, notes: r.notes || 'Bulk upload', performed_by: currentUser.id });
+        await sb.from('consumption_log').insert({ serial_number: item.serial_number, item_name: item.name, country: item.country, location: item.location, qty: consumed, unit_cost: item.unit_cost, notes: r.notes || 'Bulk upload', performed_by: currentUser.id, tenant_id: currentProfile.tenant_id });
+        await sb.from('movements').insert({ action: 'Consumed', serial_number: item.serial_number, item_name: item.name, qty: consumed, from_location: item.location, to_location: null, country: item.country, notes: r.notes || 'Bulk upload', performed_by: currentUser.id, tenant_id: currentProfile.tenant_id });
       }
       if (newQty !== null && newQty !== item.qty) {
         await sb.from('inventory').update({ qty: newQty }).eq('id', item.id);
-        await sb.from('movements').insert({ action: 'Bulk upload', serial_number: item.serial_number, item_name: item.name, qty: Math.abs(newQty - item.qty), from_location: item.location, to_location: item.location, country: item.country, notes: `Qty adjusted from ${item.qty} to ${newQty}. ${r.notes || ''}`, performed_by: currentUser.id });
+        await sb.from('movements').insert({ action: 'Bulk upload', serial_number: item.serial_number, item_name: item.name, qty: Math.abs(newQty - item.qty), from_location: item.location, to_location: item.location, country: item.country, notes: `Qty adjusted from ${item.qty} to ${newQty}. ${r.notes || ''}`, performed_by: currentUser.id, tenant_id: currentProfile.tenant_id });
       }
     }
   } else {
     for (const r of rows) {
       if (inventory.find(i => i.serial_number === String(r.serial_number || '').trim())) continue;
       if (!canEditCountry(r.country)) continue;
-      await sb.from('inventory').insert({ serial_number: String(r.serial_number), name: r.item_name, type: r.type, country: r.country, location: r.location, qty: parseInt(r.qty) || 0, unit_cost: parseFloat(r.unit_cost) || 0, min_qty_alert: parseInt(r.min_qty_alert) || 2 });
-      await sb.from('movements').insert({ action: 'Bulk upload', serial_number: String(r.serial_number), item_name: r.item_name, qty: parseInt(r.qty) || 0, from_location: null, to_location: r.location, country: r.country, notes: r.notes || 'Added via bulk upload', performed_by: currentUser.id });
+      const { error: invErr } = await sb.from('inventory').insert({ serial_number: String(r.serial_number), name: r.item_name, type: r.type, country: r.country, location: r.location, qty: parseInt(r.qty) || 0, unit_cost: parseFloat(r.unit_cost) || 0, min_qty_alert: parseInt(r.min_qty_alert) || 2, tenant_id: currentProfile.tenant_id });
+      if (invErr) { console.error('Inventory insert error:', invErr.message); continue; }
+      await sb.from('movements').insert({ action: 'Bulk upload', serial_number: String(r.serial_number), item_name: r.item_name, qty: parseInt(r.qty) || 0, from_location: null, to_location: r.location, country: r.country, notes: r.notes || 'Added via bulk upload', performed_by: currentUser.id, tenant_id: currentProfile.tenant_id });
     }
   }
   pendingUpload = null;
   document.getElementById('upload-preview').style.display = 'none';
-  document.getElementById('preview-notices').innerHTML = '<div class="notice notice-success">Changes applied successfully.</div>';
   await loadInventory();
+  const newCount = inventory.length;
+  document.getElementById('preview-notices').innerHTML = `<div class="notice notice-success">Concluído. ${newCount} item(s) no inventário após o upload.</div>`;
 }
 
 // ═══════════════════════════════════════════════════
