@@ -589,7 +589,7 @@ function fillTransferLocations() {
 
 function fillTransferInfo() {
   const serial = document.getElementById('t-serial').value.trim();
-  const item = inventory.find(i => i.serial_number === serial);
+  const item = inventory.find(i => i.serial_number === serial && i.tenant_id === currentProfile.tenant_id);
   document.getElementById('t-name').value = item ? item.name : '';
   document.getElementById('t-from').value = item ? `${item.location} (${item.country})` : '';
 }
@@ -822,7 +822,7 @@ async function submitTransfer() {
   const notes = document.getElementById('t-notes').value;
   if (!serial || !toCountry || !toLoc || qty < 1) return alert('Please fill all fields.');
 
-  const item = inventory.find(i => i.serial_number === serial);
+  const item = inventory.find(i => i.serial_number === serial && i.tenant_id === currentProfile.tenant_id);
   if (!item) return alert('Serial number not found.');
   if (qty > item.qty) return alert('Transfer quantity exceeds available stock.');
 
@@ -833,7 +833,7 @@ async function submitTransfer() {
     await sb.from('inventory').update({ location: toLoc, country: toCountry }).eq('id', item.id);
   } else {
     await sb.from('inventory').update({ qty: item.qty - qty }).eq('id', item.id);
-    const existing = inventory.find(i => i.serial_number === serial && i.location === toLoc);
+    const existing = inventory.find(i => i.serial_number === serial && i.location === toLoc && i.tenant_id === currentProfile.tenant_id);
     if (existing) {
       await sb.from('inventory').update({ qty: existing.qty + qty }).eq('id', existing.id);
     } else {
@@ -1160,7 +1160,7 @@ function renderPreview(rows, mode) {
   if (mode === 'update') {
     thead.innerHTML = '<tr><th>Serial #</th><th>Name</th><th>Country</th><th>System qty</th><th>New qty</th><th>Consumed</th><th>Status</th></tr>';
     tbody.innerHTML = rows.map(r => {
-      const item = inventory.find(i => i.serial_number === String(r.serial_number || '').trim());
+      const item = inventory.find(i => i.serial_number === String(r.serial_number || '').trim() && i.tenant_id === currentProfile.tenant_id);
       if (!item) { warnings++; return `<tr><td colspan="7"><span class="badge badge-low">Serial ${r.serial_number} not found — skipped</span></td></tr>`; }
       if (!canEditCountry(item.country)) { warnings++; return `<tr><td colspan="7"><span class="badge badge-low">${item.serial_number} — not in your assigned countries, skipped</span></td></tr>`; }
       const newQty = r.new_qty_on_hand !== '' ? parseInt(r.new_qty_on_hand) : null;
@@ -1177,7 +1177,7 @@ function renderPreview(rows, mode) {
   } else {
     thead.innerHTML = '<tr><th>Serial #</th><th>Name</th><th>Type</th><th>Country</th><th>Qty</th><th>Status</th></tr>';
     tbody.innerHTML = rows.map(r => {
-      const dup = inventory.find(i => i.serial_number === String(r.serial_number || '').trim());
+      const dup = inventory.find(i => i.serial_number === String(r.serial_number || '').trim() && i.tenant_id === currentProfile.tenant_id);
       if (dup) { warnings++; return `<tr><td colspan="6"><span class="badge badge-low">Duplicate ${r.serial_number} — skipped</span></td></tr>`; }
       if (!canEditCountry(r.country)) { warnings++; return `<tr><td colspan="6"><span class="badge badge-low">${r.serial_number} — country not assigned to you, skipped</span></td></tr>`; }
       changes++;
@@ -1199,7 +1199,7 @@ async function confirmUpload() {
 
   if (mode === 'update') {
     for (const r of rows) {
-      const item = inventory.find(i => i.serial_number === String(r.serial_number || '').trim());
+      const item = inventory.find(i => i.serial_number === String(r.serial_number || '').trim() && i.tenant_id === currentProfile.tenant_id);
       if (!item) continue;
       if (!canEditCountry(item.country)) continue;
       const newQty = r.new_qty_on_hand !== '' ? parseInt(r.new_qty_on_hand) : null;
@@ -1214,13 +1214,54 @@ async function confirmUpload() {
       }
     }
   } else {
+    let inserted = 0, skipped = 0, errors = [];
     for (const r of rows) {
-      if (inventory.find(i => i.serial_number === String(r.serial_number || '').trim())) continue;
-      if (!canEditCountry(r.country)) continue;
-      const { error: invErr } = await sb.from('inventory').insert({ serial_number: String(r.serial_number), name: r.item_name, type: r.type, country: r.country, location: r.location, qty: parseInt(r.qty) || 0, unit_cost: parseFloat(r.unit_cost) || 0, min_qty_alert: parseInt(r.min_qty_alert) || 2, tenant_id: currentProfile.tenant_id });
-      if (invErr) { console.error('Inventory insert error:', invErr.message); continue; }
-      await sb.from('movements').insert({ action: 'Bulk upload', serial_number: String(r.serial_number), item_name: r.item_name, qty: parseInt(r.qty) || 0, from_location: null, to_location: r.location, country: r.country, notes: r.notes || 'Added via bulk upload', performed_by: currentUser.id, tenant_id: currentProfile.tenant_id });
+      const serial = String(r.serial_number || '').trim();
+      if (!serial || serial === 'SN-XXXX-XXX') { skipped++; continue; }
+      if (inventory.find(i => i.serial_number === serial && i.tenant_id === currentProfile.tenant_id)) { skipped++; continue; }
+      if (!canEditCountry(r.country)) { skipped++; continue; }
+      const { error: invErr } = await sb.from('inventory').insert({
+        serial_number: serial,
+        name: r.item_name || r.name || 'Unnamed',
+        type: r.type || 'Spare part',
+        country: r.country,
+        location: r.location,
+        qty: parseInt(r.qty) || 0,
+        unit_cost: parseFloat(r.unit_cost) || 0,
+        min_qty_alert: parseInt(r.min_qty_alert) || 2,
+        tenant_id: currentProfile.tenant_id
+      });
+      if (invErr) {
+        console.error('Insert error:', invErr.message, r);
+        errors.push(`${serial}: ${invErr.message}`);
+        continue;
+      }
+      await sb.from('movements').insert({
+        action: 'Bulk upload',
+        serial_number: serial,
+        item_name: r.item_name || r.name || 'Unnamed',
+        qty: parseInt(r.qty) || 0,
+        from_location: null,
+        to_location: r.location,
+        country: r.country,
+        notes: r.notes || 'Added via bulk upload',
+        performed_by: currentUser.id,
+        tenant_id: currentProfile.tenant_id
+      });
+      inserted++;
     }
+    pendingUpload = null;
+    document.getElementById('upload-preview').style.display = 'none';
+    await loadInventory();
+    const notices = document.getElementById('preview-notices');
+    if (errors.length) {
+      notices.innerHTML = `<div class="notice notice-danger">${errors.length} erro(s): ${errors.join(' | ')}</div>`;
+    } else if (inserted === 0) {
+      notices.innerHTML = `<div class="notice notice-warn">Nenhum item adicionado. Verifica se: os seriais são únicos, os campos obrigatórios estão preenchidos, e o país está correcto.</div>`;
+    } else {
+      notices.innerHTML = `<div class="notice notice-success">${inserted} item(s) adicionado(s) com sucesso. ${skipped > 0 ? skipped + ' linha(s) ignorada(s).' : ''}</div>`;
+    }
+    return;
   }
   pendingUpload = null;
   document.getElementById('upload-preview').style.display = 'none';
