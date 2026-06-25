@@ -834,24 +834,45 @@ function renderTable() {
 
 function updateKPIs() {
   const isViewer = currentProfile?.role === 'viewer';
-  const lowCount = inventory.filter(i => i.qty < i.min_qty_alert).length;
-  const countries = [...new Set(inventory.map(i => i.country))].length;
-  const locations = [...new Set(inventory.map(i => i.location))].length;
+  const isFiltered = filteredItems.length < inventory.length;
+
+  // Global totals (always full inventory)
+  const totalVal      = inventory.reduce((s, i) => s + i.qty * i.unit_cost, 0);
+  const totalCountries = [...new Set(inventory.map(i => i.country))].length;
+  const totalLow      = inventory.filter(i => i.qty < i.min_qty_alert).length;
+
+  // Filtered metrics (update when filters are active)
+  const filtVal       = filteredItems.reduce((s, i) => s + i.qty * i.unit_cost, 0);
+  const filtLow       = filteredItems.filter(i => i.qty < i.min_qty_alert).length;
+  const filtCountries = [...new Set(filteredItems.map(i => i.country))].length;
+  const filtLocations = [...new Set(filteredItems.map(i => i.location))].length;
+
+  // Show filtered values when filter is active, global otherwise
+  const dispLow       = isFiltered ? filtLow       : totalLow;
+  const dispItems     = filteredItems.length;
+  const dispCountries = isFiltered ? filtCountries  : totalCountries;
+  const dispLocations = filtLocations;
+
+  const lowLabel = isFiltered
+    ? `${dispLow} in filtered view (${totalLow} total)`
+    : dispLow > 0 ? 'Items below minimum' : 'All sufficient';
+
+  const subLabel = isFiltered
+    ? `${dispItems} of ${inventory.length} items · ${dispCountries} countr${dispCountries === 1 ? 'y' : 'ies'}`
+    : `Active locations: ${dispLocations}`;
 
   if (isViewer) {
     document.getElementById('kpis').innerHTML = `
-      <div class="kpi"><div class="kpi-label">Total items tracked</div><div class="kpi-value">${inventory.length}</div><div class="kpi-sub">Across ${countries} countries</div></div>
-      <div class="kpi"><div class="kpi-label">Filtered items</div><div class="kpi-value">${filteredItems.length}</div><div class="kpi-sub">Active locations: ${locations}</div></div>
-      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${lowCount > 0 ? 'amber' : 'green'}">${lowCount}</div><div class="kpi-sub">${lowCount > 0 ? 'Items below minimum' : 'All sufficient'}</div></div>
+      <div class="kpi"><div class="kpi-label">Total items tracked</div><div class="kpi-value">${inventory.length}</div><div class="kpi-sub">Across ${totalCountries} countries</div></div>
+      <div class="kpi"><div class="kpi-label">Filtered items</div><div class="kpi-value ${isFiltered ? 'amber' : ''}">${dispItems}</div><div class="kpi-sub">${subLabel}</div></div>
+      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${dispLow > 0 ? 'amber' : 'green'}">${dispLow}</div><div class="kpi-sub">${lowLabel}</div></div>
     `;
   } else {
-    const totalVal = inventory.reduce((s, i) => s + i.qty * i.unit_cost, 0);
-    const filtVal = filteredItems.reduce((s, i) => s + i.qty * i.unit_cost, 0);
     document.getElementById('kpis').innerHTML = `
-      <div class="kpi"><div class="kpi-label">Total inventory value</div><div class="kpi-value">$${totalVal.toLocaleString()}</div><div class="kpi-sub">Across ${countries} countries</div></div>
-      <div class="kpi"><div class="kpi-label">Filtered view value</div><div class="kpi-value ${filtVal < totalVal ? 'amber' : ''}">$${filtVal.toLocaleString()}</div><div class="kpi-sub">${filteredItems.length} of ${inventory.length} items</div></div>
-      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${lowCount > 0 ? 'amber' : 'green'}">${lowCount}</div><div class="kpi-sub">${lowCount > 0 ? 'Items below minimum' : 'All sufficient'}</div></div>
-      <div class="kpi"><div class="kpi-label">Total items tracked</div><div class="kpi-value">${inventory.length}</div><div class="kpi-sub">Active locations: ${locations}</div></div>
+      <div class="kpi"><div class="kpi-label">Total inventory value</div><div class="kpi-value">$${totalVal.toLocaleString()}</div><div class="kpi-sub">Across ${totalCountries} countries</div></div>
+      <div class="kpi"><div class="kpi-label">Filtered view value</div><div class="kpi-value ${isFiltered ? 'amber' : ''}">$${filtVal.toLocaleString()}</div><div class="kpi-sub">${subLabel}</div></div>
+      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${dispLow > 0 ? 'amber' : 'green'}">${dispLow}</div><div class="kpi-sub">${lowLabel}</div></div>
+      <div class="kpi"><div class="kpi-label">Total items tracked</div><div class="kpi-value">${inventory.length}</div><div class="kpi-sub">Active locations: ${[...new Set(inventory.map(i => i.location))].length}</div></div>
     `;
   }
 }
