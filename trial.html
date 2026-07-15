@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Experimentar grátis — FieldTrack | The Tectus</title>
+<meta name="description" content="Começa o teu trial gratuito de 14 dias do FieldTrack. Sem cartão de crédito.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --ink:      #0A0F1E;
+  --slate:    #1C2333;
+  --slate2:   #242D42;
+  --gold:     #C9A84C;
+  --gold-l:   #F0D080;
+  --mist:     #F2F4F8;
+  --white:    #FFFFFF;
+  --body-txt: #4A5568;
+  --muted:    #8A95A8;
+  --border-l: rgba(0,0,0,0.08);
+  --green:    #2E7D32;
+  --green-bg: #EAF3DE;
+  --red:      #791F1F;
+  --red-bg:   #FCEBEB;
+  --f-display:'Syne', sans-serif;
+  --f-body:   'Inter', sans-serif;
+  --r: 8px; --r-lg: 16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--f-body);background:var(--mist);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+
+/* NAV */
+nav{background:var(--slate);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:var(--f-display);font-weight:700;font-size:17px;color:var(--white);text-decoration:none;letter-spacing:.01em}
+.nav-logo span{color:var(--gold)}
+.nav-back{font-size:13px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px}
+.nav-back:hover{color:var(--white)}
+
+/* LAYOUT */
+.page{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:3rem 1rem 4rem;gap:3rem;flex-wrap:wrap}
+
+/* LEFT — BENEFITS */
+.benefits{max-width:340px;padding-top:1rem}
+.product-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,.12);color:var(--gold);border:0.5px solid rgba(201,168,76,.3);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:500;margin-bottom:1.25rem;font-family:var(--f-display)}
+.benefits h1{font-family:var(--f-display);font-size:28px;font-weight:700;line-height:1.25;margin-bottom:.75rem;color:var(--ink)}
+.benefits h1 span{color:var(--gold)}
+.benefits p{font-size:14px;color:var(--body-txt);line-height:1.65;margin-bottom:1.75rem}
+.benefit-list{display:flex;flex-direction:column;gap:12px;margin-bottom:2rem}
+.benefit-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--body-txt);line-height:1.5}
+.benefit-icon{width:22px;height:22px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.trial-pill{background:var(--slate);color:var(--white);border-radius:var(--r-lg);padding:16px 18px;display:flex;align-items:center;gap:12px}
+.trial-days{font-family:var(--f-display);font-size:32px;font-weight:800;color:var(--gold);line-height:1}
+.trial-text{font-size:12px;color:var(--muted);line-height:1.5}
+.trial-text strong{color:var(--white);display:block;font-size:13px;margin-bottom:2px}
+
+/* RIGHT — FORM */
+.card{background:var(--white);border:0.5px solid var(--border-l);border-radius:var(--r-lg);padding:2rem;width:100%;max-width:420px;box-shadow:0 2px 16px rgba(0,0,0,.06)}
+.card h2{font-family:var(--f-display);font-size:20px;font-weight:600;margin-bottom:.25rem}
+.card p{font-size:13px;color:var(--muted);margin-bottom:1.5rem}
+.section-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:1.25rem 0 .75rem;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:0.5px;background:var(--border-l)}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field label{font-size:12px;color:var(--body-txt);font-weight:500}
+.field input{padding:9px 12px;border:0.5px solid var(--border-l);border-radius:var(--r);background:var(--mist);color:var(--ink);font-size:13px;font-family:var(--f-body);outline:none;transition:border-color .15s}
+.field input:focus{border-color:var(--gold);background:var(--white)}
+.field .hint{font-size:11px;color:var(--muted)}
+.slug-preview{font-family:var(--f-display);font-size:11px;color:var(--muted);margin-top:3px;min-height:14px}
+.slug-ok{color:var(--green)}
+.slug-err{color:var(--red)}
+.divider{height:0.5px;background:var(--border-l);margin:1.25rem 0}
+.btn-trial{width:100%;padding:13px;border:none;border-radius:var(--r);background:var(--gold);color:var(--ink);font-size:14px;font-weight:700;font-family:var(--f-display);cursor:pointer;transition:opacity .15s;letter-spacing:.02em;margin-top:4px}
+.btn-trial:hover{opacity:.88}
+.btn-trial:disabled{opacity:.5;cursor:not-allowed}
+.msg{font-size:12px;margin-top:12px;text-align:center;padding:8px 12px;border-radius:var(--r);display:none}
+.msg.error{background:var(--red-bg);color:var(--red);display:block}
+.msg.success{background:var(--green-bg);color:var(--green);display:block}
+.legal{font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.6}
+.legal a{color:var(--muted);text-decoration:underline}
+
+/* SUCCESS STATE */
+.success-screen{display:none;text-align:center;padding:1rem 0}
+.success-icon{width:56px;height:56px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+.success-screen h2{font-family:var(--f-display);font-size:20px;font-weight:600;margin-bottom:.5rem}
+.success-screen p{font-size:13px;color:var(--body-txt);line-height:1.65;margin-bottom:1.5rem}
+.btn-go{display:inline-block;padding:11px 24px;background:var(--slate);color:var(--white);border-radius:var(--r);font-size:13px;font-weight:500;text-decoration:none;font-family:var(--f-display)}
+.btn-go:hover{opacity:.88}
+.countdown{font-size:11px;color:var(--muted);margin-top:8px}
+
+/* FOOTER */
+footer{text-align:center;padding:1.5rem;font-size:12px;color:var(--muted);border-top:0.5px solid var(--border-l)}
+footer a{color:var(--muted);text-decoration:none}
+
+@media(max-width:600px){
+  .benefits{max-width:100%;padding-top:0}
+  .page{padding:2rem 1rem}
+  .card{padding:1.5rem}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">The <span>Tectus</span></a>
+  <a href="/" class="nav-back">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 2L4 7l5 5"/></svg>
+    Voltar ao site
+  </a>
+</nav>
+
+<div class="page">
+
+  <!-- LEFT: BENEFITS -->
+  <div class="benefits">
+    <div class="product-tag">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="10" height="8" rx="1"/><path d="M1 5h10M4 2v3M8 2v3"/></svg>
+      FieldTrack
+    </div>
+    <h1>14 dias para descobrires o que o teu <span>inventário vale</span></h1>
+    <p>Sem cartão de crédito. Sem compromisso. Começas agora e decidires depois.</p>
+
+    <div class="benefit-list">
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#27500A" stroke-width="1.5"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        Inventário multi-país e multi-localização em tempo real
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#27500A" stroke-width="1.5"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        Upload em massa via Excel — sem digitar item a item
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#27500A" stroke-width="1.5"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        Aprovação de transferências com notificação em tempo real
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#27500A" stroke-width="1.5"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        Relatórios PDF e Excel com filtros por país e período
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#27500A" stroke-width="1.5"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        Dashboard executivo com alertas de stock crítico
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#27500A" stroke-width="1.5"><polyline points="2,6 5,9 10,3"/></svg>
+        </div>
+        Até 15 utilizadores com roles (Admin / Supervisor / Viewer)
+      </div>
+    </div>
+
+    <div class="trial-pill">
+      <div>
+        <div class="trial-days">14</div>
+        <div style="font-size:10px;color:var(--muted);font-family:var(--f-body)">dias</div>
+      </div>
+      <div class="trial-text">
+        <strong>Plano Professional incluído</strong>
+        Acesso completo a todas as funcionalidades durante o período de trial. Sem limitações.
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: FORM -->
+  <div class="card">
+    <div id="form-screen">
+      <h2>Criar conta de trial</h2>
+      <p>Preenche os dados e tens acesso imediato.</p>
+
+      <div class="section-label">A tua empresa</div>
+      <div class="field">
+        <label>Nome da empresa</label>
+        <input type="text" id="company-name" placeholder="Ex: TotalEnergies Angola" oninput="generateSlug()">
+        <div class="slug-preview" id="slug-preview"></div>
+      </div>
+
+      <div class="section-label">A tua conta de administrador</div>
+      <div class="field">
+        <label>Nome completo</label>
+        <input type="text" id="full-name" placeholder="O teu nome">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="email@empresa.com">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Mínimo 6 caracteres">
+        <span class="hint">Usa uma password segura — esta conta tem acesso total.</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <button class="btn-trial" onclick="startTrial()" id="btn-start">
+        Começar trial gratuito de 14 dias →
+      </button>
+      <div class="msg" id="msg"></div>
+      <p class="legal">
+        Ao criares a conta, aceitas os nossos
+        <a href="/termos">Termos de Serviço</a> e
+        <a href="/privacidade">Política de Privacidade</a>.
+        Os teus dados ficam em servidores seguros e nunca são partilhados.
+      </p>
+    </div>
+
+    <!-- SUCCESS STATE -->
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="#27500A" stroke-width="2"><polyline points="4,13 10,19 22,7"/></svg>
+      </div>
+      <h2>Trial activado!</h2>
+      <p>A tua conta está pronta. Tens <strong>14 dias</strong> para explorar o FieldTrack com acesso completo. Os teus dados ficam guardados mesmo que o trial expire.</p>
+      <a href="https://myinventorytracker.vercel.app" class="btn-go" id="btn-go-app">
+        Entrar no FieldTrack →
+      </a>
+      <p class="countdown" id="trial-countdown"></p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  © 2026 The Tectus · <a href="/">thetectus.com</a> · <a href="mailto:support@thetectus.com">support@thetectus.com</a>
+</footer>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────
+const SUPABASE_URL     = 'https://cqpsofmaaktsjtlkariw.supabase.co';
+const SUPABASE_ANON    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxcHNvZm1hYWt0c2p0bGthcml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5ODM0MTIsImV4cCI6MjA5MTU1OTQxMn0.O5t-sDLAgvmy-Z9P_FVV2AS9ciewG33ZQy0HDbOA7yo';
+const TRIAL_DAYS       = 14;
+const APP_URL          = 'https://myinventorytracker.vercel.app';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ─── SLUG GENERATION ──────────────────────────────────
+function generateSlug() {
+  const name = document.getElementById('company-name').value;
+  const slug = name.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim().replace(/\s+/g, '-')
+    .replace(/-+/g, '-').slice(0, 40);
+  const preview = document.getElementById('slug-preview');
+  if (!slug) { preview.textContent = ''; return; }
+  preview.textContent = `URL de acesso: myinventorytracker.vercel.app?slug=${slug}`;
+  preview.className = 'slug-preview slug-ok';
+}
+
+// ─── START TRIAL ──────────────────────────────────────
+async function startTrial() {
+  const companyName = document.getElementById('company-name').value.trim();
+  const fullName    = document.getElementById('full-name').value.trim();
+  const email       = document.getElementById('email').value.trim();
+  const password    = document.getElementById('password').value;
+  const btn         = document.getElementById('btn-start');
+  const msgEl       = document.getElementById('msg');
+
+  // Validation
+  if (!companyName) return showMsg('Indica o nome da empresa.', 'error');
+  if (!fullName)    return showMsg('Indica o teu nome completo.', 'error');
+  if (!email)       return showMsg('Indica o teu email.', 'error');
+  if (password.length < 6) return showMsg('A password deve ter pelo menos 6 caracteres.', 'error');
+
+  const slug = companyName.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '').trim()
+    .replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 40);
+
+  btn.disabled = true;
+  btn.textContent = 'A criar a tua conta...';
+  hideMsg();
+
+  try {
+    // 1. Check slug not taken
+    const { data: existing } = await sb
+      .from('tenants').select('id').eq('slug', slug).single();
+    if (existing) {
+      return showMsg('Já existe uma empresa com este nome. Tenta uma variação (ex: acrescenta o país).', 'error');
+    }
+
+    // 2. Create Supabase auth user
+    const { data: authData, error: authErr } = await sb.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName, role: 'admin' } }
+    });
+    if (authErr) return showMsg(authErr.message, 'error');
+
+    // 3. Wait a moment for the trigger to create the profile
+    await new Promise(r => setTimeout(r, 800));
+
+    // 4. Create trial tenant and associate user via DB function
+    const { data: result, error: fnErr } = await sb.rpc('create_trial_tenant', {
+      p_name:       companyName,
+      p_slug:       slug,
+      p_email:      email,
+      p_user_id:    authData.user.id,
+      p_full_name:  fullName,
+      p_trial_days: TRIAL_DAYS
+    });
+
+    if (fnErr) return showMsg('Erro ao criar empresa: ' + fnErr.message, 'error');
+
+    // Parse result — Supabase RPC can return object directly or wrapped
+    const tenantId = result?.tenant_id || result?.[0]?.tenant_id;
+    if (!tenantId) return showMsg('Empresa criada mas não foi possível obter o link. Contacta support@thetectus.com', 'error');
+
+    // 5. Build app URL — user is already authenticated, app will read tenant_id from profile
+    const appLink = `${APP_URL}?tenant=${tenantId}&slug=${slug}`;
+
+    // 6. Show success with countdown and redirect button
+    const trialEnd = new Date(Date.now() + TRIAL_DAYS * 86400000);
+    const formatted = trialEnd.toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    document.getElementById('form-screen').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+    document.getElementById('trial-countdown').textContent =
+      `O teu trial expira a ${formatted}.`;
+    document.getElementById('btn-go-app').href = appLink;
+
+    // Auto-redirect after 3 seconds
+    let secs = 3;
+    const countdownEl = document.getElementById('trial-countdown');
+    const interval = setInterval(() => {
+      secs--;
+      countdownEl.textContent = `A redirigir em ${secs}s... (trial expira a ${formatted})`;
+      if (secs <= 0) { clearInterval(interval); window.location.href = appLink; }
+    }, 1000);
+
+  } catch(err) {
+    showMsg('Erro inesperado. Tenta novamente ou contacta support@thetectus.com', 'error');
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Começar trial gratuito de 14 dias →';
+  }
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg ' + type;
+  document.getElementById('btn-start').disabled = false;
+  document.getElementById('btn-start').textContent = 'Começar trial gratuito de 14 dias →';
+}
+
+function hideMsg() {
+  document.getElementById('msg').className = 'msg';
+}
+
+// Allow Enter key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') startTrial();
+});
+</script>
+</body>
+</html>
