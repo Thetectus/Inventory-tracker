@@ -20,7 +20,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); font-size: 14px; min-height: 100vh; }
 
-  /* AUTH SCREEN */
+  /* AUTH */
   #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; }
   .auth-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; width: 100%; max-width: 380px; }
   .auth-card h1 { font-size: 20px; font-weight: 500; margin-bottom: 0.25rem; }
@@ -52,6 +52,22 @@
   .btn-signout { font-size: 12px; color: var(--text2); background: none; border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 4px 10px; cursor: pointer; }
   .btn-signout:hover { background: var(--bg2); }
   .main { max-width: 1200px; margin: 0 auto; padding: 1.25rem; width: 100%; }
+
+  /* TRIAL BANNER */
+  #trial-banner { display:none; background: linear-gradient(90deg,#854f0b,#633806); color:#fffbe6; padding:10px 1.25rem; font-size:13px; text-align:center; position:sticky; top:52px; z-index:99; }
+  #trial-banner strong { color:#fcd06e; }
+  #trial-banner a { color:#fcd06e; text-decoration:underline; cursor:pointer; margin-left:8px; font-weight:500; }
+  #trial-banner.urgent { background:linear-gradient(90deg,#791f1f,#5c1010); }
+
+  /* TRIAL EXPIRED */
+  #trial-expired { display:none; position:fixed; inset:0; background:rgba(10,15,30,0.92); z-index:999; align-items:center; justify-content:center; padding:1rem; }
+  .expired-card { background:#fff; border-radius:16px; padding:2.5rem 2rem; max-width:460px; width:100%; text-align:center; }
+  .expired-icon { width:64px; height:64px; border-radius:50%; background:var(--amber-bg); display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem; }
+  .expired-card h2 { font-size:22px; font-weight:600; margin-bottom:.5rem; color:#1a1a18; }
+  .expired-card p { font-size:14px; color:#6b6b67; line-height:1.65; margin-bottom:1.5rem; }
+  .btn-upgrade { padding:13px 24px; border:none; border-radius:8px; background:#0c447c; color:#fff; font-size:14px; font-weight:600; cursor:pointer; text-decoration:none; display:block; text-align:center; }
+  .btn-upgrade:hover { opacity:.88; }
+  .expired-note { font-size:11px; color:#9d9d98; margin-top:12px; line-height:1.6; }
 
   /* KPIs */
   .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 10px; margin-bottom: 1.25rem; }
@@ -98,7 +114,7 @@
   .badge-transfer { background: var(--blue-bg); color: var(--blue-text); }
   .badge-bulk { background: var(--amber-bg); color: var(--amber-text); }
 
-  /* UPLOAD ZONE */
+  /* UPLOAD */
   .upload-zone { border: 1.5px dashed var(--border2); border-radius: var(--radius-lg); padding: 2.5rem 1rem; text-align: center; cursor: pointer; }
   .upload-zone:hover { background: var(--bg2); }
   .upload-zone svg { width: 32px; height: 32px; color: var(--text3); margin-bottom: .75rem; }
@@ -138,7 +154,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .loading-state { text-align: center; padding: 2rem; color: var(--text2); font-size: 13px; }
 
-  /* USER MANAGEMENT (admin only) */
+  /* USERS */
   .user-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
   .user-row:last-child { border-bottom: none; }
   .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--blue-bg); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--blue-text); flex-shrink: 0; }
@@ -152,12 +168,8 @@
   .dash-bar-wrap { margin-top: 4px; }
   .dash-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 4px; }
   .dash-bar-fill { height: 100%; border-radius: 3px; transition: width .4s; }
-  .stat-big { font-size: 28px; font-weight: 500; margin-bottom: 2px; }
-  .stat-label { font-size: 12px; color: var(--text2); }
-  .stat-delta { font-size: 11px; margin-top: 2px; }
-  .stat-delta.up { color: #3b6d11; } .stat-delta.down { color: #a32d2d; }
 
-  /* TRANSFER APPROVAL */
+  /* APPROVALS */
   .approval-card { border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; background: var(--bg); }
   .approval-card.pending { border-left: 3px solid var(--amber-text); }
   .approval-card.approved { border-left: 3px solid var(--green-text); opacity: .7; }
@@ -167,13 +179,13 @@
   .approval-meta { font-size: 11px; color: var(--text3); margin-top: 3px; }
   .approval-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .btn-approve { background: var(--green-bg); color: var(--green-text); border-color: var(--green-border); }
-  .btn-reject  { background: var(--red-bg);   color: var(--red-text);   border-color: var(--red-border);   }
+  .btn-reject  { background: var(--red-bg);   color: var(--red-text);   border-color: var(--red-border); }
   .badge-pending  { background: var(--amber-bg); color: var(--amber-text); }
   .badge-approved { background: var(--green-bg); color: var(--green-text); }
-  .badge-rejected { background: var(--red-bg);   color: var(--red-text);   }
+  .badge-rejected { background: var(--red-bg);   color: var(--red-text); }
   .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber-text); display: inline-block; margin-left: 4px; vertical-align: middle; }
 
-  /* REPORT */
+  /* REPORTS */
   .report-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1rem 0; }
   .report-card { border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; cursor: pointer; transition: background .12s; }
   .report-card:hover { background: var(--bg2); }
@@ -190,13 +202,11 @@
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════
-     AUTH SCREEN
-═══════════════════════════════════════════════════ -->
+<!-- AUTH SCREEN -->
 <div id="auth-screen">
   <div class="auth-card">
     <h1>Inventory tracker</h1>
-    <p>Oil & gas asset management</p>
+    <p>Oil &amp; gas asset management</p>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchAuthTab('login')">Sign in</button>
       <button class="auth-tab" onclick="switchAuthTab('signup')" id="signup-tab-btn">Create account</button>
@@ -211,10 +221,7 @@
       <div class="field"><label>Email</label><input type="email" id="signup-email" placeholder="your@email.com"></div>
       <div class="field"><label>Password</label><input type="password" id="signup-password" placeholder="Min 6 characters"></div>
       <div class="field"><label>Role (admin sets final role)</label>
-        <select id="signup-role">
-          <option value="viewer">Viewer</option>
-          <option value="supervisor">Supervisor</option>
-        </select>
+        <select id="signup-role"><option value="viewer">Viewer</option><option value="supervisor">Supervisor</option></select>
       </div>
       <button class="btn-full" onclick="signUp()">Create account</button>
     </div>
@@ -222,9 +229,7 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════
-     APP SCREEN
-═══════════════════════════════════════════════════ -->
+<!-- APP SCREEN -->
 <div id="app-screen">
   <nav class="navbar">
     <div class="navbar-left">
@@ -232,11 +237,32 @@
       <h1>Inventory tracker</h1>
     </div>
     <div class="navbar-right">
-      <span id="company-name" style="font-size:11px;color:var(--text3);margin-right:4px"></span><span id="user-name" style="font-size:13px;color:var(--text2)"></span>
+      <span id="company-name" style="font-size:11px;color:var(--text3);margin-right:4px"></span>
+      <span id="user-name" style="font-size:13px;color:var(--text2)"></span>
       <span id="role-pill" class="role-pill"></span>
       <button class="btn-signout" onclick="signOut()">Sign out</button>
     </div>
   </nav>
+
+  <!-- TRIAL BANNER (sticky below navbar, hidden by default) -->
+  <div id="trial-banner"></div>
+
+  <!-- TRIAL EXPIRED OVERLAY -->
+  <div id="trial-expired">
+    <div class="expired-card">
+      <div class="expired-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#854f0b" stroke-width="1.8">
+          <circle cx="14" cy="14" r="11"/><path d="M14 8v6l4 2"/>
+        </svg>
+      </div>
+      <h2>O teu trial expirou</h2>
+      <p>Os teus dados estão todos guardados em segurança. Activa um plano para recuperar o acesso completo ao FieldTrack.</p>
+      <a href="mailto:support@thetectus.com?subject=Activar%20plano%20FieldTrack&body=Ol%C3%A1%2C%20o%20meu%20trial%20expirou%20e%20gostaria%20de%20activar%20um%20plano." class="btn-upgrade">
+        Contactar para activar plano →
+      </a>
+      <p class="expired-note">support@thetectus.com · Os teus dados ficam guardados por 30 dias após a expiração.</p>
+    </div>
+  </div>
 
   <div class="main">
     <div class="kpi-grid" id="kpis"><div class="loading-state"><div class="spinner"></div></div></div>
@@ -265,10 +291,7 @@
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr>
-            <th>Serial #</th><th>Name</th><th>Type</th><th>Country</th><th>Location</th>
-            <th>Qty</th><th>Unit cost</th><th>Total value</th><th>Stock</th><th>Actions</th>
-          </tr></thead>
+          <thead><tr><th>Serial #</th><th>Name</th><th>Type</th><th>Country</th><th>Location</th><th>Qty</th><th>Unit cost</th><th>Total value</th><th>Stock</th><th>Actions</th></tr></thead>
           <tbody id="inv-body"><tr><td colspan="10" class="loading-state"><div class="spinner"></div> Loading...</td></tr></tbody>
         </table>
       </div>
@@ -295,11 +318,11 @@
            ondragleave="this.style.background=''"
            ondrop="handleDrop(event)">
         <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 4v16M10 14l6-6 6 6"/><path d="M6 24h20"/></svg>
-        <p style="font-size:13px;color:var(--text2)">Click to choose or drag & drop .xlsx file</p>
+        <p style="font-size:13px;color:var(--text2)">Click to choose or drag &amp; drop .xlsx file</p>
         <input type="file" id="file-input" accept=".xlsx" style="display:none" onchange="handleFileSelect(event)">
       </div>
       <div id="upload-preview" style="display:none">
-        <div class="section-head">Step 3 — Review & confirm</div>
+        <div class="section-head">Step 3 — Review &amp; confirm</div>
         <div id="preview-notices"></div>
         <div class="table-wrap" style="max-height:300px;overflow-y:auto">
           <table id="preview-table" style="min-width:unset">
@@ -341,7 +364,7 @@
       <div id="history-list"><div class="loading-state"><div class="spinner"></div> Loading...</div></div>
     </div>
 
-    <!-- USERS PANE (admin only) -->
+    <!-- USERS PANE -->
     <div id="pane-users" style="display:none">
       <div class="notice notice-info">Manage team access. Only admins can change roles and country assignments.</div>
       <div id="users-list"><div class="loading-state"><div class="spinner"></div> Loading...</div></div>
@@ -359,10 +382,8 @@
         <div class="filters" style="margin:0">
           <div class="filter-group"><label>Status</label>
             <select id="apr-status" onchange="renderApprovals()">
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-              <option value="">All</option>
+              <option value="pending">Pending</option><option value="approved">Approved</option>
+              <option value="rejected">Rejected</option><option value="">All</option>
             </select>
           </div>
         </div>
@@ -374,7 +395,6 @@
     <div id="pane-reports" style="display:none">
       <div style="font-size:15px;font-weight:500;margin-bottom:.5rem">Export reports</div>
       <div style="font-size:13px;color:var(--text2);margin-bottom:1rem">Generate detailed reports of your inventory, consumption, and movements.</div>
-
       <div style="font-size:13px;font-weight:500;margin-bottom:.75rem">Filter report data</div>
       <div class="filters" style="margin-bottom:1.25rem">
         <div class="filter-group"><label>Country</label><select id="rep-country"><option value="">All countries</option></select></div>
@@ -383,50 +403,13 @@
         <div class="filter-group"><label>Date from</label><input type="date" id="rep-from" style="padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px"></div>
         <div class="filter-group"><label>Date to</label><input type="date" id="rep-to" style="padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px"></div>
       </div>
-
       <div class="report-options">
-        <div class="report-card" onclick="generateReport('inventory','xlsx')">
-          <div class="report-icon" style="background:var(--green-bg)">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--green-text)" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2"/><path d="M6 6h6M6 9h6M6 12h4"/></svg>
-          </div>
-          <h4>Inventory snapshot — Excel</h4>
-          <p>Current stock by location with quantities and values. Ideal for analysis and cross-referencing.</p>
-        </div>
-        <div class="report-card" onclick="generateReport('inventory','pdf')">
-          <div class="report-icon" style="background:var(--red-bg)">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--red-text)" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2"/><path d="M6 6h6M6 9h6M6 12h4"/></svg>
-          </div>
-          <h4>Inventory snapshot — PDF</h4>
-          <p>Printable inventory report for meetings and audits. Includes totals and low stock alerts.</p>
-        </div>
-        <div class="report-card" onclick="generateReport('consumption','xlsx')">
-          <div class="report-icon" style="background:var(--amber-bg)">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--amber-text)" stroke-width="1.5"><path d="M9 2v14M2 9h14"/><circle cx="9" cy="9" r="7"/></svg>
-          </div>
-          <h4>Consumption report — Excel</h4>
-          <p>All consumed items with cost breakdown by country and location.</p>
-        </div>
-        <div class="report-card" onclick="generateReport('consumption','pdf')">
-          <div class="report-icon" style="background:var(--blue-bg)">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--blue-text)" stroke-width="1.5"><path d="M9 2v14M2 9h14"/><circle cx="9" cy="9" r="7"/></svg>
-          </div>
-          <h4>Consumption report — PDF</h4>
-          <p>Printable consumption summary for management review.</p>
-        </div>
-        <div class="report-card" onclick="generateReport('movements','xlsx')">
-          <div class="report-icon" style="background:var(--bg2)">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--text2)" stroke-width="1.5"><path d="M2 9h14M11 5l4 4-4 4"/></svg>
-          </div>
-          <h4>Movement history — Excel</h4>
-          <p>Full audit trail of all transfers, additions and consumptions.</p>
-        </div>
-        <div class="report-card" onclick="generateReport('movements','pdf')">
-          <div class="report-icon" style="background:var(--bg2)">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--text2)" stroke-width="1.5"><path d="M2 9h14M11 5l4 4-4 4"/></svg>
-          </div>
-          <h4>Movement history — PDF</h4>
-          <p>Printable movement history for compliance and audits.</p>
-        </div>
+        <div class="report-card" onclick="generateReport('inventory','xlsx')"><div class="report-icon" style="background:var(--green-bg)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--green-text)" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2"/><path d="M6 6h6M6 9h6M6 12h4"/></svg></div><h4>Inventory snapshot — Excel</h4><p>Current stock by location with quantities and values.</p></div>
+        <div class="report-card" onclick="generateReport('inventory','pdf')"><div class="report-icon" style="background:var(--red-bg)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--red-text)" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2"/><path d="M6 6h6M6 9h6M6 12h4"/></svg></div><h4>Inventory snapshot — PDF</h4><p>Printable inventory report for meetings and audits.</p></div>
+        <div class="report-card" onclick="generateReport('consumption','xlsx')"><div class="report-icon" style="background:var(--amber-bg)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--amber-text)" stroke-width="1.5"><path d="M9 2v14M2 9h14"/><circle cx="9" cy="9" r="7"/></svg></div><h4>Consumption report — Excel</h4><p>All consumed items with cost breakdown.</p></div>
+        <div class="report-card" onclick="generateReport('consumption','pdf')"><div class="report-icon" style="background:var(--blue-bg)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--blue-text)" stroke-width="1.5"><path d="M9 2v14M2 9h14"/><circle cx="9" cy="9" r="7"/></svg></div><h4>Consumption report — PDF</h4><p>Printable consumption summary for management review.</p></div>
+        <div class="report-card" onclick="generateReport('movements','xlsx')"><div class="report-icon" style="background:var(--bg2)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--text2)" stroke-width="1.5"><path d="M2 9h14M11 5l4 4-4 4"/></svg></div><h4>Movement history — Excel</h4><p>Full audit trail of all transfers and consumptions.</p></div>
+        <div class="report-card" onclick="generateReport('movements','pdf')"><div class="report-icon" style="background:var(--bg2)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--text2)" stroke-width="1.5"><path d="M2 9h14M11 5l4 4-4 4"/></svg></div><h4>Movement history — PDF</h4><p>Printable movement history for compliance and audits.</p></div>
       </div>
       <div id="report-status"></div>
     </div>
@@ -479,9 +462,7 @@
 <script>
 const SUPABASE_URL = 'https://cqpsofmaaktsjtlkariw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxcHNvZm1hYWt0c2p0bGthcml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5ODM0MTIsImV4cCI6MjA5MTU1OTQxMn0.O5t-sDLAgvmy-Z9P_FVV2AS9ciewG33ZQy0HDbOA7yo';
-
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 
 const LOCATIONS = {
   "Angola":["Main Warehouse - Luanda","Offshore Workshop A","Workshop Luanda"],
@@ -494,17 +475,10 @@ const LOCATIONS = {
   "UK":["Main Warehouse - Aberdeen","Offshore Workshop H","Workshop London"]
 };
 
-let currentUser = null;
-let currentProfile = null;
-let inventory = [];
-let filteredItems = [];
-let editingId = null;
-let pendingUpload = null;
+let currentUser = null, currentProfile = null, inventory = [], filteredItems = [], editingId = null, pendingUpload = null;
 let sortState = { col: null, dir: 1 };
 
-// ═══════════════════════════════════════════════════
-// AUTH
-// ═══════════════════════════════════════════════════
+// ═══ AUTH ═══
 async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (session) await loadApp(session.user);
@@ -535,135 +509,90 @@ async function signUp() {
   const password = document.getElementById('signup-password').value;
   const role = document.getElementById('signup-role').value;
   if (!name || !email || !password) return showAuthMsg('Preenche todos os campos.', 'error');
-
-  // Lê tenant_id do URL (?tenant=uuid&slug=...)
   const params = new URLSearchParams(window.location.search);
   const tenantId = params.get('tenant');
   if (!tenantId) return showAuthMsg('Link de convite inválido. Pede um novo link ao administrador.', 'error');
-
-  const { data: signUpData, error } = await sb.auth.signUp({
-    email, password,
-    options: { data: { full_name: name, role, tenant_id: tenantId } }
-  });
+  const { data: signUpData, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name, role, tenant_id: tenantId } } });
   if (error) return showAuthMsg(error.message, 'error');
-
-  // Fallback: se o trigger não colocou o tenant_id, actualizamos directamente
-  // (acontece quando o email confirmation está activo — o perfil é criado depois)
   if (signUpData?.user) {
-    // Pequena espera para o trigger handle_new_user correr
     await new Promise(r => setTimeout(r, 800));
     const { data: prof } = await sb.from('profiles').select('tenant_id').eq('id', signUpData.user.id).single();
-    if (prof && !prof.tenant_id) {
-      await sb.from('profiles').update({ tenant_id: tenantId, full_name: name }).eq('id', signUpData.user.id);
-    }
+    if (prof && !prof.tenant_id) await sb.from('profiles').update({ tenant_id: tenantId, full_name: name }).eq('id', signUpData.user.id);
   }
-
-  if (signUpData?.user?.identities?.length === 0) {
-    showAuthMsg('Este email já está registado. Tenta entrar directamente.', 'error');
-  } else {
-    showAuthMsg('Conta criada! Já podes entrar clicando em Sign in.', 'success');
-  }
+  if (signUpData?.user?.identities?.length === 0) showAuthMsg('Este email já está registado. Tenta entrar directamente.', 'error');
+  else showAuthMsg('Conta criada! Já podes entrar clicando em Sign in.', 'success');
 }
 
-async function signOut() {
-  await sb.auth.signOut();
-  showAuthScreen();
-}
-
-function showAuthScreen() {
-  document.getElementById('auth-screen').style.display = 'flex';
-  document.getElementById('app-screen').style.display = 'none';
-}
-
-function showAuthMsg(msg, type) {
-  const el = document.getElementById('auth-msg');
-  el.textContent = msg; el.className = 'auth-msg ' + type; el.style.display = 'block';
-}
+async function signOut() { await sb.auth.signOut(); showAuthScreen(); }
+function showAuthScreen() { document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('app-screen').style.display = 'none'; }
+function showAuthMsg(msg, type) { const el = document.getElementById('auth-msg'); el.textContent = msg; el.className = 'auth-msg ' + type; el.style.display = 'block'; }
 function hideAuthMsg() { document.getElementById('auth-msg').style.display = 'none'; }
 
-// ═══════════════════════════════════════════════════
-// APP LOAD
-// ═══════════════════════════════════════════════════
+// ═══ LOAD APP ═══
 async function loadApp(user) {
   currentUser = user;
+  const { data: profile, error: profileErr } = await sb.from('profiles').select('id, full_name, role, tenant_id, assigned_countries').eq('id', user.id).single();
+  if (profileErr || !profile) { showAuthScreen(); showAuthMsg('Erro ao carregar perfil. Tenta novamente.', 'error'); return; }
 
-  // Query 1: perfil simples (sem join — mais robusto com RLS)
-  const { data: profile, error: profileErr } = await sb
-    .from('profiles')
-    .select('id, full_name, role, tenant_id, assigned_countries')
-    .eq('id', user.id)
-    .single();
-
-  if (profileErr || !profile) {
-    showAuthScreen();
-    showAuthMsg('Erro ao carregar perfil. Tenta novamente.', 'error');
-    return;
-  }
-
-  // Se não tem tenant_id: tenta recuperar do URL antes de bloquear
   if (!profile.tenant_id) {
     const params = new URLSearchParams(window.location.search);
     const tenantId = params.get('tenant');
     if (tenantId) {
-      const { error: updErr } = await sb
-        .from('profiles')
-        .update({ tenant_id: tenantId })
-        .eq('id', user.id);
-      if (!updErr) {
-        // Recarrega com o tenant_id agora definido
-        profile.tenant_id = tenantId;
-      }
+      const { error: updErr } = await sb.from('profiles').update({ tenant_id: tenantId }).eq('id', user.id);
+      if (!updErr) profile.tenant_id = tenantId;
     }
-    if (!profile.tenant_id) {
-      showAuthScreen();
-      showAuthMsg('Conta sem empresa associada. Abre o link de convite e tenta novamente.', 'error');
-      await sb.auth.signOut();
-      return;
-    }
+    if (!profile.tenant_id) { showAuthScreen(); showAuthMsg('Conta sem empresa associada. Abre o link de convite e tenta novamente.', 'error'); await sb.auth.signOut(); return; }
   }
 
-  // Query 2: dados do tenant (separada para não falhar o login se o join falhar)
-  const { data: tenant } = await sb
-    .from('tenants')
-    .select('name, plan, active')
-    .eq('id', profile.tenant_id)
-    .single();
+  // ── Fetch tenant including trial fields ──
+  const { data: tenant } = await sb.from('tenants').select('name, plan, active, is_trial, trial_ends_at').eq('id', profile.tenant_id).single();
 
-  // Bloquear se empresa suspensa
-  if (tenant && !tenant.active) {
-    showAuthScreen();
-    showAuthMsg('A conta da sua empresa está suspensa. Contacte o suporte.', 'error');
-    await sb.auth.signOut();
-    return;
+  if (tenant && !tenant.active) { showAuthScreen(); showAuthMsg('A conta da sua empresa está suspensa. Contacte o suporte.', 'error'); await sb.auth.signOut(); return; }
+
+  // ── TRIAL CHECK ──
+  if (tenant?.is_trial && tenant?.trial_ends_at) {
+    const trialEnd = new Date(tenant.trial_ends_at);
+    const daysLeft = Math.ceil((trialEnd - new Date()) / 86400000);
+
+    if (daysLeft <= 0) {
+      // Show app shell but block with expired overlay
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'flex';
+      document.getElementById('app-screen').style.flexDirection = 'column';
+      document.getElementById('trial-expired').style.display = 'flex';
+      return;
+    }
+
+    // Show warning banner in last 5 days
+    if (daysLeft <= 5) {
+      const banner = document.getElementById('trial-banner');
+      banner.style.display = 'block';
+      if (daysLeft <= 2) banner.classList.add('urgent');
+      banner.innerHTML = daysLeft === 1
+        ? '⏰ <strong>Último dia de trial.</strong> Os teus dados ficam guardados. <a onclick="document.getElementById(\'trial-expired\').style.display=\'flex\'">Activar plano agora</a>'
+        : `⏰ O teu trial expira em <strong>${daysLeft} dias</strong> (${trialEnd.toLocaleDateString('pt-PT')}). <a onclick="document.getElementById('trial-expired').style.display='flex'">Activar plano</a>`;
+    }
   }
 
   currentProfile = { ...profile, tenants: tenant };
-
-  // Mostrar app
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'flex';
   document.getElementById('app-screen').style.flexDirection = 'column';
   document.getElementById('user-name').textContent = profile.full_name || user.email;
-
   const companyEl = document.getElementById('company-name');
   if (companyEl && tenant?.name) companyEl.textContent = tenant.name;
-
   const rolePill = document.getElementById('role-pill');
   rolePill.textContent = profile.role || 'viewer';
   rolePill.className = 'role-pill role-' + (profile.role || 'viewer');
-
-  document.getElementById('btn-add').style.display         = profile.role === 'admin' ? '' : 'none';
-  document.getElementById('tab-users').style.display       = profile.role === 'admin' ? '' : 'none';
-  document.getElementById('tab-upload').style.display      = profile.role === 'viewer' ? 'none' : '';
-
+  document.getElementById('btn-add').style.display    = profile.role === 'admin' ? '' : 'none';
+  document.getElementById('tab-users').style.display  = profile.role === 'admin' ? '' : 'none';
+  document.getElementById('tab-upload').style.display = profile.role === 'viewer' ? 'none' : '';
   populateFilters();
   await loadInventory();
   if (profile.role === 'admin') checkPendingApprovals();
 }
 
-// ═══════════════════════════════════════════════════
-// DATA LOADING
-// ═══════════════════════════════════════════════════
+// ═══ DATA ═══
 async function loadInventory() {
   const { data, error } = await sb.from('inventory').select('*').order('name');
   if (error) { console.error(error); return; }
@@ -682,9 +611,7 @@ function canEditCountry(country) {
   return false;
 }
 
-// ═══════════════════════════════════════════════════
-// FILTERS
-// ═══════════════════════════════════════════════════
+// ═══ FILTERS ═══
 function populateFilters() {
   const countries = Object.keys(LOCATIONS).sort();
   ['f-country','c-country','h-country','a-country','t-country'].forEach(id => {
@@ -693,33 +620,26 @@ function populateFilters() {
     el.innerHTML = first + countries.map(c => `<option value="${c}">${c}</option>`).join('');
   });
 }
-
 function cascadeLocation() {
   const c = document.getElementById('f-country').value;
   const el = document.getElementById('f-location');
   const locs = c && LOCATIONS[c] ? LOCATIONS[c] : Object.values(LOCATIONS).flat();
   el.innerHTML = '<option value="">All locations</option>' + locs.map(l => `<option value="${l}">${l}</option>`).join('');
 }
-
 function fillAddLocations() {
   const c = document.getElementById('a-country').value;
-  document.getElementById('a-location').innerHTML = '<option value="">Select</option>' +
-    (c && LOCATIONS[c] ? LOCATIONS[c].map(l => `<option value="${l}">${l}</option>`).join('') : '');
+  document.getElementById('a-location').innerHTML = '<option value="">Select</option>' + (c && LOCATIONS[c] ? LOCATIONS[c].map(l => `<option value="${l}">${l}</option>`).join('') : '');
 }
-
 function fillTransferLocations() {
   const c = document.getElementById('t-country').value;
-  document.getElementById('t-location').innerHTML = '<option value="">Select</option>' +
-    (c && LOCATIONS[c] ? LOCATIONS[c].map(l => `<option value="${l}">${l}</option>`).join('') : '');
+  document.getElementById('t-location').innerHTML = '<option value="">Select</option>' + (c && LOCATIONS[c] ? LOCATIONS[c].map(l => `<option value="${l}">${l}</option>`).join('') : '');
 }
-
 function fillTransferInfo() {
   const serial = document.getElementById('t-serial').value.trim();
   const item = inventory.find(i => i.serial_number === serial && i.tenant_id === currentProfile.tenant_id);
   document.getElementById('t-name').value = item ? item.name : '';
   document.getElementById('t-from').value = item ? `${item.location} (${item.country})` : '';
 }
-
 function applyFilters() {
   const s = document.getElementById('f-search').value.toLowerCase();
   const c = document.getElementById('f-country').value;
@@ -737,1180 +657,269 @@ function applyFilters() {
   });
   renderTable(); updateKPIs();
 }
-
 function clearFilters() {
   ['f-search','f-country','f-location','f-type','f-status'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   cascadeLocation(); applyFilters();
 }
 
-// ═══════════════════════════════════════════════════
-// RENDER TABLE
-// ═══════════════════════════════════════════════════
+// ═══ TABLE ═══
 function sortBy(col) {
-  if (sortState.col === col) { sortState.dir *= -1; }
-  else { sortState.col = col; sortState.dir = col === 'qty' ? -1 : 1; }
+  if (sortState.col === col) sortState.dir *= -1; else { sortState.col = col; sortState.dir = col === 'qty' ? -1 : 1; }
   renderTable();
 }
-
 function renderTable() {
   const body = document.getElementById('inv-body');
   const isAdmin = currentProfile?.role === 'admin';
   const isSupervisor = currentProfile?.role === 'supervisor';
   const isViewer = currentProfile?.role === 'viewer';
   const showCosts = !isViewer;
-
-  const cols = [
-    { key: 'serial_number', label: 'Serial #' },
-    { key: 'name',          label: 'Name' },
-    { key: 'type',          label: 'Type' },
-    { key: 'country',       label: 'Country' },
-    { key: 'location',      label: 'Location' },
-    { key: 'qty',           label: 'Qty' },
-    ...(showCosts ? [{ key: 'unit_cost', label: 'Unit cost' }, { key: 'total_value', label: 'Total value' }] : []),
-    { key: 'stock',         label: 'Stock', nosort: true },
-    { key: 'actions',       label: 'Actions', nosort: true },
-  ];
-
+  const cols = ['serial_number','name','type','country','location','qty',...(showCosts?['unit_cost','total_value']:[]),'stock','actions'];
   const thStyle = 'cursor:pointer;user-select:none;white-space:nowrap;';
   const arrow = k => sortState.col === k ? (sortState.dir === 1 ? ' ▲' : ' ▼') : '';
   const thead = document.querySelector('#pane-inventory table thead tr');
-  if (thead) {
-    thead.innerHTML = cols.map(col =>
-      col.nosort
-        ? `<th>${col.label}</th>`
-        : `<th style="${thStyle}" onclick="sortBy('${col.key}')">${col.label}<span style="font-size:10px;color:var(--text3)">${arrow(col.key)}</span></th>`
-    ).join('');
-  }
-
-  if (!filteredItems.length) {
-    body.innerHTML = `<tr><td colspan="${cols.length}" style="text-align:center;color:var(--text3);padding:20px">No items match the filters.</td></tr>`;
-    document.getElementById('filtered-total').textContent = ''; return;
-  }
-
+  const labels = {'serial_number':'Serial #','name':'Name','type':'Type','country':'Country','location':'Location','qty':'Qty','unit_cost':'Unit cost','total_value':'Total value','stock':'Stock','actions':'Actions'};
+  if (thead) thead.innerHTML = cols.map(col => ['stock','actions'].includes(col) ? `<th>${labels[col]}</th>` : `<th style="${thStyle}" onclick="sortBy('${col}')">${labels[col]}<span style="font-size:10px;color:var(--text3)">${arrow(col)}</span></th>`).join('');
+  if (!filteredItems.length) { body.innerHTML = `<tr><td colspan="${cols.length}" style="text-align:center;color:var(--text3);padding:20px">No items match the filters.</td></tr>`; document.getElementById('filtered-total').textContent = ''; return; }
   let sorted = [...filteredItems];
   if (sortState.col && sortState.col !== 'total_value' && sortState.col !== 'stock') {
-    sorted.sort((a, b) => {
-      const av = sortState.col === 'qty' || sortState.col === 'unit_cost' ? (a[sortState.col] ?? 0) : String(a[sortState.col] ?? '').toLowerCase();
-      const bv = sortState.col === 'qty' || sortState.col === 'unit_cost' ? (b[sortState.col] ?? 0) : String(b[sortState.col] ?? '').toLowerCase();
-      return av < bv ? -sortState.dir : av > bv ? sortState.dir : 0;
-    });
-  } else if (sortState.col === 'total_value') {
-    sorted.sort((a, b) => sortState.dir * ((b.qty * b.unit_cost) - (a.qty * a.unit_cost)));
-  }
-
+    sorted.sort((a,b) => { const av = ['qty','unit_cost'].includes(sortState.col) ? (a[sortState.col]??0) : String(a[sortState.col]??'').toLowerCase(); const bv = ['qty','unit_cost'].includes(sortState.col) ? (b[sortState.col]??0) : String(b[sortState.col]??'').toLowerCase(); return av<bv?-sortState.dir:av>bv?sortState.dir:0; });
+  } else if (sortState.col === 'total_value') sorted.sort((a,b)=>sortState.dir*((b.qty*b.unit_cost)-(a.qty*a.unit_cost)));
   let total = 0;
   body.innerHTML = sorted.map(it => {
-    const tv = it.qty * it.unit_cost; total += tv;
+    const tv = it.qty*it.unit_cost; total += tv;
     const low = it.qty < it.min_qty_alert;
     const canEdit = canEditCountry(it.country);
-    let actions;
-    if (isAdmin) {
-      actions = `<button class="btn btn-sm" onclick="openItemModal(${it.id})" style="margin-right:3px">Edit</button><button class="btn btn-sm" onclick="openTransfer('${it.serial_number}')">Transfer</button>`;
-    } else if (isSupervisor && canEdit) {
-      actions = `<button class="btn btn-sm" onclick="openTransfer('${it.serial_number}')">Transfer</button>`;
-    } else if (isSupervisor && !canEdit) {
-      actions = `<span style="font-size:11px;color:var(--text3)">View only</span>`;
-    } else {
-      actions = '—';
-    }
-    return `<tr ${!canEdit && isSupervisor ? 'style="opacity:0.6"' : ''}>
-      <td style="font-family:monospace;font-size:11px">${it.serial_number}</td>
-      <td>${it.name}</td>
-      <td><span class="badge ${it.type === 'Tool' ? 'badge-tool' : 'badge-part'}">${it.type}</span></td>
-      <td style="font-size:12px">${it.country}</td>
-      <td style="font-size:12px">${it.location}</td>
+    let actions = isAdmin ? `<button class="btn btn-sm" onclick="openItemModal(${it.id})" style="margin-right:3px">Edit</button><button class="btn btn-sm" onclick="openTransfer('${it.serial_number}')">Transfer</button>`
+      : isSupervisor && canEdit ? `<button class="btn btn-sm" onclick="openTransfer('${it.serial_number}')">Transfer</button>`
+      : isSupervisor ? `<span style="font-size:11px;color:var(--text3)">View only</span>` : '—';
+    return `<tr ${!canEdit&&isSupervisor?'style="opacity:0.6"':''}>
+      <td style="font-family:monospace;font-size:11px">${it.serial_number}</td><td>${it.name}</td>
+      <td><span class="badge ${it.type==='Tool'?'badge-tool':'badge-part'}">${it.type}</span></td>
+      <td style="font-size:12px">${it.country}</td><td style="font-size:12px">${it.location}</td>
       <td style="font-weight:500">${it.qty}</td>
-      ${showCosts ? `<td>$${it.unit_cost.toLocaleString()}</td><td style="font-weight:500">$${tv.toLocaleString()}</td>` : ''}
-      <td><span class="badge ${low ? 'badge-low' : 'badge-ok'}">${low ? 'Low' : 'OK'}</span></td>
+      ${showCosts?`<td>$${it.unit_cost.toLocaleString()}</td><td style="font-weight:500">$${tv.toLocaleString()}</td>`:''}
+      <td><span class="badge ${low?'badge-low':'badge-ok'}">${low?'Low':'OK'}</span></td>
       <td style="white-space:nowrap">${actions}</td>
     </tr>`;
   }).join('');
-
   const totalEl = document.getElementById('filtered-total');
-  totalEl.innerHTML = showCosts
-    ? `Filtered total: <strong>$${total.toLocaleString()}</strong> across <strong>${filteredItems.length}</strong> item(s)`
-    : `Showing <strong>${filteredItems.length}</strong> item(s)`;
+  totalEl.innerHTML = showCosts ? `Filtered total: <strong>$${total.toLocaleString()}</strong> across <strong>${filteredItems.length}</strong> item(s)` : `Showing <strong>${filteredItems.length}</strong> item(s)`;
 }
 
 function updateKPIs() {
   const isViewer = currentProfile?.role === 'viewer';
   const isFiltered = filteredItems.length < inventory.length;
-
-  // Global totals (always full inventory)
-  const totalVal      = inventory.reduce((s, i) => s + i.qty * i.unit_cost, 0);
-  const totalCountries = [...new Set(inventory.map(i => i.country))].length;
-  const totalLow      = inventory.filter(i => i.qty < i.min_qty_alert).length;
-
-  // Filtered metrics (update when filters are active)
-  const filtVal       = filteredItems.reduce((s, i) => s + i.qty * i.unit_cost, 0);
-  const filtLow       = filteredItems.filter(i => i.qty < i.min_qty_alert).length;
-  const filtCountries = [...new Set(filteredItems.map(i => i.country))].length;
-  const filtLocations = [...new Set(filteredItems.map(i => i.location))].length;
-
-  // Show filtered values when filter is active, global otherwise
-  const dispLow       = isFiltered ? filtLow       : totalLow;
-  const dispItems     = filteredItems.length;
-  const dispCountries = isFiltered ? filtCountries  : totalCountries;
-  const dispLocations = filtLocations;
-
-  const lowLabel = isFiltered
-    ? `${dispLow} in filtered view (${totalLow} total)`
-    : dispLow > 0 ? 'Items below minimum' : 'All sufficient';
-
-  const subLabel = isFiltered
-    ? `${dispItems} of ${inventory.length} items · ${dispCountries} countr${dispCountries === 1 ? 'y' : 'ies'}`
-    : `Active locations: ${dispLocations}`;
-
+  const totalVal = inventory.reduce((s,i)=>s+i.qty*i.unit_cost,0);
+  const totalCountries = [...new Set(inventory.map(i=>i.country))].length;
+  const totalLow = inventory.filter(i=>i.qty<i.min_qty_alert).length;
+  const filtVal = filteredItems.reduce((s,i)=>s+i.qty*i.unit_cost,0);
+  const filtLow = filteredItems.filter(i=>i.qty<i.min_qty_alert).length;
+  const filtCountries = [...new Set(filteredItems.map(i=>i.country))].length;
+  const filtLocations = [...new Set(filteredItems.map(i=>i.location))].length;
+  const dispLow = isFiltered ? filtLow : totalLow;
+  const dispItems = filteredItems.length;
+  const dispCountries = isFiltered ? filtCountries : totalCountries;
+  const lowLabel = isFiltered ? `${dispLow} in filtered view (${totalLow} total)` : dispLow>0?'Items below minimum':'All sufficient';
+  const subLabel = isFiltered ? `${dispItems} of ${inventory.length} items · ${dispCountries} countr${dispCountries===1?'y':'ies'}` : `Active locations: ${filtLocations}`;
   if (isViewer) {
     document.getElementById('kpis').innerHTML = `
       <div class="kpi"><div class="kpi-label">Total items tracked</div><div class="kpi-value">${inventory.length}</div><div class="kpi-sub">Across ${totalCountries} countries</div></div>
-      <div class="kpi"><div class="kpi-label">Filtered items</div><div class="kpi-value ${isFiltered ? 'amber' : ''}">${dispItems}</div><div class="kpi-sub">${subLabel}</div></div>
-      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${dispLow > 0 ? 'amber' : 'green'}">${dispLow}</div><div class="kpi-sub">${lowLabel}</div></div>
-    `;
+      <div class="kpi"><div class="kpi-label">Filtered items</div><div class="kpi-value ${isFiltered?'amber':''}">${dispItems}</div><div class="kpi-sub">${subLabel}</div></div>
+      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${dispLow>0?'amber':'green'}">${dispLow}</div><div class="kpi-sub">${lowLabel}</div></div>`;
   } else {
     document.getElementById('kpis').innerHTML = `
       <div class="kpi"><div class="kpi-label">Total inventory value</div><div class="kpi-value">$${totalVal.toLocaleString()}</div><div class="kpi-sub">Across ${totalCountries} countries</div></div>
-      <div class="kpi"><div class="kpi-label">Filtered view value</div><div class="kpi-value ${isFiltered ? 'amber' : ''}">$${filtVal.toLocaleString()}</div><div class="kpi-sub">${subLabel}</div></div>
-      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${dispLow > 0 ? 'amber' : 'green'}">${dispLow}</div><div class="kpi-sub">${lowLabel}</div></div>
-      <div class="kpi"><div class="kpi-label">Total items tracked</div><div class="kpi-value">${inventory.length}</div><div class="kpi-sub">Active locations: ${[...new Set(inventory.map(i => i.location))].length}</div></div>
-    `;
+      <div class="kpi"><div class="kpi-label">Filtered view value</div><div class="kpi-value ${isFiltered?'amber':''}">$${filtVal.toLocaleString()}</div><div class="kpi-sub">${subLabel}</div></div>
+      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${dispLow>0?'amber':'green'}">${dispLow}</div><div class="kpi-sub">${lowLabel}</div></div>
+      <div class="kpi"><div class="kpi-label">Total items tracked</div><div class="kpi-value">${inventory.length}</div><div class="kpi-sub">Active locations: ${[...new Set(inventory.map(i=>i.location))].length}</div></div>`;
   }
 }
 
-// ═══════════════════════════════════════════════════
-// TABS
-// ═══════════════════════════════════════════════════
+// ═══ TABS ═══
 function showTab(tab) {
-  ['inventory','dashboard','upload','approvals','consumption','history','reports','users'].forEach(t => {
-    const p = document.getElementById('pane-' + t); if (p) p.style.display = t === tab ? 'block' : 'none';
-  });
-  document.querySelectorAll('.tab').forEach(b => {
-    const fn = b.getAttribute('onclick') || '';
-    b.classList.toggle('active', fn.includes("'" + tab + "'"));
-  });
-  if (tab === 'history')    renderHistory();
-  if (tab === 'consumption') renderConsumption();
-  if (tab === 'users')      renderUsers();
-  if (tab === 'dashboard')  renderDashboard();
-  if (tab === 'approvals')  renderApprovals();
-  if (tab === 'reports')    initReportFilters();
+  ['inventory','dashboard','upload','approvals','consumption','history','reports','users'].forEach(t=>{const p=document.getElementById('pane-'+t);if(p)p.style.display=t===tab?'block':'none';});
+  document.querySelectorAll('.tab').forEach(b=>{const fn=b.getAttribute('onclick')||'';b.classList.toggle('active',fn.includes("'"+tab+"'"));});
+  if(tab==='history')renderHistory();if(tab==='consumption')renderConsumption();if(tab==='users')renderUsers();
+  if(tab==='dashboard')renderDashboard();if(tab==='approvals')renderApprovals();if(tab==='reports')initReportFilters();
 }
 
-// ═══════════════════════════════════════════════════
-// ITEM MODAL (admin only)
-// ═══════════════════════════════════════════════════
+// ═══ ITEM MODAL ═══
 function openItemModal(id) {
-  editingId = id || null;
-  document.getElementById('modal-title').textContent = id ? 'Edit item' : 'Add new item';
-  if (id) {
-    const it = inventory.find(i => i.id === id);
-    if (!it) return;
-    document.getElementById('a-serial').value = it.serial_number;
-    document.getElementById('a-name').value = it.name;
-    document.getElementById('a-type').value = it.type;
-    document.getElementById('a-qty').value = it.qty;
-    document.getElementById('a-cost').value = it.unit_cost;
-    document.getElementById('a-min').value = it.min_qty_alert;
-    document.getElementById('a-country').value = it.country;
-    fillAddLocations();
-    document.getElementById('a-location').value = it.location;
-  } else {
-    ['a-serial','a-name','a-cost'].forEach(i => document.getElementById(i).value = '');
-    document.getElementById('a-qty').value = 1;
-    document.getElementById('a-min').value = 2;
-    document.getElementById('a-type').value = 'Spare part';
-    document.getElementById('a-country').value = '';
-    document.getElementById('a-location').innerHTML = '<option value="">Select</option>';
-  }
+  editingId = id||null;
+  document.getElementById('modal-title').textContent = id?'Edit item':'Add new item';
+  if(id){const it=inventory.find(i=>i.id===id);if(!it)return;document.getElementById('a-serial').value=it.serial_number;document.getElementById('a-name').value=it.name;document.getElementById('a-type').value=it.type;document.getElementById('a-qty').value=it.qty;document.getElementById('a-cost').value=it.unit_cost;document.getElementById('a-min').value=it.min_qty_alert;document.getElementById('a-country').value=it.country;fillAddLocations();document.getElementById('a-location').value=it.location;}
+  else{['a-serial','a-name','a-cost'].forEach(i=>document.getElementById(i).value='');document.getElementById('a-qty').value=1;document.getElementById('a-min').value=2;document.getElementById('a-type').value='Spare part';document.getElementById('a-country').value='';document.getElementById('a-location').innerHTML='<option value="">Select</option>';}
   document.getElementById('item-modal').classList.add('open');
 }
-
-function closeItemModal() { document.getElementById('item-modal').classList.remove('open'); }
-
+function closeItemModal(){document.getElementById('item-modal').classList.remove('open');}
 async function saveItem() {
-  const serial = document.getElementById('a-serial').value.trim();
-  const name = document.getElementById('a-name').value.trim();
-  const type = document.getElementById('a-type').value;
-  const qty = parseInt(document.getElementById('a-qty').value) || 0;
-  const unit_cost = parseFloat(document.getElementById('a-cost').value) || 0;
-  const min_qty_alert = parseInt(document.getElementById('a-min').value) || 0;
-  const country = document.getElementById('a-country').value;
-  const location = document.getElementById('a-location').value;
-  if (!serial || !name || !country || !location) return alert('Please fill all required fields.');
-
-  if (editingId) {
-    const { error } = await sb.from('inventory').update({ serial_number: serial, name, type, qty, unit_cost, min_qty_alert, country, location }).eq('id', editingId);
-    if (error) return alert('Error: ' + error.message);
-  } else {
-    const { error } = await sb.from('inventory').insert({ serial_number: serial, name, type, qty, unit_cost, min_qty_alert, country, location, tenant_id: currentProfile.tenant_id });
-    if (error) return alert('Error: ' + error.message);
-    await sb.from('movements').insert({ action: 'Added', serial_number: serial, item_name: name, qty, from_location: null, to_location: location, country, notes: 'Added manually', performed_by: currentUser.id, tenant_id: currentProfile.tenant_id });
-  }
-  closeItemModal();
-  await loadInventory();
+  const serial=document.getElementById('a-serial').value.trim(),name=document.getElementById('a-name').value.trim(),type=document.getElementById('a-type').value,qty=parseInt(document.getElementById('a-qty').value)||0,unit_cost=parseFloat(document.getElementById('a-cost').value)||0,min_qty_alert=parseInt(document.getElementById('a-min').value)||0,country=document.getElementById('a-country').value,location=document.getElementById('a-location').value;
+  if(!serial||!name||!country||!location)return alert('Please fill all required fields.');
+  if(editingId){const{error}=await sb.from('inventory').update({serial_number:serial,name,type,qty,unit_cost,min_qty_alert,country,location}).eq('id',editingId);if(error)return alert('Error: '+error.message);}
+  else{const{error}=await sb.from('inventory').insert({serial_number:serial,name,type,qty,unit_cost,min_qty_alert,country,location,tenant_id:currentProfile.tenant_id});if(error)return alert('Error: '+error.message);await sb.from('movements').insert({action:'Added',serial_number:serial,item_name:name,qty,from_location:null,to_location:location,country,notes:'Added manually',performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});}
+  closeItemModal();await loadInventory();
 }
 
-// ═══════════════════════════════════════════════════
-// TRANSFER MODAL
-// ═══════════════════════════════════════════════════
-function openTransfer(serial) {
-  document.getElementById('t-serial').value = serial || '';
-  fillTransferInfo();
-  document.getElementById('t-qty').value = 1;
-  document.getElementById('t-notes').value = '';
-  document.getElementById('t-country').value = '';
-  document.getElementById('t-location').innerHTML = '<option value="">Select</option>';
-  document.getElementById('transfer-modal').classList.add('open');
-}
-function closeTransferModal() { document.getElementById('transfer-modal').classList.remove('open'); }
-
+// ═══ TRANSFER MODAL ═══
+function openTransfer(serial){document.getElementById('t-serial').value=serial||'';fillTransferInfo();document.getElementById('t-qty').value=1;document.getElementById('t-notes').value='';document.getElementById('t-country').value='';document.getElementById('t-location').innerHTML='<option value="">Select</option>';document.getElementById('transfer-modal').classList.add('open');}
+function closeTransferModal(){document.getElementById('transfer-modal').classList.remove('open');}
 async function submitTransfer() {
-  const serial = document.getElementById('t-serial').value.trim();
-  const toCountry = document.getElementById('t-country').value;
-  const toLoc = document.getElementById('t-location').value;
-  const qty = parseInt(document.getElementById('t-qty').value) || 0;
-  const notes = document.getElementById('t-notes').value;
-  if (!serial || !toCountry || !toLoc || qty < 1) return alert('Please fill all fields.');
-
-  const item = inventory.find(i => i.serial_number === serial && i.tenant_id === currentProfile.tenant_id);
-  if (!item) return alert('Serial number not found.');
-  if (qty > item.qty) return alert('Transfer quantity exceeds available stock.');
-
-  // Admins execute directly; supervisors create a request for approval
-  if (currentProfile.role === 'admin') {
-    await executeTransfer(item, serial, toCountry, toLoc, qty, notes);
-  } else {
-    const { error } = await sb.from('transfer_requests').insert({
-      serial_number: serial,
-      item_name: item.name,
-      qty,
-      from_location: item.location,
-      from_country: item.country,
-      to_location: toLoc,
-      to_country: toCountry,
-      notes: notes || null,
-      requested_by: currentUser.id,
-      tenant_id: currentProfile.tenant_id,
-      status: 'pending'
-    });
-    if (error) return alert('Error submitting request: ' + error.message);
-    closeTransferModal();
-    alert('Transfer request submitted. Awaiting admin approval.');
-    return;
-  }
-  closeTransferModal();
-  await loadInventory();
+  const serial=document.getElementById('t-serial').value.trim(),toCountry=document.getElementById('t-country').value,toLoc=document.getElementById('t-location').value,qty=parseInt(document.getElementById('t-qty').value)||0,notes=document.getElementById('t-notes').value;
+  if(!serial||!toCountry||!toLoc||qty<1)return alert('Please fill all fields.');
+  const item=inventory.find(i=>i.serial_number===serial&&i.tenant_id===currentProfile.tenant_id);
+  if(!item)return alert('Serial number not found.');if(qty>item.qty)return alert('Transfer quantity exceeds available stock.');
+  if(currentProfile.role==='admin'){await executeTransfer(item,serial,toCountry,toLoc,qty,notes);}
+  else{const{error}=await sb.from('transfer_requests').insert({serial_number:serial,item_name:item.name,qty,from_location:item.location,from_country:item.country,to_location:toLoc,to_country:toCountry,notes:notes||null,requested_by:currentUser.id,tenant_id:currentProfile.tenant_id,status:'pending'});if(error)return alert('Error submitting request: '+error.message);closeTransferModal();alert('Transfer request submitted. Awaiting admin approval.');return;}
+  closeTransferModal();await loadInventory();
+}
+async function executeTransfer(item,serial,toCountry,toLoc,qty,notes) {
+  if(item.qty===qty){await sb.from('inventory').update({location:toLoc,country:toCountry}).eq('id',item.id);}
+  else{await sb.from('inventory').update({qty:item.qty-qty}).eq('id',item.id);const existing=inventory.find(i=>i.serial_number===serial&&i.location===toLoc&&i.tenant_id===currentProfile.tenant_id);if(existing){await sb.from('inventory').update({qty:existing.qty+qty}).eq('id',existing.id);}else{await sb.from('inventory').insert({serial_number:serial,name:item.name,type:item.type,country:toCountry,location:toLoc,qty,unit_cost:item.unit_cost,min_qty_alert:item.min_qty_alert,tenant_id:currentProfile.tenant_id});}}
+  await sb.from('movements').insert({action:'Transfer',serial_number:serial,item_name:item.name,qty,from_location:item.location,to_location:toLoc,country:toCountry,notes:notes||null,performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});
 }
 
-async function executeTransfer(item, serial, toCountry, toLoc, qty, notes) {
-  if (item.qty === qty) {
-    await sb.from('inventory').update({ location: toLoc, country: toCountry }).eq('id', item.id);
-  } else {
-    await sb.from('inventory').update({ qty: item.qty - qty }).eq('id', item.id);
-    const existing = inventory.find(i => i.serial_number === serial && i.location === toLoc && i.tenant_id === currentProfile.tenant_id);
-    if (existing) {
-      await sb.from('inventory').update({ qty: existing.qty + qty }).eq('id', existing.id);
-    } else {
-      await sb.from('inventory').insert({ serial_number: serial, name: item.name, type: item.type, country: toCountry, location: toLoc, qty, unit_cost: item.unit_cost, min_qty_alert: item.min_qty_alert, tenant_id: currentProfile.tenant_id });
-    }
-  }
-  await sb.from('movements').insert({ action: 'Transfer', serial_number: serial, item_name: item.name, qty, from_location: item.location, to_location: toLoc, country: toCountry, notes: notes || null, performed_by: currentUser.id, tenant_id: currentProfile.tenant_id });
-}
-
-// ═══════════════════════════════════════════════════
-// BULK UPLOAD
-// ═══════════════════════════════════════════════════
+// ═══ BULK UPLOAD (full implementation from original) ═══
 function exportTemplate(mode) {
-  const countries = Object.keys(LOCATIONS).sort();
-  const allLocs = Object.values(LOCATIONS).flat();
-  const types = ['Spare part', 'Tool'];
-
-  // ── Build XML helpers ──────────────────────────────────────────────────
-  const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-
-  // Shared strings table
-  const sst = [];
-  const sstMap = {};
-  function si(val) {
-    const s = String(val ?? '');
-    if (!(s in sstMap)) { sstMap[s] = sst.length; sst.push(s); }
-    return sstMap[s];
+  const countries=Object.keys(LOCATIONS).sort(),allLocs=Object.values(LOCATIONS).flat(),types=['Spare part','Tool'];
+  const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const sst=[],sstMap={};
+  function si(val){const s=String(val??'');if(!(s in sstMap)){sstMap[s]=sst.length;sst.push(s);}return sstMap[s];}
+  const STYLE_HEADER=1,STYLE_LOCKED=2,STYLE_EDITABLE=3;
+  function colLetter(n){let s='';n++;while(n>0){n--;s=String.fromCharCode(65+(n%26))+s;n=Math.floor(n/26);}return s;}
+  function cellAddr(r,c){return colLetter(c)+(r+1);}
+  function buildSheetXml(rows,cellMeta,sheetProtection,dataValidations){let xml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><cols>';for(let i=0;i<(rows[0]?.length||1);i++)xml+=`<col min="${i+1}" max="${i+1}" width="24" customWidth="1"/>`;xml+='</cols><sheetData>';rows.forEach((row,ri)=>{xml+=`<row r="${ri+1}">`;row.forEach((val,ci)=>{const addr=cellAddr(ri,ci),meta=cellMeta?.[addr]||{},sIdx=meta.s??0;if(val===''||val==null)xml+=`<c r="${addr}" s="${sIdx}"><v></v></c>`;else if(typeof val==='number')xml+=`<c r="${addr}" t="n" s="${sIdx}"><v>${val}</v></c>`;else xml+=`<c r="${addr}" t="s" s="${sIdx}"><v>${si(val)}</v></c>`;});xml+='</row>';});xml+='</sheetData>';if(dataValidations?.length){xml+=`<dataValidations count="${dataValidations.length}">`;dataValidations.forEach(dv=>{xml+=`<dataValidation type="list" sqref="${dv.sqref}" showErrorMessage="1" errorTitle="Invalid entry" error="Please choose from the dropdown list." showDropDown="0"><formula1>"${esc(dv.values.join(','))}"</formula1></dataValidation>`;});xml+='</dataValidations>';}if(sheetProtection)xml+='<sheetProtection sheet="1" objects="1" scenarios="1" selectLockedCells="0" selectUnlockedCells="0" formatCells="1" formatColumns="1" formatRows="1" insertRows="1" deleteRows="1"/>';xml+='</worksheet>';return xml;}
+  function buildStylesXml(){return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><sz val="11"/><name val="Calibri"/><b/></font><font><sz val="11"/><name val="Calibri"/><color rgb="FF888888"/></font></fonts><fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFD9E1F2"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFFDE7"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"><protection locked="1"/></xf><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment horizontal="center"/><protection locked="1"/></xf><xf numFmtId="0" fontId="2" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1"><protection locked="1"/></xf><xf numFmtId="0" fontId="0" fillId="4" borderId="0" xfId="0" applyFill="1"><protection locked="0"/></xf></cellXfs></styleSheet>`;}
+  function buildSstXml(){let xml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${sst.length}" uniqueCount="${sst.length}">`;sst.forEach(s=>{xml+=`<si><t xml:space="preserve">${esc(s)}</t></si>`;});return xml+'</sst>';}
+  function buildWorkbookXml(sheets){let xml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>`;sheets.forEach((s,i)=>{xml+=`<sheet name="${esc(s.name)}" sheetId="${i+1}" r:id="rId${i+3}"/>`;});return xml+'</sheets></workbook>';}
+  function buildWorkbookRels(sheets){let xml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>`;sheets.forEach((s,i)=>{xml+=`<Relationship Id="rId${i+3}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`;});return xml+'</Relationships>';}
+  function buildContentTypes(sheets){let xml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>`;sheets.forEach((s,i)=>{xml+=`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`;});return xml+'</Types>';}
+  function buildRootRels(){return`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;}
+  async function buildAndDownload(){
+    if(!window.JSZip){await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+    let dataRows,headers,sheetName,cellMeta,protect,dataValidations;const maxDataRows=500;
+    if(mode==='update'){sheetName='Inventory Update';headers=['serial_number','item_name','type','country','location','current_qty_in_system','new_qty_on_hand','qty_consumed','notes'];const lockedCols=[0,1,2,3,4,5],editableCols=[6,7,8];dataRows=inventory.map(it=>[it.serial_number,it.name,it.type,it.country,it.location,it.qty,'','','']);cellMeta={};headers.forEach((_,ci)=>{cellMeta[cellAddr(0,ci)]={s:STYLE_HEADER};});dataRows.forEach((_,ri)=>{lockedCols.forEach(ci=>{cellMeta[cellAddr(ri+1,ci)]={s:STYLE_LOCKED};});editableCols.forEach(ci=>{cellMeta[cellAddr(ri+1,ci)]={s:STYLE_EDITABLE};});});protect=true;dataValidations=[];}
+    else{sheetName='New Items';headers=['serial_number','item_name','type','country','location','qty','unit_cost','min_qty_alert','notes'];dataRows=[['SN-XXXX-XXX','Example item name','Spare part','Angola','Main Warehouse - Luanda',1,0,2,'Optional notes']];cellMeta={};headers.forEach((_,ci)=>{cellMeta[cellAddr(0,ci)]={s:STYLE_HEADER};});dataRows.forEach((_,ri)=>{headers.forEach((_,ci)=>{cellMeta[cellAddr(ri+1,ci)]={s:STYLE_EDITABLE};});});protect=false;dataValidations=[{sqref:`C2:C${maxDataRows}`,values:types},{sqref:`D2:D${maxDataRows}`,values:countries},{sqref:`E2:E${maxDataRows}`,values:allLocs}];}
+    const infoRows=mode==='update'?[['INSTRUCTIONS'],[''],['GREY cells are LOCKED.'],['YELLOW cells are editable: fill new_qty_on_hand and/or qty_consumed.'],['Leave blank if no change.'],[''],['Do NOT rename or reorder columns.'],['Save as .xlsx before uploading.']]:[['INSTRUCTIONS'],[''],['Fill every row with a new inventory item.'],['Type, Country and Location have dropdown validation.'],['Serial number must be unique.'],[''],['Valid types: '+types.join(', ')],['Valid countries: '+countries.join(', ')]];
+    const infoMeta={'A1':{s:STYLE_HEADER}};const allRowsMain=[headers,...dataRows];[[...allRowsMain,...infoRows]].flat().forEach(row=>row.forEach(v=>{if(typeof v==='string'&&v)si(v);}));
+    const sheets=[{name:'Instructions'},{name:sheetName}];
+    const zip=new window.JSZip();zip.file('[Content_Types].xml',buildContentTypes(sheets));zip.file('_rels/.rels',buildRootRels());zip.file('xl/workbook.xml',buildWorkbookXml(sheets));zip.file('xl/_rels/workbook.xml.rels',buildWorkbookRels(sheets));zip.file('xl/styles.xml',buildStylesXml());zip.file('xl/sharedStrings.xml',buildSstXml());zip.file('xl/worksheets/sheet1.xml',buildSheetXml(infoRows,infoMeta,false,[]));zip.file('xl/worksheets/sheet2.xml',buildSheetXml(allRowsMain,cellMeta,protect,dataValidations));
+    const blob=await zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=mode==='update'?'inventory_update_template.xlsx':'new_items_template.xlsx';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
-
-  // Style indexes — we'll define 5 styles:
-  // 0 = default, 1 = header (blue bg, bold), 2 = locked/grey, 3 = editable/yellow, 4 = bold-text (instructions)
-  const STYLE_DEFAULT  = 0;
-  const STYLE_HEADER   = 1;
-  const STYLE_LOCKED   = 2;
-  const STYLE_EDITABLE = 3;
-
-  function colLetter(n) {
-    let s = '';
-    n++;
-    while (n > 0) { n--; s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n / 26); }
-    return s;
-  }
-
-  function cellAddr(r, c) { return colLetter(c) + (r + 1); }
-
-  // Build a worksheet XML from rows array
-  // cellMeta: { 'A1': { s: styleIdx, locked: bool } }
-  function buildSheetXml(rows, cellMeta, sheetProtection, dataValidations) {
-    let xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
-    xml += '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"';
-    xml += ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
-
-    // Column widths
-    xml += '<cols>';
-    for (let i = 0; i < (rows[0]?.length || 1); i++) {
-      xml += `<col min="${i+1}" max="${i+1}" width="24" customWidth="1"/>`;
-    }
-    xml += '</cols>';
-
-    xml += '<sheetData>';
-    rows.forEach((row, ri) => {
-      xml += `<row r="${ri+1}">`;
-      row.forEach((val, ci) => {
-        const addr = cellAddr(ri, ci);
-        const meta = cellMeta?.[addr] || {};
-        const sIdx = meta.s ?? STYLE_DEFAULT;
-        const locked = meta.locked !== false; // default locked=true in Excel
-        if (val === '' || val == null) {
-          xml += `<c r="${addr}" s="${sIdx}"><v></v></c>`;
-        } else if (typeof val === 'number') {
-          xml += `<c r="${addr}" t="n" s="${sIdx}"><v>${val}</v></c>`;
-        } else {
-          xml += `<c r="${addr}" t="s" s="${sIdx}"><v>${si(val)}</v></c>`;
-        }
-      });
-      xml += '</row>';
-    });
-    xml += '</sheetData>';
-
-    // Data validations (dropdowns)
-    if (dataValidations?.length) {
-      xml += '<dataValidations count="' + dataValidations.length + '">';
-      dataValidations.forEach(dv => {
-        xml += `<dataValidation type="list" sqref="${dv.sqref}" showErrorMessage="1" errorTitle="Invalid entry" error="Please choose from the dropdown list." showDropDown="0">`;
-        xml += `<formula1>"${esc(dv.values.join(','))}"</formula1>`;
-        xml += '</dataValidation>';
-      });
-      xml += '</dataValidations>';
-    }
-
-    // Sheet protection — locks the sheet; cells with protection locked=false stay editable
-    if (sheetProtection) {
-      xml += '<sheetProtection sheet="1" objects="1" scenarios="1" selectLockedCells="0" selectUnlockedCells="0" formatCells="1" formatColumns="1" formatRows="1" insertRows="1" deleteRows="1"/>';
-    }
-
-    xml += '</worksheet>';
-    return xml;
-  }
-
-  // ── Styles XML ─────────────────────────────────────────────────────────
-  function buildStylesXml() {
-    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-  <fonts count="3">
-    <font><sz val="11"/><name val="Calibri"/></font>
-    <font><sz val="11"/><name val="Calibri"/><b/></font>
-    <font><sz val="11"/><name val="Calibri"/><color rgb="FF888888"/></font>
-  </fonts>
-  <fills count="5">
-    <fill><patternFill patternType="none"/></fill>
-    <fill><patternFill patternType="gray125"/></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFD9E1F2"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFFFFDE7"/></patternFill></fill>
-  </fills>
-  <borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
-  <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-  <cellXfs count="4">
-    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"><protection locked="1"/></xf>
-    <xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment horizontal="center"/><protection locked="1"/></xf>
-    <xf numFmtId="0" fontId="2" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1"><protection locked="1"/></xf>
-    <xf numFmtId="0" fontId="0" fillId="4" borderId="0" xfId="0" applyFill="1"><protection locked="0"/></xf>
-  </cellXfs>
-</styleSheet>`;
-  }
-
-  // ── SST XML ────────────────────────────────────────────────────────────
-  function buildSstXml() {
-    let xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`;
-    xml += `<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${sst.length}" uniqueCount="${sst.length}">`;
-    sst.forEach(s => { xml += `<si><t xml:space="preserve">${esc(s)}</t></si>`; });
-    xml += '</sst>';
-    return xml;
-  }
-
-  // ── Workbook XML ───────────────────────────────────────────────────────
-  function buildWorkbookXml(sheets) {
-    let xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`;
-    xml += `<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">`;
-    xml += '<sheets>';
-    sheets.forEach((s, i) => {
-      xml += `<sheet name="${esc(s.name)}" sheetId="${i+1}" r:id="rId${i+3}"/>`;
-    });
-    xml += '</sheets></workbook>';
-    return xml;
-  }
-
-  function buildWorkbookRels(sheets) {
-    let xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`;
-    xml += `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`;
-    xml += `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>`;
-    xml += `<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>`;
-    sheets.forEach((s, i) => {
-      xml += `<Relationship Id="rId${i+3}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`;
-    });
-    xml += '</Relationships>';
-    return xml;
-  }
-
-  function buildContentTypes(sheets) {
-    let xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`;
-    xml += `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">`;
-    xml += `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>`;
-    xml += `<Default Extension="xml" ContentType="application/xml"/>`;
-    xml += `<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>`;
-    xml += `<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>`;
-    xml += `<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>`;
-    sheets.forEach((s, i) => {
-      xml += `<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`;
-    });
-    xml += '</Types>';
-    return xml;
-  }
-
-  function buildRootRels() {
-    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
-</Relationships>`;
-  }
-
-  // ── ZIP builder using JSZip (loaded via CDN) ───────────────────────────
-  async function buildAndDownload() {
-    // Dynamically load JSZip if not present
-    if (!window.JSZip) {
-      await new Promise((res, rej) => {
-        const s = document.createElement('script');
-        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-        s.onload = res; s.onerror = rej;
-        document.head.appendChild(s);
-      });
-    }
-
-    let dataRows, headers, sheetName, cellMeta, protect, dataValidations;
-    const maxDataRows = 500;
-
-    if (mode === 'update') {
-      sheetName = 'Inventory Update';
-      headers = ['serial_number','item_name','type','country','location','current_qty_in_system','new_qty_on_hand','qty_consumed','notes'];
-      // lockedCols (0-based): 0=serial,1=name,2=type,3=country,4=location,5=system_qty
-      // editableCols: 6=new_qty,7=consumed,8=notes
-      const lockedCols = [0,1,2,3,4,5];
-      const editableCols = [6,7,8];
-      dataRows = inventory.map(it => [it.serial_number, it.name, it.type, it.country, it.location, it.qty, '', '', '']);
-
-      cellMeta = {};
-      // Header row — all styled as header
-      headers.forEach((_, ci) => { cellMeta[cellAddr(0, ci)] = { s: STYLE_HEADER }; });
-      // Data rows
-      dataRows.forEach((_, ri) => {
-        lockedCols.forEach(ci  => { cellMeta[cellAddr(ri+1, ci)] = { s: STYLE_LOCKED }; });
-        editableCols.forEach(ci => { cellMeta[cellAddr(ri+1, ci)] = { s: STYLE_EDITABLE }; });
-      });
-      protect = true;
-      dataValidations = [];
-    } else {
-      sheetName = 'New Items';
-      headers = ['serial_number','item_name','type','country','location','qty','unit_cost','min_qty_alert','notes'];
-      dataRows = [['SN-XXXX-XXX','Example item name','Spare part','Angola','Main Warehouse - Luanda',1,0,2,'Optional notes']];
-      cellMeta = {};
-      headers.forEach((_, ci) => { cellMeta[cellAddr(0, ci)] = { s: STYLE_HEADER }; });
-      // No locking for new items — all editable (yellow)
-      dataRows.forEach((_, ri) => {
-        headers.forEach((_, ci) => { cellMeta[cellAddr(ri+1, ci)] = { s: STYLE_EDITABLE }; });
-      });
-      protect = false;
-      dataValidations = [
-        { sqref: `C2:C${maxDataRows}`, values: types },
-        { sqref: `D2:D${maxDataRows}`, values: countries },
-        { sqref: `E2:E${maxDataRows}`, values: allLocs },
-      ];
-    }
-
-    // Instructions sheet rows
-    const infoRows = mode === 'update' ? [
-      ['INSTRUCTIONS — Read before filling'],
-      [''],
-      ['GREY cells (serial, name, type, country, location, system qty) are LOCKED — cannot be edited.'],
-      ['YELLOW cells are editable: fill new_qty_on_hand and/or qty_consumed as needed.'],
-      ['Leave yellow cells blank if there is no change for that item.'],
-      [''],
-      ['Do NOT rename or reorder columns.'],
-      ['Save the file as .xlsx before uploading back to the system.'],
-    ] : [
-      ['INSTRUCTIONS — Read before filling'],
-      [''],
-      ['Fill every row with a new inventory item.'],
-      ['Type, Country, and Location columns have dropdown validation — click the cell to see options.'],
-      ['Serial number must be unique — check existing inventory before adding.'],
-      [''],
-      ['Valid types: ' + types.join(', ')],
-      ['Valid countries: ' + countries.join(', ')],
-      [''],
-      ['Do NOT rename or reorder columns.'],
-      ['Save the file as .xlsx before uploading back to the system.'],
-    ];
-    const infoMeta = { 'A1': { s: STYLE_HEADER } };
-
-    const allRows_main = [headers, ...dataRows];
-    const allRows_info = infoRows;
-
-    // Pre-populate SST by scanning all cells
-    [[...allRows_main, ...allRows_info]].flat().forEach(row => row.forEach(v => { if (typeof v === 'string' && v) si(v); }));
-
-    const mainSheetXml = buildSheetXml(allRows_main, cellMeta, protect, dataValidations);
-    const infoSheetXml = buildSheetXml(allRows_info, infoMeta, false, []);
-
-    // Must call buildSstXml AFTER all si() calls
-    const sheets = [{ name: 'Instructions' }, { name: sheetName }];
-
-    const zip = new window.JSZip();
-    zip.file('[Content_Types].xml', buildContentTypes(sheets));
-    zip.file('_rels/.rels', buildRootRels());
-    zip.file('xl/workbook.xml', buildWorkbookXml(sheets));
-    zip.file('xl/_rels/workbook.xml.rels', buildWorkbookRels(sheets));
-    zip.file('xl/styles.xml', buildStylesXml());
-    zip.file('xl/sharedStrings.xml', buildSstXml());
-    zip.file('xl/worksheets/sheet1.xml', infoSheetXml);
-    zip.file('xl/worksheets/sheet2.xml', mainSheetXml);
-
-    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = mode === 'update' ? 'inventory_update_template.xlsx' : 'new_items_template.xlsx';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-
-  buildAndDownload().catch(e => alert('Export failed: ' + e.message));
+  buildAndDownload().catch(e=>alert('Export failed: '+e.message));
+}
+function handleDrop(e){e.preventDefault();const file=e.dataTransfer.files[0];if(file)processFile(file);}
+function handleFileSelect(e){processFile(e.target.files[0]);e.target.value='';}
+function processFile(file){const reader=new FileReader();reader.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'array'});const sheetName=wb.SheetNames.find(n=>n!=='Instructions');const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{defval:''});if(!rows.length)return;const mode='new_qty_on_hand' in rows[0]?'update':'new';pendingUpload={rows,mode};renderPreview(rows,mode);}catch(err){alert('Could not read file. Use a template exported from this system.');}};reader.readAsArrayBuffer(file);}
+function renderPreview(rows,mode){
+  document.getElementById('upload-preview').style.display='block';
+  const thead=document.getElementById('preview-thead'),tbody=document.getElementById('preview-tbody');let warnings=0,changes=0;
+  if(mode==='update'){thead.innerHTML='<tr><th>Serial #</th><th>Name</th><th>Country</th><th>System qty</th><th>New qty</th><th>Consumed</th><th>Status</th></tr>';tbody.innerHTML=rows.map(r=>{const item=inventory.find(i=>i.serial_number===String(r.serial_number||'').trim()&&i.tenant_id===currentProfile.tenant_id);if(!item){warnings++;return`<tr><td colspan="7"><span class="badge badge-low">Serial ${r.serial_number} not found — skipped</span></td></tr>`;}if(!canEditCountry(item.country)){warnings++;return`<tr><td colspan="7"><span class="badge badge-low">${item.serial_number} — not in your assigned countries, skipped</span></td></tr>`;}const newQty=r.new_qty_on_hand!==''?parseInt(r.new_qty_on_hand):null,consumed=r.qty_consumed!==''?parseInt(r.qty_consumed):0;if(newQty!==null||consumed>0)changes++;return`<tr><td style="font-family:monospace;font-size:11px">${item.serial_number}</td><td>${item.name}</td><td style="font-size:12px">${item.country}</td><td>${item.qty}</td><td>${newQty!==null?newQty:'—'}</td><td style="color:${consumed>0?'var(--red-text)':'var(--text3)'}">${consumed||'—'}</td><td><span class="badge badge-ok">Ready</span></td></tr>`;}).join('');}
+  else{thead.innerHTML='<tr><th>Serial #</th><th>Name</th><th>Type</th><th>Country</th><th>Qty</th><th>Status</th></tr>';tbody.innerHTML=rows.map(r=>{const dup=inventory.find(i=>i.serial_number===String(r.serial_number||'').trim()&&i.tenant_id===currentProfile.tenant_id);if(dup){warnings++;return`<tr><td colspan="6"><span class="badge badge-low">Duplicate ${r.serial_number} — skipped</span></td></tr>`;}if(!canEditCountry(r.country)){warnings++;return`<tr><td colspan="6"><span class="badge badge-low">${r.serial_number} — country not assigned to you, skipped</span></td></tr>`;}changes++;return`<tr><td style="font-family:monospace;font-size:11px">${r.serial_number}</td><td>${r.item_name}</td><td>${r.type}</td><td>${r.country}</td><td>${r.qty}</td><td><span class="badge badge-ok">Will add</span></td></tr>`;}).join('');}
+  const notices=document.getElementById('preview-notices');notices.innerHTML='';
+  if(warnings)notices.innerHTML+=`<div class="notice notice-warn">${warnings} row(s) will be skipped.</div>`;
+  if(changes)notices.innerHTML+=`<div class="notice notice-info">${changes} change(s) ready to apply. Review before confirming.</div>`;
+}
+function cancelUpload(){document.getElementById('upload-preview').style.display='none';pendingUpload=null;}
+async function confirmUpload(){
+  if(!pendingUpload)return;const{rows,mode}=pendingUpload;
+  if(mode==='update'){for(const r of rows){const item=inventory.find(i=>i.serial_number===String(r.serial_number||'').trim()&&i.tenant_id===currentProfile.tenant_id);if(!item||!canEditCountry(item.country))continue;const newQty=r.new_qty_on_hand!==''?parseInt(r.new_qty_on_hand):null,consumed=r.qty_consumed!==''?parseInt(r.qty_consumed):0;if(consumed>0){await sb.from('consumption_log').insert({serial_number:item.serial_number,item_name:item.name,country:item.country,location:item.location,qty:consumed,unit_cost:item.unit_cost,notes:r.notes||'Bulk upload',performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});await sb.from('movements').insert({action:'Consumed',serial_number:item.serial_number,item_name:item.name,qty:consumed,from_location:item.location,to_location:null,country:item.country,notes:r.notes||'Bulk upload',performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});}if(newQty!==null&&newQty!==item.qty){await sb.from('inventory').update({qty:newQty}).eq('id',item.id);await sb.from('movements').insert({action:'Bulk upload',serial_number:item.serial_number,item_name:item.name,qty:Math.abs(newQty-item.qty),from_location:item.location,to_location:item.location,country:item.country,notes:`Qty adjusted from ${item.qty} to ${newQty}. ${r.notes||''}`,performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});}}}
+  else{let inserted=0,skipped=0,errors=[];for(const r of rows){const serial=String(r.serial_number||'').trim();if(!serial||serial==='SN-XXXX-XXX'){skipped++;continue;}if(inventory.find(i=>i.serial_number===serial&&i.tenant_id===currentProfile.tenant_id)){skipped++;continue;}if(!canEditCountry(r.country)){skipped++;continue;}const{error:invErr}=await sb.from('inventory').insert({serial_number:serial,name:r.item_name||r.name||'Unnamed',type:r.type||'Spare part',country:r.country,location:r.location,qty:parseInt(r.qty)||0,unit_cost:parseFloat(r.unit_cost)||0,min_qty_alert:parseInt(r.min_qty_alert)||2,tenant_id:currentProfile.tenant_id});if(invErr){errors.push(`${serial}: ${invErr.message}`);continue;}await sb.from('movements').insert({action:'Bulk upload',serial_number:serial,item_name:r.item_name||r.name||'Unnamed',qty:parseInt(r.qty)||0,from_location:null,to_location:r.location,country:r.country,notes:r.notes||'Added via bulk upload',performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});inserted++;}pendingUpload=null;document.getElementById('upload-preview').style.display='none';await loadInventory();const notices=document.getElementById('preview-notices');if(errors.length)notices.innerHTML=`<div class="notice notice-danger">${errors.length} erro(s): ${errors.join(' | ')}</div>`;else if(inserted===0)notices.innerHTML=`<div class="notice notice-warn">Nenhum item adicionado. Verifica se: os seriais são únicos, os campos obrigatórios estão preenchidos, e o país está correcto.</div>`;else notices.innerHTML=`<div class="notice notice-success">${inserted} item(s) adicionado(s) com sucesso. ${skipped>0?skipped+' linha(s) ignorada(s).':''}</div>`;return;}
+  pendingUpload=null;document.getElementById('upload-preview').style.display='none';await loadInventory();
+  document.getElementById('preview-notices').innerHTML=`<div class="notice notice-success">Concluído. ${inventory.length} item(s) no inventário após o upload.</div>`;
 }
 
-function handleDrop(e) {
-  e.preventDefault();
-  const file = e.dataTransfer.files[0];
-  if (file) processFile(file);
-}
-function handleFileSelect(e) { processFile(e.target.files[0]); e.target.value = ''; }
-
-function processFile(file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const wb = XLSX.read(e.target.result, { type: 'array' });
-      const sheetName = wb.SheetNames.find(n => n !== 'Instructions');
-      const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: '' });
-      if (!rows.length) return;
-      const mode = 'new_qty_on_hand' in rows[0] ? 'update' : 'new';
-      pendingUpload = { rows, mode };
-      renderPreview(rows, mode);
-    } catch(err) { alert('Could not read file. Use a template exported from this system.'); }
-  };
-  reader.readAsArrayBuffer(file);
+// ═══ CONSUMPTION ═══
+async function renderConsumption(){
+  const isViewer=currentProfile?.role==='viewer',country=document.getElementById('c-country').value;
+  let query=sb.from('consumption_log').select('*').order('created_at',{ascending:false});if(country)query=query.eq('country',country);
+  const{data}=await query;const log=data||[];const totalVal=log.reduce((s,c)=>s+c.qty*c.unit_cost,0);
+  document.getElementById('consumption-kpis').innerHTML=isViewer?`<div class="kpi"><div class="kpi-label">Total consumed units</div><div class="kpi-value">${log.reduce((s,c)=>s+c.qty,0)}</div><div class="kpi-sub">${log.length} event(s)</div></div>`:`<div class="kpi"><div class="kpi-label">Total consumed value</div><div class="kpi-value red">$${totalVal.toLocaleString()}</div><div class="kpi-sub">${log.length} event(s)</div></div><div class="kpi"><div class="kpi-label">Total consumed units</div><div class="kpi-value">${log.reduce((s,c)=>s+c.qty,0)}</div><div class="kpi-sub">Filtered selection</div></div>`;
+  const tbody=document.getElementById('consumption-body');
+  if(!log.length){tbody.innerHTML=`<tr><td colspan="${isViewer?6:8}" style="text-align:center;color:var(--text3);padding:20px">No consumption recorded yet.</td></tr>`;return;}
+  const thead=document.querySelector('#pane-consumption table thead tr');if(thead)thead.innerHTML=`<th>Serial #</th><th>Name</th><th>Country</th><th>Location</th><th>Consumed qty</th>${isViewer?'':'<th>Unit cost</th><th>Consumed value</th>'}<th>Date</th>`;
+  tbody.innerHTML=log.map(c=>`<tr><td style="font-family:monospace;font-size:11px">${c.serial_number}</td><td>${c.item_name}</td><td style="font-size:12px">${c.country}</td><td style="font-size:12px">${c.location}</td><td style="color:var(--red-text);font-weight:500">${c.qty}</td>${isViewer?'':`<td>$${c.unit_cost.toLocaleString()}</td><td style="font-weight:500;color:var(--red-text)">$${(c.qty*c.unit_cost).toLocaleString()}</td>`}<td style="font-size:12px">${c.created_at.slice(0,10)}</td></tr>`).join('');
 }
 
-function renderPreview(rows, mode) {
-  document.getElementById('upload-preview').style.display = 'block';
-  const thead = document.getElementById('preview-thead');
-  const tbody = document.getElementById('preview-tbody');
-  let warnings = 0, changes = 0;
-  if (mode === 'update') {
-    thead.innerHTML = '<tr><th>Serial #</th><th>Name</th><th>Country</th><th>System qty</th><th>New qty</th><th>Consumed</th><th>Status</th></tr>';
-    tbody.innerHTML = rows.map(r => {
-      const item = inventory.find(i => i.serial_number === String(r.serial_number || '').trim() && i.tenant_id === currentProfile.tenant_id);
-      if (!item) { warnings++; return `<tr><td colspan="7"><span class="badge badge-low">Serial ${r.serial_number} not found — skipped</span></td></tr>`; }
-      if (!canEditCountry(item.country)) { warnings++; return `<tr><td colspan="7"><span class="badge badge-low">${item.serial_number} — not in your assigned countries, skipped</span></td></tr>`; }
-      const newQty = r.new_qty_on_hand !== '' ? parseInt(r.new_qty_on_hand) : null;
-      const consumed = r.qty_consumed !== '' ? parseInt(r.qty_consumed) : 0;
-      if (newQty !== null || consumed > 0) changes++;
-      return `<tr>
-        <td style="font-family:monospace;font-size:11px">${item.serial_number}</td>
-        <td>${item.name}</td><td style="font-size:12px">${item.country}</td><td>${item.qty}</td>
-        <td>${newQty !== null ? newQty : '—'}</td>
-        <td style="color:${consumed > 0 ? 'var(--red-text)' : 'var(--text3)'}">${consumed || '—'}</td>
-        <td><span class="badge badge-ok">Ready</span></td>
-      </tr>`;
-    }).join('');
-  } else {
-    thead.innerHTML = '<tr><th>Serial #</th><th>Name</th><th>Type</th><th>Country</th><th>Qty</th><th>Status</th></tr>';
-    tbody.innerHTML = rows.map(r => {
-      const dup = inventory.find(i => i.serial_number === String(r.serial_number || '').trim() && i.tenant_id === currentProfile.tenant_id);
-      if (dup) { warnings++; return `<tr><td colspan="6"><span class="badge badge-low">Duplicate ${r.serial_number} — skipped</span></td></tr>`; }
-      if (!canEditCountry(r.country)) { warnings++; return `<tr><td colspan="6"><span class="badge badge-low">${r.serial_number} — country not assigned to you, skipped</span></td></tr>`; }
-      changes++;
-      return `<tr><td style="font-family:monospace;font-size:11px">${r.serial_number}</td><td>${r.item_name}</td><td>${r.type}</td><td>${r.country}</td><td>${r.qty}</td><td><span class="badge badge-ok">Will add</span></td></tr>`;
-    }).join('');
-  }
-  const notices = document.getElementById('preview-notices');
-  notices.innerHTML = '';
-  if (warnings) notices.innerHTML += `<div class="notice notice-warn">${warnings} row(s) will be skipped.</div>`;
-  if (changes) notices.innerHTML += `<div class="notice notice-info">${changes} change(s) ready to apply. Review before confirming.</div>`;
+// ═══ HISTORY ═══
+async function renderHistory(){
+  const type=document.getElementById('h-type').value,country=document.getElementById('h-country').value;
+  let query=sb.from('movements').select('*, profiles(full_name)').order('created_at',{ascending:false}).limit(200);if(type)query=query.eq('action',type);if(country)query=query.eq('country',country);
+  const{data}=await query;const log=data||[];const el=document.getElementById('history-list');
+  if(!log.length){el.innerHTML='<p style="color:var(--text3);font-size:13px;padding:1rem 0">No history entries match the filters.</p>';return;}
+  const colors={Transfer:'var(--blue-bg)',Added:'var(--green-bg)',Consumed:'var(--red-bg)','Bulk upload':'var(--amber-bg)'},badges={Transfer:'badge-transfer',Added:'badge-ok',Consumed:'badge-consumed','Bulk upload':'badge-bulk'};
+  el.innerHTML=log.map(h=>`<div class="hist-row"><div class="hist-dot" style="background:${colors[h.action]||'var(--bg2)'}"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div><div style="flex:1"><div><span class="badge ${badges[h.action]||''}" style="margin-right:6px">${h.action}</span><strong>${h.item_name}</strong> <span style="font-family:monospace;font-size:11px;color:var(--text3)">${h.serial_number}</span></div><div class="hist-meta">${h.created_at.slice(0,10)} · Qty: ${h.qty} · ${h.from_location||'—'} → ${h.to_location||'—'} (${h.country})</div>${h.notes?`<div class="hist-meta" style="font-style:italic">${h.notes}</div>`:''} ${h.profiles?`<div class="hist-meta">By: ${h.profiles.full_name}</div>`:''}</div></div>`).join('');
 }
 
-function cancelUpload() { document.getElementById('upload-preview').style.display = 'none'; pendingUpload = null; }
+// ═══ USERS ═══
+async function renderUsers(){
+  if(currentProfile?.role!=='admin')return;const{data}=await sb.from('profiles').select('*').order('full_name');const el=document.getElementById('users-list');
+  if(!data?.length){el.innerHTML='<p style="color:var(--text3);font-size:13px">No users found.</p>';return;}
+  el.innerHTML=`<div class="table-wrap"><table style="min-width:500px"><thead><tr><th>Name</th><th>Role</th><th>Assigned countries</th><th>Actions</th></tr></thead><tbody>${data.map(u=>`<tr><td>${u.full_name}</td><td><span class="badge ${u.role==='admin'?'badge-tool':u.role==='supervisor'?'badge-low':'badge-ok'}">${u.role}</span></td><td style="font-size:12px">${u.assigned_countries?.length?u.assigned_countries.join(', '):'All countries'}</td><td><button class="btn btn-sm" onclick="editUser('${u.id}','${u.role}')">Edit role</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+async function editUser(id,currentRole){const newRole=prompt(`Change role for user.\nCurrent: ${currentRole}\nEnter new role (admin / supervisor / viewer):`);if(!newRole||!['admin','supervisor','viewer'].includes(newRole))return;const countriesStr=newRole==='supervisor'?prompt('Enter assigned countries (comma-separated), or leave blank for all:\nOptions: '+Object.keys(LOCATIONS).join(', ')):'';const countries=countriesStr?countriesStr.split(',').map(c=>c.trim()).filter(Boolean):[];await sb.from('profiles').update({role:newRole,assigned_countries:countries}).eq('id',id);renderUsers();}
 
-async function confirmUpload() {
-  if (!pendingUpload) return;
-  const { rows, mode } = pendingUpload;
-  const today = new Date().toISOString().slice(0, 10);
-
-  if (mode === 'update') {
-    for (const r of rows) {
-      const item = inventory.find(i => i.serial_number === String(r.serial_number || '').trim() && i.tenant_id === currentProfile.tenant_id);
-      if (!item) continue;
-      if (!canEditCountry(item.country)) continue;
-      const newQty = r.new_qty_on_hand !== '' ? parseInt(r.new_qty_on_hand) : null;
-      const consumed = r.qty_consumed !== '' ? parseInt(r.qty_consumed) : 0;
-      if (consumed > 0) {
-        await sb.from('consumption_log').insert({ serial_number: item.serial_number, item_name: item.name, country: item.country, location: item.location, qty: consumed, unit_cost: item.unit_cost, notes: r.notes || 'Bulk upload', performed_by: currentUser.id, tenant_id: currentProfile.tenant_id });
-        await sb.from('movements').insert({ action: 'Consumed', serial_number: item.serial_number, item_name: item.name, qty: consumed, from_location: item.location, to_location: null, country: item.country, notes: r.notes || 'Bulk upload', performed_by: currentUser.id, tenant_id: currentProfile.tenant_id });
-      }
-      if (newQty !== null && newQty !== item.qty) {
-        await sb.from('inventory').update({ qty: newQty }).eq('id', item.id);
-        await sb.from('movements').insert({ action: 'Bulk upload', serial_number: item.serial_number, item_name: item.name, qty: Math.abs(newQty - item.qty), from_location: item.location, to_location: item.location, country: item.country, notes: `Qty adjusted from ${item.qty} to ${newQty}. ${r.notes || ''}`, performed_by: currentUser.id, tenant_id: currentProfile.tenant_id });
-      }
-    }
-  } else {
-    let inserted = 0, skipped = 0, errors = [];
-    for (const r of rows) {
-      const serial = String(r.serial_number || '').trim();
-      if (!serial || serial === 'SN-XXXX-XXX') { skipped++; continue; }
-      if (inventory.find(i => i.serial_number === serial && i.tenant_id === currentProfile.tenant_id)) { skipped++; continue; }
-      if (!canEditCountry(r.country)) { skipped++; continue; }
-      const { error: invErr } = await sb.from('inventory').insert({
-        serial_number: serial,
-        name: r.item_name || r.name || 'Unnamed',
-        type: r.type || 'Spare part',
-        country: r.country,
-        location: r.location,
-        qty: parseInt(r.qty) || 0,
-        unit_cost: parseFloat(r.unit_cost) || 0,
-        min_qty_alert: parseInt(r.min_qty_alert) || 2,
-        tenant_id: currentProfile.tenant_id
-      });
-      if (invErr) {
-        console.error('Insert error:', invErr.message, r);
-        errors.push(`${serial}: ${invErr.message}`);
-        continue;
-      }
-      await sb.from('movements').insert({
-        action: 'Bulk upload',
-        serial_number: serial,
-        item_name: r.item_name || r.name || 'Unnamed',
-        qty: parseInt(r.qty) || 0,
-        from_location: null,
-        to_location: r.location,
-        country: r.country,
-        notes: r.notes || 'Added via bulk upload',
-        performed_by: currentUser.id,
-        tenant_id: currentProfile.tenant_id
-      });
-      inserted++;
-    }
-    pendingUpload = null;
-    document.getElementById('upload-preview').style.display = 'none';
-    await loadInventory();
-    const notices = document.getElementById('preview-notices');
-    if (errors.length) {
-      notices.innerHTML = `<div class="notice notice-danger">${errors.length} erro(s): ${errors.join(' | ')}</div>`;
-    } else if (inserted === 0) {
-      notices.innerHTML = `<div class="notice notice-warn">Nenhum item adicionado. Verifica se: os seriais são únicos, os campos obrigatórios estão preenchidos, e o país está correcto.</div>`;
-    } else {
-      notices.innerHTML = `<div class="notice notice-success">${inserted} item(s) adicionado(s) com sucesso. ${skipped > 0 ? skipped + ' linha(s) ignorada(s).' : ''}</div>`;
-    }
-    return;
-  }
-  pendingUpload = null;
-  document.getElementById('upload-preview').style.display = 'none';
-  await loadInventory();
-  const newCount = inventory.length;
-  document.getElementById('preview-notices').innerHTML = `<div class="notice notice-success">Concluído. ${newCount} item(s) no inventário após o upload.</div>`;
+// ═══ APPROVALS ═══
+async function checkPendingApprovals(){const{count}=await sb.from('transfer_requests').select('id',{count:'exact',head:true}).eq('tenant_id',currentProfile.tenant_id).eq('status','pending');const dot=document.getElementById('approvals-dot');if(dot)dot.style.display=count>0?'inline-block':'none';}
+async function renderApprovals(){
+  const status=document.getElementById('apr-status').value;
+  let query=sb.from('transfer_requests').select('*, requested_by_profile:profiles!transfer_requests_requested_by_fkey(full_name)').eq('tenant_id',currentProfile.tenant_id).order('created_at',{ascending:false});if(status)query=query.eq('status',status);
+  const{data,error}=await query;const el=document.getElementById('approvals-list');
+  if(error||!data?.length){el.innerHTML=`<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">No ${status||''} transfer requests.</div>`;return;}
+  const isAdmin=currentProfile.role==='admin';
+  el.innerHTML=data.map(r=>`<div class="approval-card ${r.status}"><div class="approval-head"><div><div class="approval-title">${r.item_name} <span style="font-family:monospace;font-size:11px;color:var(--text3)">${r.serial_number}</span></div><div class="approval-meta">Qty: <strong>${r.qty}</strong> &nbsp;·&nbsp; From: ${r.from_location} (${r.from_country}) &nbsp;→&nbsp; To: ${r.to_location} (${r.to_country})</div><div class="approval-meta">Requested by ${r.requested_by_profile?.full_name||'Unknown'} &nbsp;·&nbsp; ${new Date(r.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}${r.notes?' &nbsp;·&nbsp; '+r.notes:''}</div>${r.review_notes?`<div class="approval-meta" style="font-style:italic">Review note: ${r.review_notes}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="badge badge-${r.status}">${r.status}</span>${isAdmin&&r.status==='pending'?`<div class="approval-actions"><button class="btn btn-sm btn-approve" onclick="reviewTransfer(${r.id},'approved')">Approve</button><button class="btn btn-sm btn-reject" onclick="reviewTransfer(${r.id},'rejected')">Reject</button></div>`:''}</div></div></div>`).join('');
+}
+async function reviewTransfer(requestId,decision){
+  const reviewNotes=decision==='rejected'?prompt('Reason for rejection (optional):'):null;
+  const{data:req}=await sb.from('transfer_requests').select('*').eq('id',requestId).single();if(!req)return;
+  const{error:upErr}=await sb.from('transfer_requests').update({status:decision,reviewed_by:currentUser.id,review_notes:reviewNotes||null,reviewed_at:new Date().toISOString()}).eq('id',requestId);
+  if(upErr)return alert('Error: '+upErr.message);
+  if(decision==='approved'){const item=inventory.find(i=>i.serial_number===req.serial_number&&i.tenant_id===currentProfile.tenant_id);if(item)await executeTransfer(item,req.serial_number,req.to_country,req.to_location,req.qty,req.notes);}
+  checkPendingApprovals();renderApprovals();if(decision==='approved')await loadInventory();
 }
 
-// ═══════════════════════════════════════════════════
-// CONSUMPTION
-// ═══════════════════════════════════════════════════
-async function renderConsumption() {
-  const isViewer = currentProfile?.role === 'viewer';
-  const country = document.getElementById('c-country').value;
-  let query = sb.from('consumption_log').select('*').order('created_at', { ascending: false });
-  if (country) query = query.eq('country', country);
-  const { data } = await query;
-  const log = data || [];
-  const totalVal = log.reduce((s, c) => s + c.qty * c.unit_cost, 0);
-
-  document.getElementById('consumption-kpis').innerHTML = isViewer ? `
-    <div class="kpi"><div class="kpi-label">Total consumed units</div><div class="kpi-value">${log.reduce((s,c)=>s+c.qty,0)}</div><div class="kpi-sub">${log.length} event(s)</div></div>
-  ` : `
-    <div class="kpi"><div class="kpi-label">Total consumed value</div><div class="kpi-value red">$${totalVal.toLocaleString()}</div><div class="kpi-sub">${log.length} event(s)</div></div>
-    <div class="kpi"><div class="kpi-label">Total consumed units</div><div class="kpi-value">${log.reduce((s, c) => s + c.qty, 0)}</div><div class="kpi-sub">Filtered selection</div></div>
-  `;
-  const tbody = document.getElementById('consumption-body');
-  if (!log.length) { tbody.innerHTML = `<tr><td colspan="${isViewer?6:8}" style="text-align:center;color:var(--text3);padding:20px">No consumption recorded yet.</td></tr>`; return; }
-
-  const thead = document.querySelector('#pane-consumption table thead tr');
-  if (thead) {
-    thead.innerHTML = `<th>Serial #</th><th>Name</th><th>Country</th><th>Location</th><th>Consumed qty</th>${isViewer ? '' : '<th>Unit cost</th><th>Consumed value</th>'}<th>Date</th>`;
-  }
-
-  tbody.innerHTML = log.map(c => `<tr>
-    <td style="font-family:monospace;font-size:11px">${c.serial_number}</td>
-    <td>${c.item_name}</td><td style="font-size:12px">${c.country}</td><td style="font-size:12px">${c.location}</td>
-    <td style="color:var(--red-text);font-weight:500">${c.qty}</td>
-    ${isViewer ? '' : `<td>$${c.unit_cost.toLocaleString()}</td><td style="font-weight:500;color:var(--red-text)">$${(c.qty * c.unit_cost).toLocaleString()}</td>`}
-    <td style="font-size:12px">${c.created_at.slice(0,10)}</td>
-  </tr>`).join('');
-}
-
-// ═══════════════════════════════════════════════════
-// HISTORY
-// ═══════════════════════════════════════════════════
-async function renderHistory() {
-  const type = document.getElementById('h-type').value;
-  const country = document.getElementById('h-country').value;
-  let query = sb.from('movements').select('*, profiles(full_name)').order('created_at', { ascending: false }).limit(200);
-  if (type) query = query.eq('action', type);
-  if (country) query = query.eq('country', country);
-  const { data } = await query;
-  const log = data || [];
-  const el = document.getElementById('history-list');
-  if (!log.length) { el.innerHTML = '<p style="color:var(--text3);font-size:13px;padding:1rem 0">No history entries match the filters.</p>'; return; }
-  const colors = { Transfer: 'var(--blue-bg)', Added: 'var(--green-bg)', Consumed: 'var(--red-bg)', 'Bulk upload': 'var(--amber-bg)' };
-  const badges = { Transfer: 'badge-transfer', Added: 'badge-ok', Consumed: 'badge-consumed', 'Bulk upload': 'badge-bulk' };
-  el.innerHTML = log.map(h => `
-    <div class="hist-row">
-      <div class="hist-dot" style="background:${colors[h.action] || 'var(--bg2)'}">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
-      </div>
-      <div style="flex:1">
-        <div><span class="badge ${badges[h.action] || ''}" style="margin-right:6px">${h.action}</span><strong>${h.item_name}</strong> <span style="font-family:monospace;font-size:11px;color:var(--text3)">${h.serial_number}</span></div>
-        <div class="hist-meta">${h.created_at.slice(0,10)} · Qty: ${h.qty} · ${h.from_location || '—'} → ${h.to_location || '—'} (${h.country})</div>
-        ${h.notes ? `<div class="hist-meta" style="font-style:italic">${h.notes}</div>` : ''}
-        ${h.profiles ? `<div class="hist-meta">By: ${h.profiles.full_name}</div>` : ''}
-      </div>
-    </div>
-  `).join('');
-}
-
-// ═══════════════════════════════════════════════════
-// USER MANAGEMENT (admin only)
-// ═══════════════════════════════════════════════════
-async function renderUsers() {
-  if (currentProfile?.role !== 'admin') return;
-  const { data } = await sb.from('profiles').select('*').order('full_name');
-  const el = document.getElementById('users-list');
-  if (!data?.length) { el.innerHTML = '<p style="color:var(--text3);font-size:13px">No users found.</p>'; return; }
-  el.innerHTML = `<div class="table-wrap"><table style="min-width:500px">
-    <thead><tr><th>Name</th><th>Role</th><th>Assigned countries</th><th>Actions</th></tr></thead>
-    <tbody>${data.map(u => `<tr>
-      <td>${u.full_name}</td>
-      <td><span class="badge ${u.role === 'admin' ? 'badge-tool' : u.role === 'supervisor' ? 'badge-low' : 'badge-ok'}">${u.role}</span></td>
-      <td style="font-size:12px">${u.assigned_countries?.length ? u.assigned_countries.join(', ') : 'All countries'}</td>
-      <td><button class="btn btn-sm" onclick="editUser('${u.id}','${u.role}')">Edit role</button></td>
-    </tr>`).join('')}</tbody>
-  </table></div>`;
-}
-
-async function editUser(id, currentRole) {
-  const newRole = prompt(`Change role for user.\nCurrent: ${currentRole}\nEnter new role (admin / supervisor / viewer):`);
-  if (!newRole || !['admin','supervisor','viewer'].includes(newRole)) return;
-  const countriesStr = newRole === 'supervisor' ? prompt('Enter assigned countries (comma-separated), or leave blank for all:\nOptions: ' + Object.keys(LOCATIONS).join(', ')) : '';
-  const countries = countriesStr ? countriesStr.split(',').map(c => c.trim()).filter(Boolean) : [];
-  await sb.from('profiles').update({ role: newRole, assigned_countries: countries }).eq('id', id);
-  renderUsers();
-}
-
-// ═══════════════════════════════════════════════════
-// PENDING APPROVALS NOTIFICATION DOT
-// ═══════════════════════════════════════════════════
-async function checkPendingApprovals() {
-  const { count } = await sb.from('transfer_requests')
-    .select('id', { count: 'exact', head: true })
-    .eq('tenant_id', currentProfile.tenant_id)
-    .eq('status', 'pending');
-  const dot = document.getElementById('approvals-dot');
-  if (dot) dot.style.display = count > 0 ? 'inline-block' : 'none';
-}
-
-// ═══════════════════════════════════════════════════
-// APPROVALS
-// ═══════════════════════════════════════════════════
-async function renderApprovals() {
-  const status = document.getElementById('apr-status').value;
-  let query = sb.from('transfer_requests')
-    .select('*, requested_by_profile:profiles!transfer_requests_requested_by_fkey(full_name)')
-    .eq('tenant_id', currentProfile.tenant_id)
-    .order('created_at', { ascending: false });
-  if (status) query = query.eq('status', status);
-  const { data, error } = await query;
-  const el = document.getElementById('approvals-list');
-  if (error || !data?.length) {
-    el.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">No ${status || ''} transfer requests.</div>`;
-    return;
-  }
-  const isAdmin = currentProfile.role === 'admin';
-  el.innerHTML = data.map(r => `
-    <div class="approval-card ${r.status}">
-      <div class="approval-head">
-        <div>
-          <div class="approval-title">${r.item_name} <span style="font-family:monospace;font-size:11px;color:var(--text3)">${r.serial_number}</span></div>
-          <div class="approval-meta">
-            Qty: <strong>${r.qty}</strong> &nbsp;·&nbsp;
-            From: ${r.from_location} (${r.from_country}) &nbsp;→&nbsp; To: ${r.to_location} (${r.to_country})
-          </div>
-          <div class="approval-meta">
-            Requested by ${r.requested_by_profile?.full_name || 'Unknown'} &nbsp;·&nbsp;
-            ${new Date(r.created_at).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'})}
-            ${r.notes ? ' &nbsp;·&nbsp; ' + r.notes : ''}
-          </div>
-          ${r.review_notes ? `<div class="approval-meta" style="font-style:italic">Review note: ${r.review_notes}</div>` : ''}
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-          <span class="badge badge-${r.status}">${r.status}</span>
-          ${isAdmin && r.status === 'pending' ? `
-            <div class="approval-actions">
-              <button class="btn btn-sm btn-approve" onclick="reviewTransfer(${r.id}, 'approved')">Approve</button>
-              <button class="btn btn-sm btn-reject"  onclick="reviewTransfer(${r.id}, 'rejected')">Reject</button>
-            </div>` : ''}
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-async function reviewTransfer(requestId, decision) {
-  const reviewNotes = decision === 'rejected'
-    ? prompt('Reason for rejection (optional):')
-    : null;
-
-  const { data: req } = await sb.from('transfer_requests').select('*').eq('id', requestId).single();
-  if (!req) return;
-
-  const { error: upErr } = await sb.from('transfer_requests').update({
-    status: decision,
-    reviewed_by: currentUser.id,
-    review_notes: reviewNotes || null,
-    reviewed_at: new Date().toISOString()
-  }).eq('id', requestId);
-  if (upErr) return alert('Error: ' + upErr.message);
-
-  if (decision === 'approved') {
-    const item = inventory.find(i => i.serial_number === req.serial_number && i.tenant_id === currentProfile.tenant_id);
-    if (item) await executeTransfer(item, req.serial_number, req.to_country, req.to_location, req.qty, req.notes);
-  }
-
-  checkPendingApprovals();
-  renderApprovals();
-  if (decision === 'approved') await loadInventory();
-}
-
-// ═══════════════════════════════════════════════════
-// DASHBOARD
-// ═══════════════════════════════════════════════════
-async function renderDashboard() {
-  const el = document.getElementById('dash-content');
-  el.innerHTML = '<div class="loading-state"><div class="spinner"></div> Loading dashboard...</div>';
-
-  const [invRes, conRes, movRes, reqRes] = await Promise.all([
-    sb.from('inventory').select('*').eq('tenant_id', currentProfile.tenant_id),
-    sb.from('consumption_log').select('*').eq('tenant_id', currentProfile.tenant_id),
-    sb.from('movements').select('*').eq('tenant_id', currentProfile.tenant_id).order('created_at', {ascending:false}).limit(5),
-    sb.from('transfer_requests').select('*').eq('tenant_id', currentProfile.tenant_id).eq('status','pending'),
-  ]);
-
-  const inv = invRes.data || [];
-  const con = conRes.data || [];
-  const mov = movRes.data || [];
-  const pendingReqs = reqRes.data || [];
-
-  const totalValue = inv.reduce((s,i) => s + i.qty * i.unit_cost, 0);
-  const totalConsumed = con.reduce((s,c) => s + c.qty * c.unit_cost, 0);
-  const lowStock = inv.filter(i => i.qty < i.min_qty_alert);
-  const countries = [...new Set(inv.map(i => i.country))];
-
-  // Value by country
-  const byCountry = {};
-  inv.forEach(i => { byCountry[i.country] = (byCountry[i.country] || 0) + i.qty * i.unit_cost; });
-  const sortedCountries = Object.entries(byCountry).sort((a,b) => b[1]-a[1]);
-  const maxCountryVal = sortedCountries[0]?.[1] || 1;
-
-  // Consumption by country
-  const conByCountry = {};
-  con.forEach(c => { conByCountry[c.country] = (conByCountry[c.country] || 0) + c.qty * c.unit_cost; });
-
-  const isViewer = currentProfile.role === 'viewer';
-  const fmt = n => '$' + Math.round(n).toLocaleString();
-
-  el.innerHTML = `
-    <!-- Top KPIs -->
+// ═══ DASHBOARD ═══
+async function renderDashboard(){
+  const el=document.getElementById('dash-content');el.innerHTML='<div class="loading-state"><div class="spinner"></div> Loading dashboard...</div>';
+  const[invRes,conRes,movRes,reqRes]=await Promise.all([sb.from('inventory').select('*').eq('tenant_id',currentProfile.tenant_id),sb.from('consumption_log').select('*').eq('tenant_id',currentProfile.tenant_id),sb.from('movements').select('*').eq('tenant_id',currentProfile.tenant_id).order('created_at',{ascending:false}).limit(5),sb.from('transfer_requests').select('*').eq('tenant_id',currentProfile.tenant_id).eq('status','pending')]);
+  const inv=invRes.data||[],con=conRes.data||[],mov=movRes.data||[],pendingReqs=reqRes.data||[];
+  const totalValue=inv.reduce((s,i)=>s+i.qty*i.unit_cost,0),totalConsumed=con.reduce((s,c)=>s+c.qty*c.unit_cost,0),lowStock=inv.filter(i=>i.qty<i.min_qty_alert),countries=[...new Set(inv.map(i=>i.country))];
+  const byCountry={};inv.forEach(i=>{byCountry[i.country]=(byCountry[i.country]||0)+i.qty*i.unit_cost;});const sortedCountries=Object.entries(byCountry).sort((a,b)=>b[1]-a[1]),maxCountryVal=sortedCountries[0]?.[1]||1;
+  const conByCountry={};con.forEach(c=>{conByCountry[c.country]=(conByCountry[c.country]||0)+c.qty*c.unit_cost;});
+  const isViewer=currentProfile.role==='viewer',fmt=n=>'$'+Math.round(n).toLocaleString();
+  el.innerHTML=`
     <div class="kpi-grid" style="margin-bottom:1.25rem">
-      <div class="kpi"><div class="kpi-label">Total inventory value</div><div class="kpi-value">${isViewer ? inv.reduce((s,i)=>s+i.qty,0) + ' units' : fmt(totalValue)}</div><div class="kpi-sub">${inv.length} items · ${countries.length} countries</div></div>
-      ${isViewer ? '' : `<div class="kpi"><div class="kpi-label">Total consumed</div><div class="kpi-value red">${fmt(totalConsumed)}</div><div class="kpi-sub">${con.length} events</div></div>`}
-      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${lowStock.length > 0 ? 'amber' : 'green'}">${lowStock.length}</div><div class="kpi-sub">${lowStock.length > 0 ? 'Items below minimum' : 'All sufficient'}</div></div>
-      <div class="kpi"><div class="kpi-label">Pending transfers</div><div class="kpi-value ${pendingReqs.length > 0 ? 'amber' : 'green'}">${pendingReqs.length}</div><div class="kpi-sub">Awaiting approval</div></div>
+      <div class="kpi"><div class="kpi-label">Total inventory value</div><div class="kpi-value">${isViewer?inv.reduce((s,i)=>s+i.qty,0)+' units':fmt(totalValue)}</div><div class="kpi-sub">${inv.length} items · ${countries.length} countries</div></div>
+      ${isViewer?'':`<div class="kpi"><div class="kpi-label">Total consumed</div><div class="kpi-value red">${fmt(totalConsumed)}</div><div class="kpi-sub">${con.length} events</div></div>`}
+      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${lowStock.length>0?'amber':'green'}">${lowStock.length}</div><div class="kpi-sub">${lowStock.length>0?'Items below minimum':'All sufficient'}</div></div>
+      <div class="kpi"><div class="kpi-label">Pending transfers</div><div class="kpi-value ${pendingReqs.length>0?'amber':'green'}">${pendingReqs.length}</div><div class="kpi-sub">Awaiting approval</div></div>
     </div>
-
     <div class="dash-grid">
-
-      <!-- Value by country -->
-      <div class="dash-card">
-        <h3>Inventory value by country</h3>
-        ${sortedCountries.map(([country, val]) => `
-          <div class="dash-bar-wrap">
-            <div class="dash-row" style="padding-bottom:2px">
-              <span>${country}</span>
-              <span style="font-weight:500">${isViewer ? '' : fmt(val)}</span>
-            </div>
-            <div class="dash-bar">
-              <div class="dash-bar-fill" style="width:${Math.round(val/maxCountryVal*100)}%;background:var(--blue-text)"></div>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-
-      <!-- Low stock -->
-      <div class="dash-card">
-        <h3>⚠ Low stock items</h3>
-        ${lowStock.length === 0
-          ? '<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">All items above minimum stock ✓</div>'
-          : lowStock.slice(0,8).map(i => `
-            <div class="dash-row">
-              <div>
-                <div style="font-size:13px">${i.name}</div>
-                <div style="font-size:11px;color:var(--text3)">${i.location} · ${i.country}</div>
-              </div>
-              <div style="text-align:right">
-                <div style="font-weight:500;color:var(--amber-text)">${i.qty} left</div>
-                <div style="font-size:11px;color:var(--text3)">min: ${i.min_qty_alert}</div>
-              </div>
-            </div>`).join('')
-        }
-      </div>
-
-      <!-- Recent movements -->
-      <div class="dash-card">
-        <h3>Recent movements</h3>
-        ${mov.length === 0
-          ? '<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">No movements yet</div>'
-          : mov.map(m => `
-            <div class="dash-row">
-              <div>
-                <span class="badge badge-${m.action==='Consumed'?'consumed':m.action==='Transfer'?'transfer':'bulk'}" style="margin-right:6px">${m.action}</span>
-                <span style="font-size:13px">${m.item_name}</span>
-              </div>
-              <div style="font-size:11px;color:var(--text3)">${new Date(m.created_at).toLocaleDateString('en-GB')}</div>
-            </div>`).join('')
-        }
-      </div>
-
-      <!-- Consumption by country -->
-      ${isViewer ? '' : `<div class="dash-card">
-        <h3>Consumption by country</h3>
-        ${Object.entries(conByCountry).length === 0
-          ? '<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">No consumption recorded yet</div>'
-          : Object.entries(conByCountry).sort((a,b)=>b[1]-a[1]).map(([c,v]) => `
-            <div class="dash-row"><span>${c}</span><span style="font-weight:500;color:var(--red-text)">${fmt(v)}</span></div>`).join('')
-        }
-      </div>`}
-
-    </div>
-  `;
+      <div class="dash-card"><h3>Inventory value by country</h3>${sortedCountries.map(([country,val])=>`<div class="dash-bar-wrap"><div class="dash-row" style="padding-bottom:2px"><span>${country}</span><span style="font-weight:500">${isViewer?'':fmt(val)}</span></div><div class="dash-bar"><div class="dash-bar-fill" style="width:${Math.round(val/maxCountryVal*100)}%;background:var(--blue-text)"></div></div></div>`).join('')}</div>
+      <div class="dash-card"><h3>⚠ Low stock items</h3>${lowStock.length===0?'<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">All items above minimum stock ✓</div>':lowStock.slice(0,8).map(i=>`<div class="dash-row"><div><div style="font-size:13px">${i.name}</div><div style="font-size:11px;color:var(--text3)">${i.location} · ${i.country}</div></div><div style="text-align:right"><div style="font-weight:500;color:var(--amber-text)">${i.qty} left</div><div style="font-size:11px;color:var(--text3)">min: ${i.min_qty_alert}</div></div></div>`).join('')}</div>
+      <div class="dash-card"><h3>Recent movements</h3>${mov.length===0?'<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">No movements yet</div>':mov.map(m=>`<div class="dash-row"><div><span class="badge badge-${m.action==='Consumed'?'consumed':m.action==='Transfer'?'transfer':'bulk'}" style="margin-right:6px">${m.action}</span><span style="font-size:13px">${m.item_name}</span></div><div style="font-size:11px;color:var(--text3)">${new Date(m.created_at).toLocaleDateString('en-GB')}</div></div>`).join('')}</div>
+      ${isViewer?'':`<div class="dash-card"><h3>Consumption by country</h3>${Object.entries(conByCountry).length===0?'<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">No consumption recorded yet</div>':Object.entries(conByCountry).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<div class="dash-row"><span>${c}</span><span style="font-weight:500;color:var(--red-text)">${fmt(v)}</span></div>`).join('')}</div>`}
+    </div>`;
 }
 
-// ═══════════════════════════════════════════════════
-// REPORTS
-// ═══════════════════════════════════════════════════
-function initReportFilters() {
-  const countries = Object.keys(LOCATIONS).sort();
-  const rc = document.getElementById('rep-country');
-  const rl = document.getElementById('rep-location');
-  if (rc && rc.options.length <= 1) {
-    countries.forEach(c => { const o = document.createElement('option'); o.value=c; o.textContent=c; rc.appendChild(o); });
-  }
-  rc.onchange = () => {
-    rl.innerHTML = '<option value="">All locations</option>';
-    const locs = rc.value ? LOCATIONS[rc.value] : Object.values(LOCATIONS).flat();
-    locs.forEach(l => { const o = document.createElement('option'); o.value=l; o.textContent=l; rl.appendChild(o); });
-  };
-}
-
-async function generateReport(type, format) {
-  const country  = document.getElementById('rep-country').value;
-  const location = document.getElementById('rep-location').value;
-  const rtype    = document.getElementById('rep-type').value;
-  const dateFrom = document.getElementById('rep-from').value;
-  const dateTo   = document.getElementById('rep-to').value;
-  const statusEl = document.getElementById('report-status');
-  statusEl.innerHTML = '<div class="notice notice-info">Generating report...</div>';
-
-  const tenantName = currentProfile.tenants?.name || 'FieldTrack';
-  const dateLabel  = dateFrom && dateTo ? `${dateFrom} to ${dateTo}` : dateFrom ? `From ${dateFrom}` : dateTo ? `To ${dateTo}` : 'All dates';
-  const now        = new Date().toLocaleDateString('en-GB');
-
-  if (type === 'inventory') {
-    let data = [...inventory];
-    if (country)  data = data.filter(i => i.country === country);
-    if (location) data = data.filter(i => i.location === location);
-    if (rtype)    data = data.filter(i => i.type === rtype);
-    const totalVal = data.reduce((s,i) => s+i.qty*i.unit_cost, 0);
-
-    if (format === 'xlsx') {
-      const rows = [
-        [`${tenantName} — Inventory Report`, '', '', '', '', '', ''],
-        [`Generated: ${now}`, '', '', '', '', '', ''],
-        [''],
-        ['Serial #', 'Name', 'Type', 'Country', 'Location', 'Qty', 'Unit cost', 'Total value', 'Status'],
-        ...data.map(i => [i.serial_number, i.name, i.type, i.country, i.location, i.qty, i.unit_cost, i.qty*i.unit_cost, i.qty < i.min_qty_alert ? 'Low stock' : 'OK']),
-        [''],
-        ['', '', '', '', 'TOTAL', data.reduce((s,i)=>s+i.qty,0), '', totalVal, '']
-      ];
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(rows);
-      ws['!cols'] = [14,24,12,14,24,8,12,14,12].map(w=>({wch:w}));
-      XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
-      XLSX.writeFile(wb, `FieldTrack_Inventory_${now.replace(/\//g,'-')}.xlsx`);
-      statusEl.innerHTML = `<div class="notice notice-success">Excel report downloaded — ${data.length} items.</div>`;
-
-    } else {
-      const isViewer = currentProfile.role === 'viewer';
-      const rows = data.map(i => `
-        <tr style="background:${i.qty<i.min_qty_alert?'#fffbe6':'white'}">
-          <td style="font-family:monospace;font-size:11px">${i.serial_number}</td>
-          <td>${i.name}</td><td>${i.type}</td><td>${i.country}</td><td>${i.location}</td>
-          <td style="text-align:center">${i.qty}</td>
-          ${isViewer?'':`<td style="text-align:right">$${i.unit_cost.toLocaleString()}</td><td style="text-align:right;font-weight:500">$${(i.qty*i.unit_cost).toLocaleString()}</td>`}
-          <td><span style="padding:2px 7px;border-radius:10px;font-size:11px;background:${i.qty<i.min_qty_alert?'#faeeda':'#eaf3de'};color:${i.qty<i.min_qty_alert?'#633806':'#27500a'}">${i.qty<i.min_qty_alert?'Low':'OK'}</span></td>
-        </tr>`).join('');
-
-      const html = buildPDFHtml(tenantName, 'Inventory Report', dateLabel, now,
-        `<table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:#0c447c;color:white">${['Serial #','Name','Type','Country','Location','Qty',...(isViewer?[]:['Unit cost','Total value']),'Status'].map(h=>`<th style="padding:7px 10px;text-align:left">${h}</th>`).join('')}</tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-        ${isViewer?'':`<div style="margin-top:1rem;padding:10px;background:#f5f5f4;border-radius:6px;font-size:13px"><strong>Total items:</strong> ${data.length} &nbsp;·&nbsp; <strong>Total qty:</strong> ${data.reduce((s,i)=>s+i.qty,0)} &nbsp;·&nbsp; <strong>Total value:</strong> $${Math.round(totalVal).toLocaleString()}</div>`}`
-      );
-      printHTML(html);
-      statusEl.innerHTML = `<div class="notice notice-success">PDF opened in new tab — use Ctrl+P to print or save.</div>`;
-    }
-
-  } else if (type === 'consumption') {
-    let { data: con } = await sb.from('consumption_log').select('*').eq('tenant_id', currentProfile.tenant_id).order('created_at',{ascending:false});
-    con = con || [];
-    if (country)  con = con.filter(c => c.country === country);
-    if (location) con = con.filter(c => c.location === location);
-    if (dateFrom) con = con.filter(c => c.created_at >= dateFrom);
-    if (dateTo)   con = con.filter(c => c.created_at <= dateTo + 'T23:59:59');
-    const totalCon = con.reduce((s,c)=>s+c.qty*c.unit_cost,0);
-
-    if (format === 'xlsx') {
-      const rows = [
-        [`${tenantName} — Consumption Report`, '', '', '', '', ''],
-        [`Generated: ${now}  |  Period: ${dateLabel}`],[''],
-        ['Date','Serial #','Name','Country','Location','Qty','Unit cost','Total value'],
-        ...con.map(c=>[c.created_at.slice(0,10),c.serial_number,c.item_name,c.country,c.location,c.qty,c.unit_cost,c.qty*c.unit_cost]),
-        [''],['','','','','TOTAL',con.reduce((s,c)=>s+c.qty,0),'',totalCon]
-      ];
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(rows);
-      ws['!cols'] = [12,14,22,14,22,8,12,14].map(w=>({wch:w}));
-      XLSX.utils.book_append_sheet(wb, ws, 'Consumption');
-      XLSX.writeFile(wb, `FieldTrack_Consumption_${now.replace(/\//g,'-')}.xlsx`);
-      statusEl.innerHTML = `<div class="notice notice-success">Excel report downloaded — ${con.length} events.</div>`;
-    } else {
-      const isViewer = currentProfile.role === 'viewer';
-      const rows = con.map(c=>`<tr><td style="font-size:11px">${c.created_at.slice(0,10)}</td><td style="font-family:monospace;font-size:11px">${c.serial_number}</td><td>${c.item_name}</td><td>${c.country}</td><td>${c.location}</td><td style="text-align:center">${c.qty}</td>${isViewer?'':`<td style="text-align:right">$${c.unit_cost.toLocaleString()}</td><td style="text-align:right;font-weight:500;color:#a32d2d">$${(c.qty*c.unit_cost).toLocaleString()}</td>`}</tr>`).join('');
-      const html = buildPDFHtml(tenantName, 'Consumption Report', dateLabel, now,
-        `<table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:#0c447c;color:white">${['Date','Serial #','Name','Country','Location','Qty',...(isViewer?[]:['Unit cost','Total value'])].map(h=>`<th style="padding:7px 10px;text-align:left">${h}</th>`).join('')}</tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-        ${isViewer?'':`<div style="margin-top:1rem;padding:10px;background:#f5f5f4;border-radius:6px;font-size:13px"><strong>Total events:</strong> ${con.length} &nbsp;·&nbsp; <strong>Total consumed value:</strong> $${Math.round(totalCon).toLocaleString()}</div>`}`
-      );
-      printHTML(html);
-      statusEl.innerHTML = `<div class="notice notice-success">PDF opened in new tab.</div>`;
-    }
-
-  } else if (type === 'movements') {
-    let { data: mov } = await sb.from('movements').select('*').eq('tenant_id', currentProfile.tenant_id).order('created_at',{ascending:false});
-    mov = mov || [];
-    if (country)  mov = mov.filter(m => m.country === country);
-    if (dateFrom) mov = mov.filter(m => m.created_at >= dateFrom);
-    if (dateTo)   mov = mov.filter(m => m.created_at <= dateTo + 'T23:59:59');
-
-    if (format === 'xlsx') {
-      const rows = [
-        [`${tenantName} — Movement History`, '', '', '', '', '', ''],
-        [`Generated: ${now}  |  Period: ${dateLabel}`],[''],
-        ['Date','Action','Serial #','Item name','Qty','From','To','Country','Notes'],
-        ...mov.map(m=>[m.created_at.slice(0,10),m.action,m.serial_number,m.item_name,m.qty,m.from_location||'—',m.to_location||'—',m.country,m.notes||''])
-      ];
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(rows);
-      ws['!cols'] = [12,12,14,24,6,22,22,12,24].map(w=>({wch:w}));
-      XLSX.utils.book_append_sheet(wb, ws, 'Movements');
-      XLSX.writeFile(wb, `FieldTrack_Movements_${now.replace(/\//g,'-')}.xlsx`);
-      statusEl.innerHTML = `<div class="notice notice-success">Excel report downloaded — ${mov.length} movements.</div>`;
-    } else {
-      const rows = mov.map(m=>`<tr><td style="font-size:11px">${m.created_at.slice(0,10)}</td><td><span style="padding:2px 7px;border-radius:10px;font-size:10px;background:#e6f1fb;color:#0c447c">${m.action}</span></td><td style="font-family:monospace;font-size:11px">${m.serial_number}</td><td>${m.item_name}</td><td style="text-align:center">${m.qty}</td><td style="font-size:11px">${m.from_location||'—'}</td><td style="font-size:11px">${m.to_location||'—'}</td><td>${m.country}</td></tr>`).join('');
-      const html = buildPDFHtml(tenantName, 'Movement History', dateLabel, now,
-        `<table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:#0c447c;color:white">${['Date','Action','Serial #','Name','Qty','From','To','Country'].map(h=>`<th style="padding:7px 10px;text-align:left">${h}</th>`).join('')}</tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-        <div style="margin-top:1rem;padding:10px;background:#f5f5f4;border-radius:6px;font-size:13px"><strong>Total movements:</strong> ${mov.length}</div>`
-      );
-      printHTML(html);
-      statusEl.innerHTML = `<div class="notice notice-success">PDF opened in new tab.</div>`;
-    }
+// ═══ REPORTS ═══
+function initReportFilters(){const countries=Object.keys(LOCATIONS).sort(),rc=document.getElementById('rep-country'),rl=document.getElementById('rep-location');if(rc&&rc.options.length<=1)countries.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;rc.appendChild(o);});rc.onchange=()=>{rl.innerHTML='<option value="">All locations</option>';const locs=rc.value?LOCATIONS[rc.value]:Object.values(LOCATIONS).flat();locs.forEach(l=>{const o=document.createElement('option');o.value=l;o.textContent=l;rl.appendChild(o);});};}
+async function generateReport(type,format){
+  const country=document.getElementById('rep-country').value,location=document.getElementById('rep-location').value,rtype=document.getElementById('rep-type').value,dateFrom=document.getElementById('rep-from').value,dateTo=document.getElementById('rep-to').value,statusEl=document.getElementById('report-status');
+  statusEl.innerHTML='<div class="notice notice-info">Generating report...</div>';
+  const tenantName=currentProfile.tenants?.name||'FieldTrack',dateLabel=dateFrom&&dateTo?`${dateFrom} to ${dateTo}`:dateFrom?`From ${dateFrom}`:dateTo?`To ${dateTo}`:'All dates',now=new Date().toLocaleDateString('en-GB');
+  if(type==='inventory'){let data=[...inventory];if(country)data=data.filter(i=>i.country===country);if(location)data=data.filter(i=>i.location===location);if(rtype)data=data.filter(i=>i.type===rtype);const totalVal=data.reduce((s,i)=>s+i.qty*i.unit_cost,0);
+    if(format==='xlsx'){const rows=[[`${tenantName} — Inventory Report`,'','','','','',''],[ `Generated: ${now}`,'','','','','',''],[''],['Serial #','Name','Type','Country','Location','Qty','Unit cost','Total value','Status'],...data.map(i=>[i.serial_number,i.name,i.type,i.country,i.location,i.qty,i.unit_cost,i.qty*i.unit_cost,i.qty<i.min_qty_alert?'Low stock':'OK']),[''],['','','','','TOTAL',data.reduce((s,i)=>s+i.qty,0),'',totalVal,'']];const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[14,24,12,14,24,8,12,14,12].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws,'Inventory');XLSX.writeFile(wb,`FieldTrack_Inventory_${now.replace(/\//g,'-')}.xlsx`);statusEl.innerHTML=`<div class="notice notice-success">Excel report downloaded — ${data.length} items.</div>`;}
+    else{const isViewer=currentProfile.role==='viewer',rows=data.map(i=>`<tr style="background:${i.qty<i.min_qty_alert?'#fffbe6':'white'}"><td style="font-family:monospace;font-size:11px">${i.serial_number}</td><td>${i.name}</td><td>${i.type}</td><td>${i.country}</td><td>${i.location}</td><td style="text-align:center">${i.qty}</td>${isViewer?'':`<td style="text-align:right">$${i.unit_cost.toLocaleString()}</td><td style="text-align:right;font-weight:500">$${(i.qty*i.unit_cost).toLocaleString()}</td>`}<td><span style="padding:2px 7px;border-radius:10px;font-size:11px;background:${i.qty<i.min_qty_alert?'#faeeda':'#eaf3de'};color:${i.qty<i.min_qty_alert?'#633806':'#27500a'}">${i.qty<i.min_qty_alert?'Low':'OK'}</span></td></tr>`).join('');printHTML(buildPDFHtml(tenantName,'Inventory Report',dateLabel,now,`<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#0c447c;color:white">${['Serial #','Name','Type','Country','Location','Qty',...(isViewer?[]:['Unit cost','Total value']),'Status'].map(h=>`<th style="padding:7px 10px;text-align:left">${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>${isViewer?'':`<div style="margin-top:1rem;padding:10px;background:#f5f5f4;border-radius:6px;font-size:13px"><strong>Total items:</strong> ${data.length} &nbsp;·&nbsp; <strong>Total qty:</strong> ${data.reduce((s,i)=>s+i.qty,0)} &nbsp;·&nbsp; <strong>Total value:</strong> $${Math.round(totalVal).toLocaleString()}</div>`}`));statusEl.innerHTML=`<div class="notice notice-success">PDF opened in new tab — use Ctrl+P to print or save.</div>`;}
+  }else if(type==='consumption'){let{data:con}=await sb.from('consumption_log').select('*').eq('tenant_id',currentProfile.tenant_id).order('created_at',{ascending:false});con=con||[];if(country)con=con.filter(c=>c.country===country);if(location)con=con.filter(c=>c.location===location);if(dateFrom)con=con.filter(c=>c.created_at>=dateFrom);if(dateTo)con=con.filter(c=>c.created_at<=dateTo+'T23:59:59');const totalCon=con.reduce((s,c)=>s+c.qty*c.unit_cost,0);
+    if(format==='xlsx'){const rows=[[`${tenantName} — Consumption Report`,'','','','',''],[ `Generated: ${now}  |  Period: ${dateLabel}`],[''],['Date','Serial #','Name','Country','Location','Qty','Unit cost','Total value'],...con.map(c=>[c.created_at.slice(0,10),c.serial_number,c.item_name,c.country,c.location,c.qty,c.unit_cost,c.qty*c.unit_cost]),[''],['','','','','TOTAL',con.reduce((s,c)=>s+c.qty,0),'',totalCon]];const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[12,14,22,14,22,8,12,14].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws,'Consumption');XLSX.writeFile(wb,`FieldTrack_Consumption_${now.replace(/\//g,'-')}.xlsx`);statusEl.innerHTML=`<div class="notice notice-success">Excel report downloaded — ${con.length} events.</div>`;}
+    else{const isViewer=currentProfile.role==='viewer',rows=con.map(c=>`<tr><td style="font-size:11px">${c.created_at.slice(0,10)}</td><td style="font-family:monospace;font-size:11px">${c.serial_number}</td><td>${c.item_name}</td><td>${c.country}</td><td>${c.location}</td><td style="text-align:center">${c.qty}</td>${isViewer?'':`<td style="text-align:right">$${c.unit_cost.toLocaleString()}</td><td style="text-align:right;font-weight:500;color:#a32d2d">$${(c.qty*c.unit_cost).toLocaleString()}</td>`}</tr>`).join('');printHTML(buildPDFHtml(tenantName,'Consumption Report',dateLabel,now,`<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#0c447c;color:white">${['Date','Serial #','Name','Country','Location','Qty',...(isViewer?[]:['Unit cost','Total value'])].map(h=>`<th style="padding:7px 10px;text-align:left">${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>${isViewer?'':`<div style="margin-top:1rem;padding:10px;background:#f5f5f4;border-radius:6px;font-size:13px"><strong>Total events:</strong> ${con.length} &nbsp;·&nbsp; <strong>Total consumed value:</strong> $${Math.round(totalCon).toLocaleString()}</div>`}`));statusEl.innerHTML=`<div class="notice notice-success">PDF opened in new tab.</div>`;}
+  }else if(type==='movements'){let{data:mov}=await sb.from('movements').select('*').eq('tenant_id',currentProfile.tenant_id).order('created_at',{ascending:false});mov=mov||[];if(country)mov=mov.filter(m=>m.country===country);if(dateFrom)mov=mov.filter(m=>m.created_at>=dateFrom);if(dateTo)mov=mov.filter(m=>m.created_at<=dateTo+'T23:59:59');
+    if(format==='xlsx'){const rows=[[`${tenantName} — Movement History`,'','','','','',''],[ `Generated: ${now}  |  Period: ${dateLabel}`],[''],['Date','Action','Serial #','Item name','Qty','From','To','Country','Notes'],...mov.map(m=>[m.created_at.slice(0,10),m.action,m.serial_number,m.item_name,m.qty,m.from_location||'—',m.to_location||'—',m.country,m.notes||''])];const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[12,12,14,24,6,22,22,12,24].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws,'Movements');XLSX.writeFile(wb,`FieldTrack_Movements_${now.replace(/\//g,'-')}.xlsx`);statusEl.innerHTML=`<div class="notice notice-success">Excel report downloaded — ${mov.length} movements.</div>`;}
+    else{const rows=mov.map(m=>`<tr><td style="font-size:11px">${m.created_at.slice(0,10)}</td><td><span style="padding:2px 7px;border-radius:10px;font-size:10px;background:#e6f1fb;color:#0c447c">${m.action}</span></td><td style="font-family:monospace;font-size:11px">${m.serial_number}</td><td>${m.item_name}</td><td style="text-align:center">${m.qty}</td><td style="font-size:11px">${m.from_location||'—'}</td><td style="font-size:11px">${m.to_location||'—'}</td><td>${m.country}</td></tr>`).join('');printHTML(buildPDFHtml(tenantName,'Movement History',dateLabel,now,`<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#0c447c;color:white">${['Date','Action','Serial #','Name','Qty','From','To','Country'].map(h=>`<th style="padding:7px 10px;text-align:left">${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table><div style="margin-top:1rem;padding:10px;background:#f5f5f4;border-radius:6px;font-size:13px"><strong>Total movements:</strong> ${mov.length}</div>`));statusEl.innerHTML=`<div class="notice notice-success">PDF opened in new tab.</div>`;}
   }
 }
-
-function buildPDFHtml(company, title, period, date, tableHtml) {
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <title>${company} — ${title}</title>
-  <style>
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin:0;padding:24px;color:#1a1a18;font-size:13px}
-    .header{border-bottom:2px solid #0c447c;padding-bottom:12px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end}
-    .header h1{font-size:20px;font-weight:600;color:#0c447c;margin:0 0 4px}
-    .header p{font-size:12px;color:#6b6b67;margin:0}
-    .header .meta{text-align:right;font-size:11px;color:#9d9d98}
-    table{width:100%;border-collapse:collapse}
-    th{background:#0c447c;color:white;padding:7px 10px;text-align:left;font-size:12px}
-    td{padding:6px 10px;border-bottom:0.5px solid #efefed}
-    tr:nth-child(even) td{background:#f9f9f8}
-    @media print{body{padding:0} @page{margin:1.5cm}}
-  </style></head><body>
-  <div class="header">
-    <div><h1>${title}</h1><p>${company}</p></div>
-    <div class="meta">Generated: ${date}<br>Period: ${period}</div>
-  </div>
-  ${tableHtml}
-  <div style="margin-top:2rem;padding-top:10px;border-top:0.5px solid #efefed;font-size:11px;color:#9d9d98;text-align:center">
-    Generated by FieldTrack — Confidential
-  </div>
-  </body></html>`;
-}
-
-function printHTML(html) {
-  const w = window.open('', '_blank');
-  w.document.write(html);
-  w.document.close();
-  setTimeout(() => w.print(), 800);
-}
+function buildPDFHtml(company,title,period,date,tableHtml){return`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${company} — ${title}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin:0;padding:24px;color:#1a1a18;font-size:13px}.header{border-bottom:2px solid #0c447c;padding-bottom:12px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end}.header h1{font-size:20px;font-weight:600;color:#0c447c;margin:0 0 4px}.header p{font-size:12px;color:#6b6b67;margin:0}.header .meta{text-align:right;font-size:11px;color:#9d9d98}table{width:100%;border-collapse:collapse}th{background:#0c447c;color:white;padding:7px 10px;text-align:left;font-size:12px}td{padding:6px 10px;border-bottom:0.5px solid #efefed}tr:nth-child(even) td{background:#f9f9f8}@media print{body{padding:0}@page{margin:1.5cm}}</style></head><body><div class="header"><div><h1>${title}</h1><p>${company}</p></div><div class="meta">Generated: ${date}<br>Period: ${period}</div></div>${tableHtml}<div style="margin-top:2rem;padding-top:10px;border-top:0.5px solid #efefed;font-size:11px;color:#9d9d98;text-align:center">Generated by FieldTrack — Confidential</div></body></html>`;}
+function printHTML(html){const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),800);}
 
 init();
 </script>
