@@ -444,7 +444,7 @@
     <div class="form-grid">
       <div class="form-group"><label>Serial #</label><input type="text" id="t-serial" placeholder="SN-2024-001" oninput="fillTransferInfo()"></div>
       <div class="form-group"><label>Item name</label><input type="text" id="t-name" disabled></div>
-      <div class="form-group"><label>Current location</label><input type="text" id="t-from" disabled></div>
+      <div class="form-group"><label>From location</label><select id="t-from-loc" onchange="updateTransferSourceHint()"></select></div>
       <div class="form-group"><label>Quantity</label><input type="number" id="t-qty" min="1" value="1"></div>
       <div class="form-group"><label>To country</label><select id="t-country" onchange="fillTransferLocations()"><option value="">Select</option></select></div>
       <div class="form-group"><label>To location</label><select id="t-location"><option value="">Select</option></select></div>
@@ -634,11 +634,20 @@ function fillTransferLocations() {
   const c = document.getElementById('t-country').value;
   document.getElementById('t-location').innerHTML = '<option value="">Select</option>' + (c && LOCATIONS[c] ? LOCATIONS[c].map(l => `<option value="${l}">${l}</option>`).join('') : '');
 }
-function fillTransferInfo() {
+function fillTransferInfo(preselectLocation) {
   const serial = document.getElementById('t-serial').value.trim();
-  const item = inventory.find(i => i.serial_number === serial && i.tenant_id === currentProfile.tenant_id);
-  document.getElementById('t-name').value = item ? item.name : '';
-  document.getElementById('t-from').value = item ? `${item.location} (${item.country})` : '';
+  const matches = inventory.filter(i => i.serial_number === serial && i.tenant_id === currentProfile.tenant_id);
+  document.getElementById('t-name').value = matches[0] ? matches[0].name : '';
+  const locSel = document.getElementById('t-from-loc');
+  locSel.innerHTML = matches.map(i => `<option value="${i.location}">${i.location} (${i.country}) — ${i.qty} in stock</option>`).join('');
+  if (preselectLocation) locSel.value = preselectLocation;
+  updateTransferSourceHint();
+}
+function updateTransferSourceHint() {
+  const serial = document.getElementById('t-serial').value.trim();
+  const loc = document.getElementById('t-from-loc').value;
+  const item = inventory.find(i => i.serial_number === serial && i.location === loc && i.tenant_id === currentProfile.tenant_id);
+  document.getElementById('t-qty').max = item ? item.qty : '';
 }
 function applyFilters() {
   const s = document.getElementById('f-search').value.toLowerCase();
@@ -689,8 +698,8 @@ function renderTable() {
     const tv = it.qty*it.unit_cost; total += tv;
     const low = it.qty < it.min_qty_alert;
     const canEdit = canEditCountry(it.country);
-    let actions = isAdmin ? `<button class="btn btn-sm" onclick="openItemModal(${it.id})" style="margin-right:3px">Edit</button><button class="btn btn-sm" onclick="openTransfer('${it.serial_number}')">Transfer</button>`
-      : isSupervisor && canEdit ? `<button class="btn btn-sm" onclick="openTransfer('${it.serial_number}')">Transfer</button>`
+    let actions = isAdmin ? `<button class="btn btn-sm" onclick="openItemModal(${it.id})" style="margin-right:3px">Edit</button><button class="btn btn-sm" onclick="openTransfer('${it.serial_number}','${it.location}')">Transfer</button>`
+      : isSupervisor && canEdit ? `<button class="btn btn-sm" onclick="openTransfer('${it.serial_number}','${it.location}')">Transfer</button>`
       : isSupervisor ? `<span style="font-size:11px;color:var(--text3)">View only</span>` : '—';
     return `<tr ${!canEdit&&isSupervisor?'style="opacity:0.6"':''}>
       <td style="font-family:monospace;font-size:11px">${it.serial_number}</td><td>${it.name}</td>
@@ -761,21 +770,37 @@ async function saveItem() {
 }
 
 // ═══ TRANSFER MODAL ═══
-function openTransfer(serial){document.getElementById('t-serial').value=serial||'';fillTransferInfo();document.getElementById('t-qty').value=1;document.getElementById('t-notes').value='';document.getElementById('t-country').value='';document.getElementById('t-location').innerHTML='<option value="">Select</option>';document.getElementById('transfer-modal').classList.add('open');}
+function openTransfer(serial,location){document.getElementById('t-serial').value=serial||'';fillTransferInfo(location);document.getElementById('t-qty').value=1;document.getElementById('t-notes').value='';document.getElementById('t-country').value='';document.getElementById('t-location').innerHTML='<option value="">Select</option>';document.getElementById('transfer-modal').classList.add('open');}
 function closeTransferModal(){document.getElementById('transfer-modal').classList.remove('open');}
 async function submitTransfer() {
-  const serial=document.getElementById('t-serial').value.trim(),toCountry=document.getElementById('t-country').value,toLoc=document.getElementById('t-location').value,qty=parseInt(document.getElementById('t-qty').value)||0,notes=document.getElementById('t-notes').value;
-  if(!serial||!toCountry||!toLoc||qty<1)return alert('Please fill all fields.');
-  const item=inventory.find(i=>i.serial_number===serial&&i.tenant_id===currentProfile.tenant_id);
-  if(!item)return alert('Serial number not found.');if(qty>item.qty)return alert('Transfer quantity exceeds available stock.');
-  if(currentProfile.role==='admin'){await executeTransfer(item,serial,toCountry,toLoc,qty,notes);}
+  const serial=document.getElementById('t-serial').value.trim(),fromLoc=document.getElementById('t-from-loc').value,toCountry=document.getElementById('t-country').value,toLoc=document.getElementById('t-location').value,qty=parseInt(document.getElementById('t-qty').value)||0,notes=document.getElementById('t-notes').value;
+  if(!serial||!fromLoc||!toCountry||!toLoc||qty<1)return alert('Please fill all fields.');
+  const item=inventory.find(i=>i.serial_number===serial&&i.location===fromLoc&&i.tenant_id===currentProfile.tenant_id);
+  if(!item)return alert('Serial number not found at the selected source location.');if(qty>item.qty)return alert('Transfer quantity exceeds available stock.');
+  if(toLoc===fromLoc&&toCountry===item.country)return alert('Source and destination are the same.');
+  if(currentProfile.role==='admin'){const ok=await executeTransfer(item,serial,toCountry,toLoc,qty,notes);if(!ok)return;}
   else{const{error}=await sb.from('transfer_requests').insert({serial_number:serial,item_name:item.name,qty,from_location:item.location,from_country:item.country,to_location:toLoc,to_country:toCountry,notes:notes||null,requested_by:currentUser.id,tenant_id:currentProfile.tenant_id,status:'pending'});if(error)return alert('Error submitting request: '+error.message);closeTransferModal();alert('Transfer request submitted. Awaiting admin approval.');return;}
   closeTransferModal();await loadInventory();
 }
 async function executeTransfer(item,serial,toCountry,toLoc,qty,notes) {
-  if(item.qty===qty){await sb.from('inventory').update({location:toLoc,country:toCountry}).eq('id',item.id);}
-  else{await sb.from('inventory').update({qty:item.qty-qty}).eq('id',item.id);const existing=inventory.find(i=>i.serial_number===serial&&i.location===toLoc&&i.tenant_id===currentProfile.tenant_id);if(existing){await sb.from('inventory').update({qty:existing.qty+qty}).eq('id',existing.id);}else{await sb.from('inventory').insert({serial_number:serial,name:item.name,type:item.type,country:toCountry,location:toLoc,qty,unit_cost:item.unit_cost,min_qty_alert:item.min_qty_alert,tenant_id:currentProfile.tenant_id});}}
-  await sb.from('movements').insert({action:'Transfer',serial_number:serial,item_name:item.name,qty,from_location:item.location,to_location:toLoc,country:toCountry,notes:notes||null,performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});
+  if(item.qty===qty){
+    const{error}=await sb.from('inventory').update({location:toLoc,country:toCountry}).eq('id',item.id);
+    if(error){alert('Transfer failed: '+error.message);return false;}
+  }else{
+    const{error:dErr}=await sb.from('inventory').update({qty:item.qty-qty}).eq('id',item.id);
+    if(dErr){alert('Transfer failed: '+dErr.message);return false;}
+    const existing=inventory.find(i=>i.serial_number===serial&&i.location===toLoc&&i.tenant_id===currentProfile.tenant_id);
+    if(existing){
+      const{error:uErr}=await sb.from('inventory').update({qty:existing.qty+qty}).eq('id',existing.id);
+      if(uErr){alert('Transfer failed partway — origin already deducted, please check inventory manually: '+uErr.message);return false;}
+    }else{
+      const{error:iErr}=await sb.from('inventory').insert({serial_number:serial,name:item.name,type:item.type,country:toCountry,location:toLoc,qty,unit_cost:item.unit_cost,min_qty_alert:item.min_qty_alert,tenant_id:currentProfile.tenant_id});
+      if(iErr){alert('Transfer failed partway — origin already deducted, please check inventory manually: '+iErr.message);return false;}
+    }
+  }
+  const{error:mErr}=await sb.from('movements').insert({action:'Transfer',serial_number:serial,item_name:item.name,qty,from_location:item.location,to_location:toLoc,country:toCountry,notes:notes||null,performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});
+  if(mErr)console.error('Movement log failed:',mErr);
+  return true;
 }
 
 // ═══ BULK UPLOAD (full implementation from original) ═══
@@ -813,8 +838,8 @@ function processFile(file){const reader=new FileReader();reader.onload=e=>{try{c
 function renderPreview(rows,mode){
   document.getElementById('upload-preview').style.display='block';
   const thead=document.getElementById('preview-thead'),tbody=document.getElementById('preview-tbody');let warnings=0,changes=0;
-  if(mode==='update'){thead.innerHTML='<tr><th>Serial #</th><th>Name</th><th>Country</th><th>System qty</th><th>New qty</th><th>Consumed</th><th>Status</th></tr>';tbody.innerHTML=rows.map(r=>{const item=inventory.find(i=>i.serial_number===String(r.serial_number||'').trim()&&i.tenant_id===currentProfile.tenant_id);if(!item){warnings++;return`<tr><td colspan="7"><span class="badge badge-low">Serial ${r.serial_number} not found — skipped</span></td></tr>`;}if(!canEditCountry(item.country)){warnings++;return`<tr><td colspan="7"><span class="badge badge-low">${item.serial_number} — not in your assigned countries, skipped</span></td></tr>`;}const newQty=r.new_qty_on_hand!==''?parseInt(r.new_qty_on_hand):null,consumed=r.qty_consumed!==''?parseInt(r.qty_consumed):0;if(newQty!==null||consumed>0)changes++;return`<tr><td style="font-family:monospace;font-size:11px">${item.serial_number}</td><td>${item.name}</td><td style="font-size:12px">${item.country}</td><td>${item.qty}</td><td>${newQty!==null?newQty:'—'}</td><td style="color:${consumed>0?'var(--red-text)':'var(--text3)'}">${consumed||'—'}</td><td><span class="badge badge-ok">Ready</span></td></tr>`;}).join('');}
-  else{thead.innerHTML='<tr><th>Serial #</th><th>Name</th><th>Type</th><th>Country</th><th>Qty</th><th>Status</th></tr>';tbody.innerHTML=rows.map(r=>{const dup=inventory.find(i=>i.serial_number===String(r.serial_number||'').trim()&&i.tenant_id===currentProfile.tenant_id);if(dup){warnings++;return`<tr><td colspan="6"><span class="badge badge-low">Duplicate ${r.serial_number} — skipped</span></td></tr>`;}if(!canEditCountry(r.country)){warnings++;return`<tr><td colspan="6"><span class="badge badge-low">${r.serial_number} — country not assigned to you, skipped</span></td></tr>`;}changes++;return`<tr><td style="font-family:monospace;font-size:11px">${r.serial_number}</td><td>${r.item_name}</td><td>${r.type}</td><td>${r.country}</td><td>${r.qty}</td><td><span class="badge badge-ok">Will add</span></td></tr>`;}).join('');}
+  if(mode==='update'){thead.innerHTML='<tr><th>Serial #</th><th>Name</th><th>Country</th><th>System qty</th><th>New qty</th><th>Consumed</th><th>Status</th></tr>';tbody.innerHTML=rows.map(r=>{const item=inventory.find(i=>i.serial_number===String(r.serial_number||'').trim()&&i.location===r.location&&i.tenant_id===currentProfile.tenant_id);if(!item){warnings++;return`<tr><td colspan="7"><span class="badge badge-low">Serial ${r.serial_number} at ${r.location} not found — skipped</span></td></tr>`;}if(!canEditCountry(item.country)){warnings++;return`<tr><td colspan="7"><span class="badge badge-low">${item.serial_number} — not in your assigned countries, skipped</span></td></tr>`;}const newQty=r.new_qty_on_hand!==''?parseInt(r.new_qty_on_hand):null,consumed=r.qty_consumed!==''?parseInt(r.qty_consumed):0;if(newQty!==null||consumed>0)changes++;return`<tr><td style="font-family:monospace;font-size:11px">${item.serial_number}</td><td>${item.name}</td><td style="font-size:12px">${item.country}</td><td>${item.qty}</td><td>${newQty!==null?newQty:'—'}</td><td style="color:${consumed>0?'var(--red-text)':'var(--text3)'}">${consumed||'—'}</td><td><span class="badge badge-ok">Ready</span></td></tr>`;}).join('');}
+  else{thead.innerHTML='<tr><th>Serial #</th><th>Name</th><th>Type</th><th>Country</th><th>Qty</th><th>Status</th></tr>';tbody.innerHTML=rows.map(r=>{const dup=inventory.find(i=>i.serial_number===String(r.serial_number||'').trim()&&i.location===r.location&&i.tenant_id===currentProfile.tenant_id);if(dup){warnings++;return`<tr><td colspan="6"><span class="badge badge-low">Duplicate ${r.serial_number} at ${r.location} — skipped</span></td></tr>`;}if(!canEditCountry(r.country)){warnings++;return`<tr><td colspan="6"><span class="badge badge-low">${r.serial_number} — country not assigned to you, skipped</span></td></tr>`;}changes++;return`<tr><td style="font-family:monospace;font-size:11px">${r.serial_number}</td><td>${r.item_name}</td><td>${r.type}</td><td>${r.country}</td><td>${r.qty}</td><td><span class="badge badge-ok">Will add</span></td></tr>`;}).join('');}
   const notices=document.getElementById('preview-notices');notices.innerHTML='';
   if(warnings)notices.innerHTML+=`<div class="notice notice-warn">${warnings} row(s) will be skipped.</div>`;
   if(changes)notices.innerHTML+=`<div class="notice notice-info">${changes} change(s) ready to apply. Review before confirming.</div>`;
@@ -822,8 +847,8 @@ function renderPreview(rows,mode){
 function cancelUpload(){document.getElementById('upload-preview').style.display='none';pendingUpload=null;}
 async function confirmUpload(){
   if(!pendingUpload)return;const{rows,mode}=pendingUpload;
-  if(mode==='update'){for(const r of rows){const item=inventory.find(i=>i.serial_number===String(r.serial_number||'').trim()&&i.tenant_id===currentProfile.tenant_id);if(!item||!canEditCountry(item.country))continue;const newQty=r.new_qty_on_hand!==''?parseInt(r.new_qty_on_hand):null,consumed=r.qty_consumed!==''?parseInt(r.qty_consumed):0;if(consumed>0){await sb.from('consumption_log').insert({serial_number:item.serial_number,item_name:item.name,country:item.country,location:item.location,qty:consumed,unit_cost:item.unit_cost,notes:r.notes||'Bulk upload',performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});await sb.from('movements').insert({action:'Consumed',serial_number:item.serial_number,item_name:item.name,qty:consumed,from_location:item.location,to_location:null,country:item.country,notes:r.notes||'Bulk upload',performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});}if(newQty!==null&&newQty!==item.qty){await sb.from('inventory').update({qty:newQty}).eq('id',item.id);await sb.from('movements').insert({action:'Bulk upload',serial_number:item.serial_number,item_name:item.name,qty:Math.abs(newQty-item.qty),from_location:item.location,to_location:item.location,country:item.country,notes:`Qty adjusted from ${item.qty} to ${newQty}. ${r.notes||''}`,performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});}}}
-  else{let inserted=0,skipped=0,errors=[];for(const r of rows){const serial=String(r.serial_number||'').trim();if(!serial||serial==='SN-XXXX-XXX'){skipped++;continue;}if(inventory.find(i=>i.serial_number===serial&&i.tenant_id===currentProfile.tenant_id)){skipped++;continue;}if(!canEditCountry(r.country)){skipped++;continue;}const{error:invErr}=await sb.from('inventory').insert({serial_number:serial,name:r.item_name||r.name||'Unnamed',type:r.type||'Spare part',country:r.country,location:r.location,qty:parseInt(r.qty)||0,unit_cost:parseFloat(r.unit_cost)||0,min_qty_alert:parseInt(r.min_qty_alert)||2,tenant_id:currentProfile.tenant_id});if(invErr){errors.push(`${serial}: ${invErr.message}`);continue;}await sb.from('movements').insert({action:'Bulk upload',serial_number:serial,item_name:r.item_name||r.name||'Unnamed',qty:parseInt(r.qty)||0,from_location:null,to_location:r.location,country:r.country,notes:r.notes||'Added via bulk upload',performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});inserted++;}pendingUpload=null;document.getElementById('upload-preview').style.display='none';await loadInventory();const notices=document.getElementById('preview-notices');if(errors.length)notices.innerHTML=`<div class="notice notice-danger">${errors.length} erro(s): ${errors.join(' | ')}</div>`;else if(inserted===0)notices.innerHTML=`<div class="notice notice-warn">Nenhum item adicionado. Verifica se: os seriais são únicos, os campos obrigatórios estão preenchidos, e o país está correcto.</div>`;else notices.innerHTML=`<div class="notice notice-success">${inserted} item(s) adicionado(s) com sucesso. ${skipped>0?skipped+' linha(s) ignorada(s).':''}</div>`;return;}
+  if(mode==='update'){for(const r of rows){const item=inventory.find(i=>i.serial_number===String(r.serial_number||'').trim()&&i.location===r.location&&i.tenant_id===currentProfile.tenant_id);if(!item||!canEditCountry(item.country))continue;const newQty=r.new_qty_on_hand!==''?parseInt(r.new_qty_on_hand):null,consumed=r.qty_consumed!==''?parseInt(r.qty_consumed):0;if(consumed>0){await sb.from('consumption_log').insert({serial_number:item.serial_number,item_name:item.name,country:item.country,location:item.location,qty:consumed,unit_cost:item.unit_cost,notes:r.notes||'Bulk upload',performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});await sb.from('movements').insert({action:'Consumed',serial_number:item.serial_number,item_name:item.name,qty:consumed,from_location:item.location,to_location:null,country:item.country,notes:r.notes||'Bulk upload',performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});}if(newQty!==null&&newQty!==item.qty){await sb.from('inventory').update({qty:newQty}).eq('id',item.id);await sb.from('movements').insert({action:'Bulk upload',serial_number:item.serial_number,item_name:item.name,qty:Math.abs(newQty-item.qty),from_location:item.location,to_location:item.location,country:item.country,notes:`Qty adjusted from ${item.qty} to ${newQty}. ${r.notes||''}`,performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});}}}
+  else{let inserted=0,skipped=0,errors=[];for(const r of rows){const serial=String(r.serial_number||'').trim();if(!serial||serial==='SN-XXXX-XXX'){skipped++;continue;}if(inventory.find(i=>i.serial_number===serial&&i.location===r.location&&i.tenant_id===currentProfile.tenant_id)){skipped++;continue;}if(!canEditCountry(r.country)){skipped++;continue;}const{error:invErr}=await sb.from('inventory').insert({serial_number:serial,name:r.item_name||r.name||'Unnamed',type:r.type||'Spare part',country:r.country,location:r.location,qty:parseInt(r.qty)||0,unit_cost:parseFloat(r.unit_cost)||0,min_qty_alert:parseInt(r.min_qty_alert)||2,tenant_id:currentProfile.tenant_id});if(invErr){errors.push(`${serial}: ${invErr.message}`);continue;}await sb.from('movements').insert({action:'Bulk upload',serial_number:serial,item_name:r.item_name||r.name||'Unnamed',qty:parseInt(r.qty)||0,from_location:null,to_location:r.location,country:r.country,notes:r.notes||'Added via bulk upload',performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});inserted++;}pendingUpload=null;document.getElementById('upload-preview').style.display='none';await loadInventory();const notices=document.getElementById('preview-notices');if(errors.length)notices.innerHTML=`<div class="notice notice-danger">${errors.length} erro(s): ${errors.join(' | ')}</div>`;else if(inserted===0)notices.innerHTML=`<div class="notice notice-warn">Nenhum item adicionado. Verifica se: os seriais são únicos, os campos obrigatórios estão preenchidos, e o país está correcto.</div>`;else notices.innerHTML=`<div class="notice notice-success">${inserted} item(s) adicionado(s) com sucesso. ${skipped>0?skipped+' linha(s) ignorada(s).':''}</div>`;return;}
   pendingUpload=null;document.getElementById('upload-preview').style.display='none';await loadInventory();
   document.getElementById('preview-notices').innerHTML=`<div class="notice notice-success">Concluído. ${inventory.length} item(s) no inventário após o upload.</div>`;
 }
@@ -841,39 +866,51 @@ async function renderConsumption(){
 }
 
 // ═══ HISTORY ═══
+let teamProfiles = null;
+async function ensureTeamProfiles(){
+  if(teamProfiles) return teamProfiles;
+  const{data}=await sb.rpc('list_tenant_profiles');
+  teamProfiles = {};
+  (data||[]).forEach(p=>teamProfiles[p.id]=p.full_name);
+  return teamProfiles;
+}
 async function renderHistory(){
   const type=document.getElementById('h-type').value,country=document.getElementById('h-country').value;
-  let query=sb.from('movements').select('*, profiles(full_name)').order('created_at',{ascending:false}).limit(200);if(type)query=query.eq('action',type);if(country)query=query.eq('country',country);
+  const names=await ensureTeamProfiles();
+  let query=sb.from('movements').select('*').order('created_at',{ascending:false}).limit(200);if(type)query=query.eq('action',type);if(country)query=query.eq('country',country);
   const{data}=await query;const log=data||[];const el=document.getElementById('history-list');
   if(!log.length){el.innerHTML='<p style="color:var(--text3);font-size:13px;padding:1rem 0">No history entries match the filters.</p>';return;}
   const colors={Transfer:'var(--blue-bg)',Added:'var(--green-bg)',Consumed:'var(--red-bg)','Bulk upload':'var(--amber-bg)'},badges={Transfer:'badge-transfer',Added:'badge-ok',Consumed:'badge-consumed','Bulk upload':'badge-bulk'};
-  el.innerHTML=log.map(h=>`<div class="hist-row"><div class="hist-dot" style="background:${colors[h.action]||'var(--bg2)'}"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div><div style="flex:1"><div><span class="badge ${badges[h.action]||''}" style="margin-right:6px">${h.action}</span><strong>${h.item_name}</strong> <span style="font-family:monospace;font-size:11px;color:var(--text3)">${h.serial_number}</span></div><div class="hist-meta">${h.created_at.slice(0,10)} · Qty: ${h.qty} · ${h.from_location||'—'} → ${h.to_location||'—'} (${h.country})</div>${h.notes?`<div class="hist-meta" style="font-style:italic">${h.notes}</div>`:''} ${h.profiles?`<div class="hist-meta">By: ${h.profiles.full_name}</div>`:''}</div></div>`).join('');
+  el.innerHTML=log.map(h=>`<div class="hist-row"><div class="hist-dot" style="background:${colors[h.action]||'var(--bg2)'}"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div><div style="flex:1"><div><span class="badge ${badges[h.action]||''}" style="margin-right:6px">${h.action}</span><strong>${h.item_name}</strong> <span style="font-family:monospace;font-size:11px;color:var(--text3)">${h.serial_number}</span></div><div class="hist-meta">${h.created_at.slice(0,10)} · Qty: ${h.qty} · ${h.from_location||'—'} → ${h.to_location||'—'} (${h.country})</div>${h.notes?`<div class="hist-meta" style="font-style:italic">${h.notes}</div>`:''} ${names[h.performed_by]?`<div class="hist-meta">By: ${names[h.performed_by]}</div>`:''}</div></div>`).join('');
 }
 
 // ═══ USERS ═══
 async function renderUsers(){
-  if(currentProfile?.role!=='admin')return;const{data}=await sb.from('profiles').select('*').order('full_name');const el=document.getElementById('users-list');
+  if(currentProfile?.role!=='admin')return;const el=document.getElementById('users-list');
+  const{data,error}=await sb.rpc('list_tenant_profiles');
+  if(error){el.innerHTML=`<p style="color:var(--red-text);font-size:13px">Error loading users: ${error.message}</p>`;return;}
   if(!data?.length){el.innerHTML='<p style="color:var(--text3);font-size:13px">No users found.</p>';return;}
   el.innerHTML=`<div class="table-wrap"><table style="min-width:500px"><thead><tr><th>Name</th><th>Role</th><th>Assigned countries</th><th>Actions</th></tr></thead><tbody>${data.map(u=>`<tr><td>${u.full_name}</td><td><span class="badge ${u.role==='admin'?'badge-tool':u.role==='supervisor'?'badge-low':'badge-ok'}">${u.role}</span></td><td style="font-size:12px">${u.assigned_countries?.length?u.assigned_countries.join(', '):'All countries'}</td><td><button class="btn btn-sm" onclick="editUser('${u.id}','${u.role}')">Edit role</button></td></tr>`).join('')}</tbody></table></div>`;
 }
-async function editUser(id,currentRole){const newRole=prompt(`Change role for user.\nCurrent: ${currentRole}\nEnter new role (admin / supervisor / viewer):`);if(!newRole||!['admin','supervisor','viewer'].includes(newRole))return;const countriesStr=newRole==='supervisor'?prompt('Enter assigned countries (comma-separated), or leave blank for all:\nOptions: '+Object.keys(LOCATIONS).join(', ')):'';const countries=countriesStr?countriesStr.split(',').map(c=>c.trim()).filter(Boolean):[];await sb.from('profiles').update({role:newRole,assigned_countries:countries}).eq('id',id);renderUsers();}
+async function editUser(id,currentRole){const newRole=prompt(`Change role for user.\nCurrent: ${currentRole}\nEnter new role (admin / supervisor / viewer):`);if(!newRole||!['admin','supervisor','viewer'].includes(newRole))return;const countriesStr=newRole==='supervisor'?prompt('Enter assigned countries (comma-separated), or leave blank for all:\nOptions: '+Object.keys(LOCATIONS).join(', ')):'';const countries=countriesStr?countriesStr.split(',').map(c=>c.trim()).filter(Boolean):[];const{error}=await sb.rpc('update_user_role',{p_target_id:id,p_new_role:newRole,p_countries:countries});if(error)return alert('Error updating role: '+error.message);teamProfiles=null;renderUsers();}
 
 // ═══ APPROVALS ═══
 async function checkPendingApprovals(){const{count}=await sb.from('transfer_requests').select('id',{count:'exact',head:true}).eq('tenant_id',currentProfile.tenant_id).eq('status','pending');const dot=document.getElementById('approvals-dot');if(dot)dot.style.display=count>0?'inline-block':'none';}
 async function renderApprovals(){
   const status=document.getElementById('apr-status').value;
-  let query=sb.from('transfer_requests').select('*, requested_by_profile:profiles!transfer_requests_requested_by_fkey(full_name)').eq('tenant_id',currentProfile.tenant_id).order('created_at',{ascending:false});if(status)query=query.eq('status',status);
+  const names=await ensureTeamProfiles();
+  let query=sb.from('transfer_requests').select('*').eq('tenant_id',currentProfile.tenant_id).order('created_at',{ascending:false});if(status)query=query.eq('status',status);
   const{data,error}=await query;const el=document.getElementById('approvals-list');
   if(error||!data?.length){el.innerHTML=`<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">No ${status||''} transfer requests.</div>`;return;}
   const isAdmin=currentProfile.role==='admin';
-  el.innerHTML=data.map(r=>`<div class="approval-card ${r.status}"><div class="approval-head"><div><div class="approval-title">${r.item_name} <span style="font-family:monospace;font-size:11px;color:var(--text3)">${r.serial_number}</span></div><div class="approval-meta">Qty: <strong>${r.qty}</strong> &nbsp;·&nbsp; From: ${r.from_location} (${r.from_country}) &nbsp;→&nbsp; To: ${r.to_location} (${r.to_country})</div><div class="approval-meta">Requested by ${r.requested_by_profile?.full_name||'Unknown'} &nbsp;·&nbsp; ${new Date(r.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}${r.notes?' &nbsp;·&nbsp; '+r.notes:''}</div>${r.review_notes?`<div class="approval-meta" style="font-style:italic">Review note: ${r.review_notes}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="badge badge-${r.status}">${r.status}</span>${isAdmin&&r.status==='pending'?`<div class="approval-actions"><button class="btn btn-sm btn-approve" onclick="reviewTransfer(${r.id},'approved')">Approve</button><button class="btn btn-sm btn-reject" onclick="reviewTransfer(${r.id},'rejected')">Reject</button></div>`:''}</div></div></div>`).join('');
+  el.innerHTML=data.map(r=>`<div class="approval-card ${r.status}"><div class="approval-head"><div><div class="approval-title">${r.item_name} <span style="font-family:monospace;font-size:11px;color:var(--text3)">${r.serial_number}</span></div><div class="approval-meta">Qty: <strong>${r.qty}</strong> &nbsp;·&nbsp; From: ${r.from_location} (${r.from_country}) &nbsp;→&nbsp; To: ${r.to_location} (${r.to_country})</div><div class="approval-meta">Requested by ${names[r.requested_by]||'Unknown'} &nbsp;·&nbsp; ${new Date(r.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}${r.notes?' &nbsp;·&nbsp; '+r.notes:''}</div>${r.review_notes?`<div class="approval-meta" style="font-style:italic">Review note: ${r.review_notes}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="badge badge-${r.status}">${r.status}</span>${isAdmin&&r.status==='pending'?`<div class="approval-actions"><button class="btn btn-sm btn-approve" onclick="reviewTransfer(${r.id},'approved')">Approve</button><button class="btn btn-sm btn-reject" onclick="reviewTransfer(${r.id},'rejected')">Reject</button></div>`:''}</div></div></div>`).join('');
 }
 async function reviewTransfer(requestId,decision){
   const reviewNotes=decision==='rejected'?prompt('Reason for rejection (optional):'):null;
   const{data:req}=await sb.from('transfer_requests').select('*').eq('id',requestId).single();if(!req)return;
   const{error:upErr}=await sb.from('transfer_requests').update({status:decision,reviewed_by:currentUser.id,review_notes:reviewNotes||null,reviewed_at:new Date().toISOString()}).eq('id',requestId);
   if(upErr)return alert('Error: '+upErr.message);
-  if(decision==='approved'){const item=inventory.find(i=>i.serial_number===req.serial_number&&i.tenant_id===currentProfile.tenant_id);if(item)await executeTransfer(item,req.serial_number,req.to_country,req.to_location,req.qty,req.notes);}
+  if(decision==='approved'){const item=inventory.find(i=>i.serial_number===req.serial_number&&i.location===req.from_location&&i.tenant_id===currentProfile.tenant_id);if(item)await executeTransfer(item,req.serial_number,req.to_country,req.to_location,req.qty,req.notes);else alert('Source item no longer found at '+req.from_location+' — inventory may have changed since the request was made.');}
   checkPendingApprovals();renderApprovals();if(decision==='approved')await loadInventory();
 }
 
