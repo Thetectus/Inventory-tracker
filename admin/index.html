@@ -120,9 +120,9 @@
     <div class="field"><label>Slug (identificador único)</label><input type="text" id="nt-slug" placeholder="totalenergies-angola" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"></div>
     <div class="field"><label>Plano</label>
       <select id="nt-plan" onchange="updatePlanLimits()">
-        <option value="starter">Starter — até 5 utilizadores, 3 localizações ($299/mês)</option>
-        <option value="professional" selected>Professional — até 15 utilizadores, 10 localizações ($799/mês)</option>
-        <option value="enterprise">Enterprise — ilimitado ($1,999+/mês)</option>
+        <option value="starter">Starter — até 5 utilizadores, 3 localizações ($39/mês)</option>
+        <option value="professional" selected>Professional — até 15 utilizadores, 10 localizações ($99/mês)</option>
+        <option value="enterprise">Enterprise — ilimitado (sob consulta)</option>
       </select>
     </div>
     <div class="field"><label>Email de facturação</label><input type="email" id="nt-billing" placeholder="admin@empresa.com"></div>
@@ -216,7 +216,7 @@ async function loadDashboard() {
 
 function renderKPIs() {
   const totalRevenue = tenants.reduce((s, t) => {
-    const p = { starter: 299, professional: 799, enterprise: 1999 };
+    const p = { starter: 39, professional: 99, enterprise: 499 };
     return s + (t.active ? (p[t.plan] || 0) : 0);
   }, 0);
   const totalValue = tenants.reduce((s, t) => s + (t.inventory_value || 0), 0);
