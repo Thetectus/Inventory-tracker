@@ -20,9 +20,41 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); font-size: 14px; min-height: 100vh; }
 
+  /* SPLASH */
+  #splash-screen { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; background: linear-gradient(160deg, #0c1f33, #0c447c 65%, #145a99); transition: opacity 0.6s ease; }
+  #splash-screen.fade-out { opacity: 0; pointer-events: none; }
+  .splash-cube-wrap { width: 90px; height: 90px; perspective: 600px; }
+  .splash-cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; animation: splash-spin 3.2s linear infinite; }
+  .splash-cube div { position: absolute; width: 90px; height: 90px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 600; font-size: 12px; color: rgba(255,255,255,0.85); letter-spacing: 0.5px; backdrop-filter: blur(2px); }
+  .splash-cube .f1 { transform: translateZ(45px); }
+  .splash-cube .f2 { transform: rotateY(90deg) translateZ(45px); }
+  .splash-cube .f3 { transform: rotateY(180deg) translateZ(45px); }
+  .splash-cube .f4 { transform: rotateY(-90deg) translateZ(45px); }
+  .splash-cube .f5 { transform: rotateX(90deg) translateZ(45px); }
+  .splash-cube .f6 { transform: rotateX(-90deg) translateZ(45px); }
+  @keyframes splash-spin { from { transform: rotateX(-18deg) rotateY(0deg); } to { transform: rotateX(-18deg) rotateY(360deg); } }
+  .splash-word { font-size: 22px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }
+  .splash-slogan { font-size: 13px; color: rgba(255,255,255,0.75); text-align: center; max-width: 320px; padding: 0 1rem; }
+
   /* AUTH */
-  #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; }
-  .auth-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; width: 100%; max-width: 380px; }
+  #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; position: relative; overflow: hidden; }
+  #auth-screen::before {
+    content: ''; position: absolute; inset: 0; z-index: 0;
+    background-color: var(--bg3);
+    background-image:
+      linear-gradient(rgba(12,68,124,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(12,68,124,0.06) 1px, transparent 1px),
+      radial-gradient(circle at 15% 20%, rgba(12,68,124,0.10), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(12,68,124,0.08), transparent 45%);
+    background-size: 34px 34px, 34px 34px, auto, auto;
+    -webkit-mask-image: linear-gradient(to bottom, black, black 70%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black, black 70%, transparent 100%);
+  }
+  .auth-card { position: relative; z-index: 1; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; width: 100%; max-width: 380px; box-shadow: 0 20px 60px -20px rgba(12,68,124,0.25); }
+  .auth-loading { display: none; flex-direction: column; align-items: center; gap: 14px; padding: 1rem 0 0.5rem; }
+  .auth-loading-bar { width: 100%; height: 5px; border-radius: 999px; background: var(--bg3); overflow: hidden; }
+  .auth-loading-bar-fill { height: 100%; width: 0%; background: var(--blue-text); border-radius: 999px; transition: width 0.35s ease; }
+  .auth-loading-step { font-size: 12.5px; color: var(--text2); text-align: center; min-height: 16px; }
   .auth-card h1 { font-size: 20px; font-weight: 500; margin-bottom: 0.25rem; }
   .auth-card p { font-size: 13px; color: var(--text2); margin-bottom: 1.5rem; }
   .auth-tabs { display: flex; gap: 0; border-bottom: 0.5px solid var(--border); margin-bottom: 1.25rem; }
@@ -171,6 +203,8 @@
 
   /* APPROVALS */
   .approval-card { border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; background: var(--bg); }
+  .invite-box { background: var(--bg2); border-radius: var(--radius); padding: 12px; font-size: 12px; color: var(--text2); margin-bottom: 12px; border: 0.5px solid var(--border); }
+  .invite-box code { font-family: monospace; background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 11px; color: var(--text); display: block; margin: 6px 0; word-break: break-all; cursor: pointer; }
   .approval-card.pending { border-left: 3px solid var(--amber-text); }
   .approval-card.approved { border-left: 3px solid var(--green-text); opacity: .7; }
   .approval-card.rejected { border-left: 3px solid var(--red-text); opacity: .7; }
@@ -203,18 +237,29 @@
 <body>
 
 <!-- AUTH SCREEN -->
+<div id="splash-screen">
+  <div class="splash-cube-wrap">
+    <div class="splash-cube">
+      <div class="f1">FT</div><div class="f2">FT</div><div class="f3">FT</div>
+      <div class="f4">FT</div><div class="f5">FT</div><div class="f6">FT</div>
+    </div>
+  </div>
+  <div class="splash-word">FieldTrack</div>
+  <div class="splash-slogan">Controlo de inventário para operações distribuídas</div>
+</div>
+
 <div id="auth-screen">
   <div class="auth-card">
     <h1>Inventory tracker</h1>
     <p>Oil &amp; gas asset management</p>
-    <div class="auth-tabs">
+    <div class="auth-tabs" id="auth-tabs">
       <button class="auth-tab active" onclick="switchAuthTab('login')">Sign in</button>
       <button class="auth-tab" onclick="switchAuthTab('signup')" id="signup-tab-btn">Create account</button>
     </div>
     <div id="login-form">
       <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"></div>
       <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="••••••••"></div>
-      <button class="btn-full" onclick="signIn()">Sign in</button>
+      <button class="btn-full" onclick="signIn()" id="signin-btn">Sign in</button>
     </div>
     <div id="signup-form" style="display:none">
       <div class="field"><label>Full name</label><input type="text" id="signup-name" placeholder="Your name"></div>
@@ -224,6 +269,10 @@
         <select id="signup-role"><option value="viewer">Viewer</option><option value="supervisor">Supervisor</option></select>
       </div>
       <button class="btn-full" onclick="signUp()">Create account</button>
+    </div>
+    <div id="auth-loading" class="auth-loading">
+      <div class="auth-loading-bar"><div class="auth-loading-bar-fill" id="auth-loading-fill"></div></div>
+      <div class="auth-loading-step" id="auth-loading-step"></div>
     </div>
     <div id="auth-msg" style="display:none" class="auth-msg"></div>
   </div>
@@ -367,6 +416,15 @@
     <!-- USERS PANE -->
     <div id="pane-users" style="display:none">
       <div class="notice notice-info">Manage team access. Only admins can change roles and country assignments.</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0">
+        <div id="users-count" style="font-size:12px;color:var(--text2)"></div>
+        <button class="btn btn-sm" id="btn-invite" onclick="showInviteLink()">+ Convidar utilizador</button>
+      </div>
+      <div id="invite-box" style="display:none" class="invite-box">
+        Envia este link ao novo utilizador — ao abri-lo, ele cria a própria conta já associada a esta empresa:
+        <code id="invite-link-code" onclick="copySelfInviteLink()" title="Clica para copiar"></code>
+        <div id="invite-copied" style="display:none;color:var(--green-text);font-size:11px;margin-top:2px">Copiado!</div>
+      </div>
       <div id="users-list"><div class="loading-state"><div class="spinner"></div> Loading...</div></div>
     </div>
 
@@ -479,7 +537,14 @@ let currentUser = null, currentProfile = null, inventory = [], filteredItems = [
 let sortState = { col: null, dir: 1 };
 
 // ═══ AUTH ═══
+function hideSplash() {
+  const splash = document.getElementById('splash-screen');
+  if (!splash) return;
+  splash.classList.add('fade-out');
+  setTimeout(() => splash.remove(), 650);
+}
 async function init() {
+  setTimeout(hideSplash, 3000);
   const { data: { session } } = await sb.auth.getSession();
   if (session) await loadApp(session.user);
   sb.auth.onAuthStateChange(async (event, session) => {
@@ -495,12 +560,35 @@ function switchAuthTab(tab) {
   hideAuthMsg();
 }
 
+function setAuthStep(pct, msg) {
+  document.getElementById('auth-loading-fill').style.width = pct + '%';
+  document.getElementById('auth-loading-step').textContent = msg;
+}
+function showAuthLoading() {
+  hideAuthMsg();
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('signup-form').style.display = 'none';
+  document.getElementById('auth-tabs').style.display = 'none';
+  document.getElementById('auth-loading').style.display = 'flex';
+  setAuthStep(8, 'A verificar credenciais...');
+}
+function hideAuthLoading() {
+  document.getElementById('auth-loading').style.display = 'none';
+  document.getElementById('auth-tabs').style.display = 'flex';
+  document.getElementById('login-form').style.display = '';
+  setAuthStep(0, '');
+}
+
 async function signIn() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   if (!email || !password) return showAuthMsg('Please enter email and password.', 'error');
+  showAuthLoading();
   const { error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) showAuthMsg(error.message, 'error');
+  if (error) { hideAuthLoading(); showAuthMsg(error.message, 'error'); return; }
+  setAuthStep(25, 'Conta confirmada. A verificar subscrição...');
+  // loadApp() (triggered by onAuthStateChange) takes it from here and
+  // drives the remaining steps via setAuthStep().
 }
 
 async function signUp() {
@@ -524,13 +612,14 @@ async function signUp() {
 }
 
 async function signOut() { await sb.auth.signOut(); showAuthScreen(); }
-function showAuthScreen() { document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('app-screen').style.display = 'none'; }
+function showAuthScreen() { document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('app-screen').style.display = 'none'; hideAuthLoading(); }
 function showAuthMsg(msg, type) { const el = document.getElementById('auth-msg'); el.textContent = msg; el.className = 'auth-msg ' + type; el.style.display = 'block'; }
 function hideAuthMsg() { document.getElementById('auth-msg').style.display = 'none'; }
 
 // ═══ LOAD APP ═══
 async function loadApp(user) {
   currentUser = user;
+  setAuthStep(40, 'A confirmar existência da conta...');
   const { data: profile, error: profileErr } = await sb.from('profiles').select('id, full_name, role, tenant_id, assigned_countries').eq('id', user.id).single();
   if (profileErr || !profile) { showAuthScreen(); showAuthMsg('Erro ao carregar perfil. Tenta novamente.', 'error'); return; }
 
@@ -544,10 +633,12 @@ async function loadApp(user) {
     if (!profile.tenant_id) { showAuthScreen(); showAuthMsg('Conta sem empresa associada. Abre o link de convite e tenta novamente.', 'error'); await sb.auth.signOut(); return; }
   }
 
+  setAuthStep(55, 'A verificar validade da subscrição...');
   // ── Fetch tenant including trial fields ──
-  const { data: tenant } = await sb.from('tenants').select('name, plan, active, is_trial, trial_ends_at').eq('id', profile.tenant_id).single();
+  const { data: tenant } = await sb.from('tenants').select('name, plan, active, is_trial, trial_ends_at, max_users').eq('id', profile.tenant_id).single();
 
   if (tenant && !tenant.active) { showAuthScreen(); showAuthMsg('A conta da sua empresa está suspensa. Contacte o suporte.', 'error'); await sb.auth.signOut(); return; }
+  setAuthStep(70, 'Subscrição confirmada.');
 
   // ── TRIAL CHECK ──
   if (tenant?.is_trial && tenant?.trial_ends_at) {
@@ -588,8 +679,11 @@ async function loadApp(user) {
   document.getElementById('tab-users').style.display  = profile.role === 'admin' ? '' : 'none';
   document.getElementById('tab-upload').style.display = profile.role === 'viewer' ? 'none' : '';
   populateFilters();
+  setAuthStep(85, 'A carregar base de dados de inventário...');
   await loadInventory();
+  setAuthStep(97, 'A carregar acessos e permissões...');
   if (profile.role === 'admin') checkPendingApprovals();
+  setAuthStep(100, 'Pronto.');
 }
 
 // ═══ DATA ═══
@@ -885,10 +979,30 @@ async function renderHistory(){
 }
 
 // ═══ USERS ═══
+function selfInviteUrl(){return `${window.location.origin}${window.location.pathname}?tenant=${currentProfile.tenant_id}`;}
+function showInviteLink(){
+  const max=currentProfile?.tenants?.max_users;
+  const used=teamProfiles?Object.keys(teamProfiles).length:0;
+  if(max && used>=max){alert(`Esta empresa já atingiu o limite de ${max} utilizadores do plano actual. Contacta support@thetectus.com para fazer upgrade.`);return;}
+  document.getElementById('invite-link-code').textContent=selfInviteUrl();
+  document.getElementById('invite-box').style.display='block';
+  document.getElementById('invite-copied').style.display='none';
+}
+function copySelfInviteLink(){
+  navigator.clipboard.writeText(selfInviteUrl()).then(()=>{
+    document.getElementById('invite-copied').style.display='block';
+  });
+}
 async function renderUsers(){
   if(currentProfile?.role!=='admin')return;const el=document.getElementById('users-list');
   const{data,error}=await sb.rpc('list_tenant_profiles');
   if(error){el.innerHTML=`<p style="color:var(--red-text);font-size:13px">Error loading users: ${error.message}</p>`;return;}
+  teamProfiles={};(data||[]).forEach(p=>teamProfiles[p.id]=p.full_name);
+  const max=currentProfile?.tenants?.max_users;
+  const countEl=document.getElementById('users-count');
+  if(countEl)countEl.textContent=max?`${data?.length||0} / ${max} utilizadores do plano`:`${data?.length||0} utilizadores`;
+  const inviteBtn=document.getElementById('btn-invite');
+  if(inviteBtn)inviteBtn.disabled=!!(max && (data?.length||0)>=max);
   if(!data?.length){el.innerHTML='<p style="color:var(--text3);font-size:13px">No users found.</p>';return;}
   el.innerHTML=`<div class="table-wrap"><table style="min-width:500px"><thead><tr><th>Name</th><th>Role</th><th>Assigned countries</th><th>Actions</th></tr></thead><tbody>${data.map(u=>`<tr><td>${u.full_name}</td><td><span class="badge ${u.role==='admin'?'badge-tool':u.role==='supervisor'?'badge-low':'badge-ok'}">${u.role}</span></td><td style="font-size:12px">${u.assigned_countries?.length?u.assigned_countries.join(', '):'All countries'}</td><td><button class="btn btn-sm" onclick="editUser('${u.id}','${u.role}')">Edit role</button></td></tr>`).join('')}</tbody></table></div>`;
 }
