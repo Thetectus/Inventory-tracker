@@ -47,28 +47,28 @@
       radial-gradient(circle at 85% 12%, rgba(133,79,11,0.16), transparent 38%),
       radial-gradient(circle at 15% 88%, rgba(20,90,153,0.20), transparent 40%);
   }
-  .auth-wrap { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 1.1rem; width: 100%; max-width: 380px; }
+  .auth-wrap { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 3.3rem; width: 100%; max-width: 380px; }
   .auth-card { position: relative; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; width: 100%; box-shadow: 0 20px 60px -20px rgba(12,68,124,0.25); }
-  .auth-slogan { min-height: 42px; text-align: center; font-size: 14px; color: #0c447c; font-weight: 500; padding: 0 0.5rem; line-height: 1.5; }
-  .auth-slogan .cursor { display: inline-block; width: 2px; height: 1em; background: #0c447c; margin-left: 2px; vertical-align: middle; animation: blink 0.8s step-end infinite; }
+  .auth-slogan { min-height: 60px; text-align: center; font-size: 22px; color: #0c447c; font-weight: 700; letter-spacing: -0.01em; padding: 0 0.5rem; line-height: 1.45; text-shadow: 0 1px 0 rgba(255,255,255,0.5), 0 4px 18px rgba(12,68,124,0.35), 0 2px 4px rgba(12,68,124,0.25); }
+  .auth-slogan .cursor { display: inline-block; width: 3px; height: 0.95em; background: #0c447c; margin-left: 2px; vertical-align: middle; box-shadow: 0 0 8px rgba(12,68,124,0.5); animation: blink 0.8s step-end infinite; }
   @keyframes blink { 50% { opacity: 0; } }
 
   /* BACKGROUND APP MOCKUPS (behind the login card) */
   .bg-mocks { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
-  .bg-mock { position: absolute; top: 46%; left: 50%; transform: translate(-50%,-50%); width: min(900px, 94vw); background: #0f1c2e; border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 2.25rem 2.5rem; opacity: 0; transition: opacity 1.4s ease; box-shadow: 0 40px 100px rgba(8,20,40,0.4); }
+  .bg-mock { position: absolute; top: 41%; left: 50%; transform: translate(-50%,-50%); width: min(1080px, 96vw); background: #0f1c2e; border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 2.7rem 3rem; opacity: 0; transition: opacity 1.4s ease; box-shadow: 0 40px 100px rgba(8,20,40,0.4); }
   .bg-mock.active { opacity: 0.4; }
-  .bgm-header { display: flex; align-items: center; gap: 10px; padding-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.07); margin-bottom: 1.5rem; }
-  .bgm-dot { width: 13px; height: 13px; border-radius: 50%; }
-  .bgm-title { font-size: 15px; color: rgba(255,255,255,0.4); margin-left: auto; font-family: monospace; }
-  .bgm-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.5rem; }
-  .bgm-kpi { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 1.1rem 1.3rem; }
-  .bgm-kpi-val { font-size: 26px; font-weight: 700; color: #fff; }
-  .bgm-kpi-lab { font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 4px; }
-  .bgm-row { display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 16px; }
+  .bgm-header { display: flex; align-items: center; gap: 12px; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.07); margin-bottom: 1.8rem; }
+  .bgm-dot { width: 15px; height: 15px; border-radius: 50%; }
+  .bgm-title { font-size: 18px; color: rgba(255,255,255,0.4); margin-left: auto; font-family: monospace; }
+  .bgm-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 19px; margin-bottom: 1.8rem; }
+  .bgm-kpi { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 1.3rem 1.5rem; }
+  .bgm-kpi-val { font-size: 31px; font-weight: 700; color: #fff; }
+  .bgm-kpi-lab { font-size: 15px; color: rgba(255,255,255,0.35); margin-top: 4px; }
+  .bgm-row { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 19px; }
   .bgm-row:last-child { border-bottom: none; }
-  .bgm-label { color: rgba(255,255,255,0.4); font-family: monospace; font-size: 14px; }
+  .bgm-label { color: rgba(255,255,255,0.4); font-family: monospace; font-size: 17px; }
   .bgm-value { color: #fff; font-weight: 500; }
-  .bgm-badge { font-size: 13px; padding: 4px 12px; border-radius: 12px; font-weight: 600; }
+  .bgm-badge { font-size: 15px; padding: 5px 14px; border-radius: 12px; font-weight: 600; }
   .bgm-ok { background: rgba(74,222,128,0.15); color: #4ADE80; }
   .bgm-warn { background: rgba(251,191,36,0.15); color: #FBBF24; }
   .bgm-pending { background: rgba(96,165,250,0.15); color: #60A5FA; }
