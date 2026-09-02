@@ -42,14 +42,36 @@
     content: ''; position: absolute; inset: 0; z-index: 0;
     background-color: #eef4fa;
     background-image:
-      linear-gradient(rgba(12,68,124,0.14) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(12,68,124,0.14) 1px, transparent 1px),
-      radial-gradient(circle at 12% 15%, rgba(12,68,124,0.35), transparent 42%),
-      radial-gradient(circle at 88% 85%, rgba(20,90,153,0.30), transparent 42%),
-      radial-gradient(circle at 85% 12%, rgba(133,79,11,0.12), transparent 35%);
-    background-size: 32px 32px, 32px 32px, auto, auto, auto;
+      radial-gradient(circle at 12% 15%, rgba(12,68,124,0.45), transparent 45%),
+      radial-gradient(circle at 88% 85%, rgba(20,90,153,0.40), transparent 45%),
+      radial-gradient(circle at 85% 12%, rgba(133,79,11,0.16), transparent 38%),
+      radial-gradient(circle at 15% 88%, rgba(20,90,153,0.20), transparent 40%);
   }
-  .auth-card { position: relative; z-index: 1; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; width: 100%; max-width: 380px; box-shadow: 0 20px 60px -20px rgba(12,68,124,0.25); }
+  .auth-wrap { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 1.1rem; width: 100%; max-width: 380px; }
+  .auth-card { position: relative; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; width: 100%; box-shadow: 0 20px 60px -20px rgba(12,68,124,0.25); }
+  .auth-slogan { min-height: 42px; text-align: center; font-size: 14px; color: #0c447c; font-weight: 500; padding: 0 0.5rem; line-height: 1.5; }
+  .auth-slogan .cursor { display: inline-block; width: 2px; height: 1em; background: #0c447c; margin-left: 2px; vertical-align: middle; animation: blink 0.8s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* BACKGROUND APP MOCKUPS (behind the login card) */
+  .bg-mocks { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+  .bg-mock { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 460px; max-width: 90vw; background: #0f1c2e; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 1.25rem 1.5rem; opacity: 0; transition: opacity 1.4s ease; box-shadow: 0 30px 80px rgba(8,20,40,0.35); }
+  .bg-mock.active { opacity: 0.4; }
+  .bgm-header { display: flex; align-items: center; gap: 7px; padding-bottom: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.07); margin-bottom: 1rem; }
+  .bgm-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .bgm-title { font-size: 11px; color: rgba(255,255,255,0.35); margin-left: auto; font-family: monospace; }
+  .bgm-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 1rem; }
+  .bgm-kpi { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 0.75rem 0.9rem; }
+  .bgm-kpi-val { font-size: 17px; font-weight: 700; color: #fff; }
+  .bgm-kpi-lab { font-size: 10.5px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+  .bgm-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12.5px; }
+  .bgm-row:last-child { border-bottom: none; }
+  .bgm-label { color: rgba(255,255,255,0.4); font-family: monospace; font-size: 11px; }
+  .bgm-value { color: #fff; font-weight: 500; }
+  .bgm-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .bgm-ok { background: rgba(74,222,128,0.15); color: #4ADE80; }
+  .bgm-warn { background: rgba(251,191,36,0.15); color: #FBBF24; }
+  .bgm-pending { background: rgba(96,165,250,0.15); color: #60A5FA; }
   .auth-loading { display: none; flex-direction: column; align-items: center; gap: 14px; padding: 1rem 0 0.5rem; }
   .auth-loading-bar { width: 100%; height: 5px; border-radius: 999px; background: var(--bg3); overflow: hidden; }
   .auth-loading-bar-fill { height: 100%; width: 0%; background: var(--blue-text); border-radius: 999px; transition: width 0.35s ease; }
@@ -266,6 +288,37 @@
 </div>
 
 <div id="auth-screen">
+  <div class="bg-mocks" id="bg-mocks">
+    <div class="bg-mock" data-mock="inventory">
+      <div class="bgm-header"><div class="bgm-dot" style="background:#FF5F57"></div><div class="bgm-dot" style="background:#FEBC2E"></div><div class="bgm-dot" style="background:#28C840"></div><div class="bgm-title">FieldTrack · Inventory</div></div>
+      <div class="bgm-row"><span class="bgm-label">SN-2024-047</span><span class="bgm-value">Válvula hidráulica</span><span class="bgm-badge bgm-ok">OK</span></div>
+      <div class="bgm-row"><span class="bgm-label">SN-2024-031</span><span class="bgm-value">Kit de vedantes</span><span class="bgm-badge bgm-warn">Low</span></div>
+      <div class="bgm-row"><span class="bgm-label">SN-2024-019</span><span class="bgm-value">Bomba hidráulica</span><span class="bgm-badge bgm-ok">OK</span></div>
+      <div class="bgm-row"><span class="bgm-label">SN-2024-008</span><span class="bgm-value">Manómetro digital</span><span class="bgm-badge bgm-warn">Low</span></div>
+      <div class="bgm-row"><span class="bgm-label">SN-2024-052</span><span class="bgm-value">Filtro de óleo</span><span class="bgm-badge bgm-ok">OK</span></div>
+    </div>
+    <div class="bg-mock" data-mock="transfers">
+      <div class="bgm-header"><div class="bgm-dot" style="background:#FF5F57"></div><div class="bgm-dot" style="background:#FEBC2E"></div><div class="bgm-dot" style="background:#28C840"></div><div class="bgm-title">FieldTrack · Approvals</div></div>
+      <div class="bgm-row"><span class="bgm-label">SN-2024-047</span><span class="bgm-value">Luanda → Workshop A</span><span class="bgm-badge bgm-pending">Pending</span></div>
+      <div class="bgm-row"><span class="bgm-label">SN-2024-012</span><span class="bgm-value">Lagos → Abuja</span><span class="bgm-badge bgm-ok">Approved</span></div>
+      <div class="bgm-row"><span class="bgm-label">SN-2024-031</span><span class="bgm-value">Riyadh → Jeddah</span><span class="bgm-badge bgm-pending">Pending</span></div>
+      <div class="bgm-row"><span class="bgm-label">SN-2024-019</span><span class="bgm-value">Dubai → Abu Dhabi</span><span class="bgm-badge bgm-ok">Approved</span></div>
+      <div class="bgm-row"><span class="bgm-label">SN-2024-008</span><span class="bgm-value">Bergen → Stavanger</span><span class="bgm-badge bgm-pending">Pending</span></div>
+    </div>
+    <div class="bg-mock" data-mock="dashboard">
+      <div class="bgm-header"><div class="bgm-dot" style="background:#FF5F57"></div><div class="bgm-dot" style="background:#FEBC2E"></div><div class="bgm-dot" style="background:#28C840"></div><div class="bgm-title">FieldTrack · Dashboard</div></div>
+      <div class="bgm-kpis">
+        <div class="bgm-kpi"><div class="bgm-kpi-val">$2.8M</div><div class="bgm-kpi-lab">Total inventory value</div></div>
+        <div class="bgm-kpi"><div class="bgm-kpi-val" style="color:#FBBF24">3</div><div class="bgm-kpi-lab">Low stock alerts</div></div>
+        <div class="bgm-kpi"><div class="bgm-kpi-val">147</div><div class="bgm-kpi-lab">Items tracked</div></div>
+        <div class="bgm-kpi"><div class="bgm-kpi-val">8</div><div class="bgm-kpi-lab">Active countries</div></div>
+      </div>
+      <div class="bgm-row"><span class="bgm-value">Angola</span><span class="bgm-value">$1.2M</span></div>
+      <div class="bgm-row"><span class="bgm-value">Nigeria</span><span class="bgm-value">$640K</span></div>
+      <div class="bgm-row"><span class="bgm-value">Saudi Arabia</span><span class="bgm-value">$410K</span></div>
+    </div>
+  </div>
+  <div class="auth-wrap">
   <div class="auth-card">
     <div class="lang-switch">
       <div class="lang-trigger" onclick="toggleLangMenu('auth-lang-dropdown')"><span id="auth-lang-flag">🇬🇧</span> <span id="auth-lang-code">EN</span></div>
@@ -296,6 +349,8 @@
       <div class="auth-loading-step" id="auth-loading-step"></div>
     </div>
     <div id="auth-msg" style="display:none" class="auth-msg"></div>
+  </div>
+  <div class="auth-slogan" id="auth-slogan"></div>
   </div>
 </div>
 
@@ -722,6 +777,58 @@ const I18N = {
   },
 };
 const LANG_META = { en: { flag: '🇬🇧', code: 'EN', name: 'English' }, pt: { flag: '🇦🇴', code: 'PT', name: 'Português' }, fr: { flag: '🇫🇷', code: 'FR', name: 'Français' } };
+const SLOGANS = {
+  en: ['Know where every part is. Always.', 'Inventory control built for the field, not the office.', 'From warehouse to offshore rig — tracked in real time.'],
+  pt: ['Sabe sempre onde está cada peça.', 'Controlo de inventário feito para o terreno, não para o escritório.', 'Do armazém à plataforma offshore — rastreado em tempo real.'],
+  fr: ['Sachez toujours où se trouve chaque pièce.', 'Un contrôle des stocks pensé pour le terrain, pas pour le bureau.', "De l'entrepôt à la plateforme offshore — suivi en temps réel."],
+};
+let sloganIdx = 0, typeInterval = null, eraseInterval = null, sloganTimeout = null;
+function typeSlogan(text, onDone) {
+  const el = document.getElementById('auth-slogan');
+  if (!el) return;
+  let ci = 0, typed = '';
+  clearInterval(typeInterval);
+  typeInterval = setInterval(() => {
+    if (ci >= text.length) { clearInterval(typeInterval); if (onDone) sloganTimeout = setTimeout(onDone, 2600); return; }
+    typed += text[ci++];
+    el.innerHTML = typed + '<span class="cursor"></span>';
+  }, 35);
+}
+function eraseSlogan(onDone) {
+  const el = document.getElementById('auth-slogan');
+  if (!el) return;
+  clearInterval(eraseInterval);
+  let text = el.textContent;
+  eraseInterval = setInterval(() => {
+    if (text.length === 0) { clearInterval(eraseInterval); el.innerHTML = '<span class="cursor"></span>'; if (onDone) onDone(); return; }
+    text = text.slice(0, -1);
+    el.innerHTML = text + '<span class="cursor"></span>';
+  }, 20);
+}
+function cycleSlogan() {
+  eraseSlogan(() => {
+    const list = SLOGANS[currentLang] || SLOGANS.en;
+    sloganIdx = (sloganIdx + 1) % list.length;
+    setTimeout(() => typeSlogan(list[sloganIdx], cycleSlogan), 250);
+  });
+}
+function restartSloganCycle() {
+  clearInterval(typeInterval); clearInterval(eraseInterval); clearTimeout(sloganTimeout);
+  sloganIdx = 0;
+  const list = SLOGANS[currentLang] || SLOGANS.en;
+  typeSlogan(list[0], cycleSlogan);
+}
+let bgMockIdx = 0, bgMockInterval = null;
+function cycleBgMocks() {
+  const mocks = document.querySelectorAll('.bg-mock');
+  if (!mocks.length) return;
+  mocks.forEach((m,i) => m.classList.toggle('active', i === bgMockIdx));
+  clearInterval(bgMockInterval);
+  bgMockInterval = setInterval(() => {
+    bgMockIdx = (bgMockIdx + 1) % mocks.length;
+    mocks.forEach((m,i) => m.classList.toggle('active', i === bgMockIdx));
+  }, 10000);
+}
 let currentLang = (function(){ try { return localStorage.getItem('ft_lang') || 'en'; } catch(e) { return 'en'; } })();
 function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key; }
 function tf(key, params) { let s = t(key); Object.keys(params||{}).forEach(k => { s = s.replace('{'+k+'}', params[k]); }); return s; }
@@ -734,6 +841,7 @@ function applyLang(lang) {
   ['auth-lang-code','app-lang-code'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = LANG_META[lang].code; });
   buildLangDropdown('auth-lang-dropdown');
   buildLangDropdown('app-lang-dropdown');
+  restartSloganCycle();
   // Re-render dynamic panes so their JS-generated labels pick up the new language
   if (currentProfile) {
     updateKPIs();
@@ -779,6 +887,7 @@ function hideSplash() {
 }
 async function init() {
   applyLang(currentLang);
+  cycleBgMocks();
   setTimeout(hideSplash, 3000);
   const { data: { session } } = await sb.auth.getSession();
   if (session) await loadApp(session.user);
