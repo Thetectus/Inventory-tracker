@@ -324,7 +324,7 @@
   <div class="auth-wrap">
   <div class="auth-card">
     <div class="lang-switch">
-      <div class="lang-trigger" onclick="toggleLangMenu('auth-lang-dropdown')"><span id="auth-lang-flag">🇬🇧</span> <span id="auth-lang-code">EN</span></div>
+      <div class="lang-trigger" onclick="toggleLangMenu('auth-lang-dropdown')"><span id="auth-lang-flag"></span> <span id="auth-lang-code">EN</span></div>
       <div class="lang-dropdown" id="auth-lang-dropdown"></div>
     </div>
     <h1 data-i18n="appTitle">Inventory tracker</h1>
@@ -369,7 +369,7 @@
       <span id="user-name" style="font-size:13px;color:var(--text2)"></span>
       <span id="role-pill" class="role-pill"></span>
       <div class="lang-switch">
-        <div class="lang-trigger" onclick="toggleLangMenu('app-lang-dropdown')"><span id="app-lang-flag">🇬🇧</span> <span id="app-lang-code">EN</span></div>
+        <div class="lang-trigger" onclick="toggleLangMenu('app-lang-dropdown')"><span id="app-lang-flag"></span> <span id="app-lang-code">EN</span></div>
         <div class="lang-dropdown" id="app-lang-dropdown"></div>
       </div>
       <button class="btn-signout" onclick="signOut()" data-i18n="signOut">Sign out</button>
@@ -464,7 +464,7 @@
         </div>
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:.75rem">
           <button class="btn" onclick="cancelUpload()" data-i18n="cancel">Cancel</button>
-          <button class="btn btn-primary" onclick="confirmUpload()" data-i18n="applyChanges">Apply changes</button>
+          <button class="btn btn-primary" id="btn-apply-changes" onclick="confirmUpload()" data-i18n="applyChanges">Apply changes</button>
         </div>
       </div>
     </div>
@@ -608,7 +608,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ═══ I18N ═══
 const I18N = {
   en: {
-    appTitle: 'Inventory tracker', appSubtitle: 'Oil & gas asset management',
+    appTitle: 'Inventory tracker', appSubtitle: 'Inventory management for businesses of any size',
     signIn: 'Sign in', createAccount: 'Create account', email: 'Email', password: 'Password',
     fullName: 'Full name', roleField: 'Role (admin sets final role)', viewer: 'Viewer', supervisor: 'Supervisor',
     signOut: 'Sign out', splashSlogan: 'Inventory control for distributed operations',
@@ -662,10 +662,10 @@ const I18N = {
     kpiItemsBelowMin: 'Items below minimum', kpiAllSufficient: 'All sufficient',
     kpiInFilteredView: '{n} in filtered view ({total} total)',
     kpiFilteredOf: '{items} of {total} items · {countries} {countryWord}',
-    country1: 'country', countryN: 'countries',
+    country1: 'country', countryN: 'countries', applying: 'Applying...',
   },
   pt: {
-    appTitle: 'Inventory tracker', appSubtitle: 'Gestão de activos para o sector petrolífero e gás',
+    appTitle: 'Inventory tracker', appSubtitle: 'Gestão de inventário para empresas de qualquer dimensão',
     signIn: 'Entrar', createAccount: 'Criar conta', email: 'Email', password: 'Password',
     fullName: 'Nome completo', roleField: 'Cargo (o admin define o cargo final)', viewer: 'Visualizador', supervisor: 'Supervisor',
     signOut: 'Sair', splashSlogan: 'Controlo de inventário para operações distribuídas',
@@ -719,10 +719,10 @@ const I18N = {
     kpiItemsBelowMin: 'Itens abaixo do mínimo', kpiAllSufficient: 'Tudo suficiente',
     kpiInFilteredView: '{n} na vista filtrada ({total} no total)',
     kpiFilteredOf: '{items} de {total} itens · {countries} {countryWord}',
-    country1: 'país', countryN: 'países',
+    country1: 'país', countryN: 'países', applying: 'A aplicar...',
   },
   fr: {
-    appTitle: 'Inventory tracker', appSubtitle: 'Gestion des actifs pour le secteur pétrolier et gazier',
+    appTitle: 'Inventory tracker', appSubtitle: 'Gestion des stocks pour entreprises de toute taille',
     signIn: 'Se connecter', createAccount: 'Créer un compte', email: 'Email', password: 'Mot de passe',
     fullName: 'Nom complet', roleField: 'Rôle (l\'admin définit le rôle final)', viewer: 'Lecteur', supervisor: 'Superviseur',
     signOut: 'Se déconnecter', splashSlogan: 'Contrôle des stocks pour opérations distribuées',
@@ -776,14 +776,304 @@ const I18N = {
     kpiItemsBelowMin: 'Articles sous le minimum', kpiAllSufficient: 'Tout est suffisant',
     kpiInFilteredView: '{n} dans la vue filtrée ({total} au total)',
     kpiFilteredOf: '{items} sur {total} articles · {countries} {countryWord}',
-    country1: 'pays', countryN: 'pays',
+    country1: 'pays', countryN: 'pays', applying: 'Application en cours...',
+  },
+  es: {
+    appTitle: 'Inventory tracker', appSubtitle: 'Gestión de inventario para empresas de cualquier tamaño',
+    signIn: 'Iniciar sesión', createAccount: 'Crear cuenta', email: 'Correo electrónico', password: 'Contraseña',
+    fullName: 'Nombre completo', roleField: 'Rol (el admin define el rol final)', viewer: 'Visualizador', supervisor: 'Supervisor',
+    signOut: 'Cerrar sesión', splashSlogan: 'Control de inventario para operaciones distribuidas',
+    stepCheckingCreds: 'Verificando credenciales...', stepAccountConfirmed: 'Cuenta confirmada. Verificando suscripción...',
+    stepCheckingAccount: 'Verificando la cuenta...', stepCheckingSub: 'Verificando validez de la suscripción...',
+    stepSubConfirmed: 'Suscripción confirmada.', stepLoadingInventory: 'Cargando base de datos de inventario...',
+    stepLoadingAccess: 'Cargando accesos y permisos...', stepReady: 'Listo.',
+    errFillFields: 'Introduce el correo y la contraseña.', errFillAllFields: 'Rellena todos los campos.',
+    errInviteLink: 'Enlace de invitación inválido. Pide uno nuevo al administrador.',
+    errLoadProfile: 'Error al cargar el perfil. Inténtalo de nuevo.',
+    errNoCompany: 'Cuenta sin empresa asociada. Abre el enlace de invitación e inténtalo de nuevo.',
+    errSuspended: 'La cuenta de tu empresa está suspendida. Contacta con soporte.',
+    errAlreadyRegistered: 'Este correo ya está registrado. Intenta iniciar sesión directamente.',
+    successAccountCreated: '¡Cuenta creada! Ya puedes iniciar sesión.',
+    trialExpiredTitle: 'Tu prueba ha expirado', trialExpiredBody: 'Todos tus datos están guardados de forma segura. Activa un plan para recuperar el acceso completo a FieldTrack.',
+    trialExpiredCta: 'Contactar para activar un plan →', trialExpiredNote: 'support@thetectus.com · Tus datos se conservan 30 días tras la expiración.',
+    tabInventory: 'Inventario', tabDashboard: 'Panel', tabUpload: 'Carga masiva', tabApprovals: 'Aprobaciones',
+    tabConsumption: 'Consumo', tabHistory: 'Historial de movimientos', tabReports: 'Informes', tabUsers: 'Usuarios',
+    search: 'Buscar', country: 'País', location: 'Ubicación', type: 'Tipo', stock: 'Stock',
+    allCountries: 'Todos los países', allLocations: 'Todas las ubicaciones', allTypes: 'Todos los tipos', all: 'Todos',
+    lowStock: 'Stock bajo', clear: 'Limpiar', addItem: '+ Añadir artículo', serialNo: 'Nº de serie', name: 'Nombre',
+    qty: 'Cant.', unitCost: 'Costo unit.', totalValue: 'Valor total', actions: 'Acciones', loading: 'Cargando...',
+    uploadNotice: 'Supervisores: descarguen la plantilla, complétenla en campo y vuelvan a subirla. Los cambios se previsualizan antes de aplicarse.',
+    uploadStep1: 'Paso 1 — Descargar plantilla', downloadUpdateTemplate: 'Descargar plantilla de actualización (.xlsx)',
+    downloadNewTemplate: 'Descargar plantilla de artículos nuevos (.xlsx)', uploadStep2: 'Paso 2 — Subir plantilla completada',
+    uploadDropHint: 'Haz clic para elegir o arrastra un archivo .xlsx', uploadStep3: 'Paso 3 — Revisar y confirmar',
+    cancel: 'Cancelar', applyChanges: 'Aplicar cambios', consumedQty: 'Cant. consumida', consumedValue: 'Valor consumido',
+    date: 'Fecha', action: 'Acción', allActions: 'Todas las acciones',
+    usersNotice: 'Gestiona el acceso del equipo. Solo los admins pueden cambiar roles y países asignados.',
+    inviteUser: '+ Invitar usuario', inviteBoxText: 'Envía este enlace al nuevo usuario — al abrirlo, podrá crear su propia cuenta ya asociada a esta empresa:',
+    copied: '¡Copiado!', loadingDashboard: 'Cargando panel...', transferRequests: 'Solicitudes de transferencia',
+    status: 'Estado', pending: 'Pendiente', approved: 'Aprobado', rejected: 'Rechazado',
+    exportReports: 'Exportar informes', exportReportsDesc: 'Genera informes detallados de tu inventario, consumo y movimientos.',
+    filterReportData: 'Filtrar datos del informe', dateFrom: 'Desde', dateTo: 'Hasta',
+    repInvXlsxTitle: 'Inventario — Excel', repInvXlsxDesc: 'Stock actual por ubicación con cantidades y valores.',
+    repInvPdfTitle: 'Inventario — PDF', repInvPdfDesc: 'Informe de inventario imprimible para reuniones y auditorías.',
+    repConXlsxTitle: 'Informe de consumo — Excel', repConXlsxDesc: 'Todos los artículos consumidos con desglose de costos.',
+    repConPdfTitle: 'Informe de consumo — PDF', repConPdfDesc: 'Resumen de consumo imprimible para revisión de gestión.',
+    repMovXlsxTitle: 'Historial de movimientos — Excel', repMovXlsxDesc: 'Registro completo de todas las transferencias y consumos.',
+    repMovPdfTitle: 'Historial de movimientos — PDF', repMovPdfDesc: 'Historial de movimientos imprimible para cumplimiento y auditorías.',
+    addNewItem: 'Añadir nuevo artículo', editItem: 'Editar artículo', quantity: 'Cantidad', select: 'Seleccionar',
+    unitCostDollar: 'Costo unitario ($)', minStockAlert: 'Alerta de stock mínimo', saveItem: 'Guardar artículo',
+    transferItem: 'Transferir artículo', itemName: 'Nombre del artículo', fromLocation: 'Ubicación de origen', toCountry: 'País de destino',
+    toLocation: 'Ubicación de destino', notes: 'Notas', confirmTransfer: 'Confirmar transferencia',
+    usersOfMax: '{used} / {max} usuarios', usersCountPlain: '{n} usuarios', errMaxUsers: 'Esta empresa ha alcanzado el límite de {max} usuarios del plan actual. Contacta con support@thetectus.com para mejorar el plan.',
+    errorLoadingUsers: 'Error al cargar usuarios: {msg}', noUsersFound: 'No se encontraron usuarios.', role: 'Rol',
+    assignedCountries: 'Países asignados', editRole: 'Editar rol',
+    kpiTotalValue: 'Valor total del inventario', kpiFilteredValue: 'Valor de la vista filtrada', kpiLowStockAlerts: 'Alertas de stock bajo',
+    kpiTotalItems: 'Total de artículos registrados', kpiFilteredItems: 'Artículos filtrados',
+    kpiAcrossCountries: 'En {n} países', kpiActiveLocations: 'Ubicaciones activas: {n}',
+    kpiItemsBelowMin: 'Artículos por debajo del mínimo', kpiAllSufficient: 'Todo suficiente',
+    kpiInFilteredView: '{n} en la vista filtrada ({total} en total)',
+    kpiFilteredOf: '{items} de {total} artículos · {countries} {countryWord}',
+    country1: 'país', countryN: 'países', applying: 'Aplicando...',
+  },
+  af: {
+    appTitle: 'Inventory tracker', appSubtitle: 'Voorraadbestuur vir besighede van enige grootte',
+    signIn: 'Meld aan', createAccount: 'Skep rekening', email: 'E-pos', password: 'Wagwoord',
+    fullName: 'Volle naam', roleField: 'Rol (admin stel finale rol)', viewer: 'Kyker', supervisor: 'Toesighouer',
+    signOut: 'Meld af', splashSlogan: 'Voorraadbeheer vir verspreide bedrywighede',
+    stepCheckingCreds: 'Verifieer geloofsbriewe...', stepAccountConfirmed: 'Rekening bevestig. Verifieer intekening...',
+    stepCheckingAccount: 'Verifieer rekening...', stepCheckingSub: 'Verifieer geldigheid van intekening...',
+    stepSubConfirmed: 'Intekening bevestig.', stepLoadingInventory: 'Laai voorraaddatabasis...',
+    stepLoadingAccess: 'Laai toegang en toestemmings...', stepReady: 'Gereed.',
+    errFillFields: 'Voer jou e-pos en wagwoord in.', errFillAllFields: 'Vul asseblief alle velde in.',
+    errInviteLink: 'Ongeldige uitnodigingskakel. Vra jou administrateur vir \'n nuwe skakel.',
+    errLoadProfile: 'Kon nie profiel laai nie. Probeer weer.',
+    errNoCompany: 'Rekening nie aan \'n maatskappy gekoppel nie. Maak die uitnodigingskakel oop en probeer weer.',
+    errSuspended: 'Jou maatskappy se rekening is opgeskort. Kontak ondersteuning.',
+    errAlreadyRegistered: 'Hierdie e-pos is reeds geregistreer. Probeer eerder aanmeld.',
+    successAccountCreated: 'Rekening geskep! Jy kan nou aanmeld.',
+    trialExpiredTitle: 'Jou proeftydperk het verstryk', trialExpiredBody: 'Al jou data is veilig gestoor. Aktiveer \'n plan om volle toegang tot FieldTrack te herwin.',
+    trialExpiredCta: 'Kontak ons om \'n plan te aktiveer →', trialExpiredNote: 'support@thetectus.com · Jou data word 30 dae na verstryking behou.',
+    tabInventory: 'Voorraad', tabDashboard: 'Paneelbord', tabUpload: 'Massa-oplaai', tabApprovals: 'Goedkeurings',
+    tabConsumption: 'Verbruik', tabHistory: 'Bewegingsgeskiedenis', tabReports: 'Verslae', tabUsers: 'Gebruikers',
+    search: 'Soek', country: 'Land', location: 'Ligging', type: 'Tipe', stock: 'Voorraad',
+    allCountries: 'Alle lande', allLocations: 'Alle liggings', allTypes: 'Alle tipes', all: 'Almal',
+    lowStock: 'Lae voorraad', clear: 'Maak skoon', addItem: '+ Voeg item by', serialNo: 'Serienr.', name: 'Naam',
+    qty: 'Hvhd', unitCost: 'Eenheidskoste', totalValue: 'Totale waarde', actions: 'Aksies', loading: 'Laai tans...',
+    uploadNotice: 'Toesighouers: laai die sjabloon af, vul dit op die terrein in, en laai dit weer op. Veranderinge word voorvertoon voor toepassing.',
+    uploadStep1: 'Stap 1 — Laai sjabloon af', downloadUpdateTemplate: 'Laai opdateringsjabloon af (.xlsx)',
+    downloadNewTemplate: 'Laai nuwe-items-sjabloon af (.xlsx)', uploadStep2: 'Stap 2 — Laai voltooide sjabloon op',
+    uploadDropHint: 'Klik om te kies of sleep \'n .xlsx-lêer', uploadStep3: 'Stap 3 — Hersien en bevestig',
+    cancel: 'Kanselleer', applyChanges: 'Pas veranderinge toe', consumedQty: 'Verbruikte hvhd', consumedValue: 'Verbruikte waarde',
+    date: 'Datum', action: 'Aksie', allActions: 'Alle aksies',
+    usersNotice: 'Bestuur spantoegang. Slegs admins kan rolle en toegewysde lande verander.',
+    inviteUser: '+ Nooi gebruiker', inviteBoxText: 'Stuur hierdie skakel na die nuwe gebruiker — deur dit oop te maak, skep hulle hul eie rekening wat reeds aan hierdie maatskappy gekoppel is:',
+    copied: 'Gekopieer!', loadingDashboard: 'Laai paneelbord...', transferRequests: 'Oordragversoeke',
+    status: 'Status', pending: 'Hangende', approved: 'Goedgekeur', rejected: 'Afgekeur',
+    exportReports: 'Voer verslae uit', exportReportsDesc: 'Genereer gedetailleerde verslae van jou voorraad, verbruik en bewegings.',
+    filterReportData: 'Filtreer verslagdata', dateFrom: 'Datum vanaf', dateTo: 'Datum tot',
+    repInvXlsxTitle: 'Voorraad-oorsig — Excel', repInvXlsxDesc: 'Huidige voorraad per ligging met hoeveelhede en waardes.',
+    repInvPdfTitle: 'Voorraad-oorsig — PDF', repInvPdfDesc: 'Drukbare voorraadverslag vir vergaderings en oudits.',
+    repConXlsxTitle: 'Verbruiksverslag — Excel', repConXlsxDesc: 'Alle verbruikte items met kosteverdeling.',
+    repConPdfTitle: 'Verbruiksverslag — PDF', repConPdfDesc: 'Drukbare verbruiksopsomming vir bestuursoorsig.',
+    repMovXlsxTitle: 'Bewegingsgeskiedenis — Excel', repMovXlsxDesc: 'Volledige oudit-spoor van alle oordragte en verbruik.',
+    repMovPdfTitle: 'Bewegingsgeskiedenis — PDF', repMovPdfDesc: 'Drukbare bewegingsgeskiedenis vir voldoening en oudits.',
+    addNewItem: 'Voeg nuwe item by', editItem: 'Wysig item', quantity: 'Hoeveelheid', select: 'Kies',
+    unitCostDollar: 'Eenheidskoste ($)', minStockAlert: 'Min. voorraad waarskuwing', saveItem: 'Stoor item',
+    transferItem: 'Dra item oor', itemName: 'Itemnaam', fromLocation: 'Van ligging', toCountry: 'Na land',
+    toLocation: 'Na ligging', notes: 'Notas', confirmTransfer: 'Bevestig oordrag',
+    usersOfMax: '{used} / {max} gebruikers', usersCountPlain: '{n} gebruikers', errMaxUsers: 'Hierdie maatskappy het die limiet van {max} gebruikers van die huidige plan bereik. Kontak support@thetectus.com om op te gradeer.',
+    errorLoadingUsers: 'Kon nie gebruikers laai nie: {msg}', noUsersFound: 'Geen gebruikers gevind nie.', role: 'Rol',
+    assignedCountries: 'Toegewysde lande', editRole: 'Wysig rol',
+    kpiTotalValue: 'Totale voorraadwaarde', kpiFilteredValue: 'Gefilterde waarde', kpiLowStockAlerts: 'Lae-voorraad-waarskuwings',
+    kpiTotalItems: 'Totale items nagespoor', kpiFilteredItems: 'Gefilterde items',
+    kpiAcrossCountries: 'Oor {n} lande', kpiActiveLocations: 'Aktiewe liggings: {n}',
+    kpiItemsBelowMin: 'Items onder minimum', kpiAllSufficient: 'Alles voldoende',
+    kpiInFilteredView: '{n} in gefilterde aansig ({total} totaal)',
+    kpiFilteredOf: '{items} van {total} items · {countries} {countryWord}',
+    country1: 'land', countryN: 'lande', applying: 'Pas tans toe...',
+  },
+  sw: {
+    appTitle: 'Inventory tracker', appSubtitle: 'Usimamizi wa hesabu kwa biashara za ukubwa wowote',
+    signIn: 'Ingia', createAccount: 'Fungua akaunti', email: 'Barua pepe', password: 'Nenosiri',
+    fullName: 'Jina kamili', roleField: 'Wadhifa (msimamizi huweka wadhifa wa mwisho)', viewer: 'Mtazamaji', supervisor: 'Msimamizi',
+    signOut: 'Toka', splashSlogan: 'Udhibiti wa hesabu kwa shughuli zilizosambaa',
+    stepCheckingCreds: 'Inakagua taarifa za kuingia...', stepAccountConfirmed: 'Akaunti imethibitishwa. Inakagua usajili...',
+    stepCheckingAccount: 'Inakagua akaunti...', stepCheckingSub: 'Inakagua uhalali wa usajili...',
+    stepSubConfirmed: 'Usajili umethibitishwa.', stepLoadingInventory: 'Inapakia hifadhidata ya hesabu...',
+    stepLoadingAccess: 'Inapakia ruhusa na haki za ufikiaji...', stepReady: 'Tayari.',
+    errFillFields: 'Tafadhali jaza barua pepe na nenosiri.', errFillAllFields: 'Tafadhali jaza sehemu zote.',
+    errInviteLink: 'Kiungo cha mwaliko si sahihi. Muombe msimamizi wako kiungo kipya.',
+    errLoadProfile: 'Hitilafu wakati wa kupakia wasifu. Jaribu tena.',
+    errNoCompany: 'Akaunti haijaunganishwa na kampuni. Fungua kiungo cha mwaliko na ujaribu tena.',
+    errSuspended: 'Akaunti ya kampuni yako imesimamishwa. Wasiliana na msaada.',
+    errAlreadyRegistered: 'Barua pepe hii tayari imesajiliwa. Jaribu kuingia moja kwa moja.',
+    successAccountCreated: 'Akaunti imeundwa! Sasa unaweza kuingia.',
+    trialExpiredTitle: 'Kipindi chako cha majaribio kimeisha', trialExpiredBody: 'Data yako yote imehifadhiwa kwa usalama. Washa mpango ili kupata ufikiaji kamili wa FieldTrack.',
+    trialExpiredCta: 'Wasiliana nasi kuwasha mpango →', trialExpiredNote: 'support@thetectus.com · Data yako inahifadhiwa kwa siku 30 baada ya kuisha.',
+    tabInventory: 'Hesabu', tabDashboard: 'Dashibodi', tabUpload: 'Upakiaji wa jumla', tabApprovals: 'Idhini',
+    tabConsumption: 'Matumizi', tabHistory: 'Historia ya uhamishaji', tabReports: 'Ripoti', tabUsers: 'Watumiaji',
+    search: 'Tafuta', country: 'Nchi', location: 'Mahali', type: 'Aina', stock: 'Hisa',
+    allCountries: 'Nchi zote', allLocations: 'Maeneo yote', allTypes: 'Aina zote', all: 'Zote',
+    lowStock: 'Hisa ndogo', clear: 'Futa', addItem: '+ Ongeza bidhaa', serialNo: 'Nambari ya serial', name: 'Jina',
+    qty: 'Idadi', unitCost: 'Gharama ya kipande', totalValue: 'Thamani jumla', actions: 'Vitendo', loading: 'Inapakia...',
+    uploadNotice: 'Wasimamizi: pakua kiolezo, kijaze eneo la kazi, kisha kirudishe. Mabadiliko yanaonyeshwa kabla ya kuyatumia.',
+    uploadStep1: 'Hatua ya 1 — Pakua kiolezo', downloadUpdateTemplate: 'Pakua kiolezo cha sasisho (.xlsx)',
+    downloadNewTemplate: 'Pakua kiolezo cha bidhaa mpya (.xlsx)', uploadStep2: 'Hatua ya 2 — Pakia kiolezo kilichojazwa',
+    uploadDropHint: 'Bofya kuchagua au buruta faili la .xlsx', uploadStep3: 'Hatua ya 3 — Kagua na uthibitishe',
+    cancel: 'Ghairi', applyChanges: 'Tumia mabadiliko', consumedQty: 'Idadi iliyotumika', consumedValue: 'Thamani iliyotumika',
+    date: 'Tarehe', action: 'Kitendo', allActions: 'Vitendo vyote',
+    usersNotice: 'Simamia ufikiaji wa timu. Ni wasimamizi tu wanaoweza kubadilisha wadhifa na nchi zilizopangiwa.',
+    inviteUser: '+ Alika mtumiaji', inviteBoxText: 'Tuma kiungo hiki kwa mtumiaji mpya — akikifungua, ataunda akaunti yake tayari imeunganishwa na kampuni hii:',
+    copied: 'Imenakiliwa!', loadingDashboard: 'Inapakia dashibodi...', transferRequests: 'Maombi ya uhamishaji',
+    status: 'Hali', pending: 'Inasubiri', approved: 'Imeidhinishwa', rejected: 'Imekataliwa',
+    exportReports: 'Hamisha ripoti', exportReportsDesc: 'Tengeneza ripoti za kina za hesabu, matumizi na uhamishaji wako.',
+    filterReportData: 'Chuja data ya ripoti', dateFrom: 'Tarehe kuanzia', dateTo: 'Tarehe hadi',
+    repInvXlsxTitle: 'Muhtasari wa hesabu — Excel', repInvXlsxDesc: 'Hisa ya sasa kwa mahali ikiwa na idadi na thamani.',
+    repInvPdfTitle: 'Muhtasari wa hesabu — PDF', repInvPdfDesc: 'Ripoti ya hesabu inayoweza kuchapishwa kwa mikutano na ukaguzi.',
+    repConXlsxTitle: 'Ripoti ya matumizi — Excel', repConXlsxDesc: 'Bidhaa zote zilizotumika na uchambuzi wa gharama.',
+    repConPdfTitle: 'Ripoti ya matumizi — PDF', repConPdfDesc: 'Muhtasari wa matumizi unaoweza kuchapishwa kwa mapitio ya usimamizi.',
+    repMovXlsxTitle: 'Historia ya uhamishaji — Excel', repMovXlsxDesc: 'Rekodi kamili ya uhamishaji na matumizi yote.',
+    repMovPdfTitle: 'Historia ya uhamishaji — PDF', repMovPdfDesc: 'Historia ya uhamishaji inayoweza kuchapishwa kwa uzingatiaji na ukaguzi.',
+    addNewItem: 'Ongeza bidhaa mpya', editItem: 'Hariri bidhaa', quantity: 'Idadi', select: 'Chagua',
+    unitCostDollar: 'Gharama ya kipande ($)', minStockAlert: 'Onyo la hisa ya chini', saveItem: 'Hifadhi bidhaa',
+    transferItem: 'Hamisha bidhaa', itemName: 'Jina la bidhaa', fromLocation: 'Kutoka mahali', toCountry: 'Kwenda nchi',
+    toLocation: 'Kwenda mahali', notes: 'Maelezo', confirmTransfer: 'Thibitisha uhamishaji',
+    usersOfMax: '{used} / {max} watumiaji', usersCountPlain: '{n} watumiaji', errMaxUsers: 'Kampuni hii imefikia kikomo cha watumiaji {max} cha mpango wa sasa. Wasiliana na support@thetectus.com ili kuboresha.',
+    errorLoadingUsers: 'Hitilafu kupakia watumiaji: {msg}', noUsersFound: 'Hakuna watumiaji waliopatikana.', role: 'Wadhifa',
+    assignedCountries: 'Nchi zilizopangiwa', editRole: 'Hariri wadhifa',
+    kpiTotalValue: 'Thamani jumla ya hesabu', kpiFilteredValue: 'Thamani iliyochujwa', kpiLowStockAlerts: 'Onyo za hisa ndogo',
+    kpiTotalItems: 'Jumla ya bidhaa zilizofuatiliwa', kpiFilteredItems: 'Bidhaa zilizochujwa',
+    kpiAcrossCountries: 'Katika nchi {n}', kpiActiveLocations: 'Maeneo hai: {n}',
+    kpiItemsBelowMin: 'Bidhaa chini ya kiwango cha chini', kpiAllSufficient: 'Zote zinatosha',
+    kpiInFilteredView: '{n} kwenye mwonekano uliochujwa (jumla {total})',
+    kpiFilteredOf: '{items} kati ya {total} bidhaa · {countries} {countryWord}',
+    country1: 'nchi', countryN: 'nchi', applying: 'Inatumia...',
+  },
+  ar: {
+    appTitle: 'Inventory tracker', appSubtitle: 'إدارة المخزون لأي شركة مهما كان حجمها',
+    signIn: 'تسجيل الدخول', createAccount: 'إنشاء حساب', email: 'البريد الإلكتروني', password: 'كلمة المرور',
+    fullName: 'الاسم الكامل', roleField: 'الدور (المسؤول يحدد الدور النهائي)', viewer: 'مُشاهد', supervisor: 'مشرف',
+    signOut: 'تسجيل الخروج', splashSlogan: 'التحكم في المخزون للعمليات الموزعة',
+    stepCheckingCreds: 'جارٍ التحقق من بيانات الدخول...', stepAccountConfirmed: 'تم تأكيد الحساب. جارٍ التحقق من الاشتراك...',
+    stepCheckingAccount: 'جارٍ التحقق من الحساب...', stepCheckingSub: 'جارٍ التحقق من صلاحية الاشتراك...',
+    stepSubConfirmed: 'تم تأكيد الاشتراك.', stepLoadingInventory: 'جارٍ تحميل قاعدة بيانات المخزون...',
+    stepLoadingAccess: 'جارٍ تحميل الصلاحيات والأذونات...', stepReady: 'جاهز.',
+    errFillFields: 'الرجاء إدخال البريد الإلكتروني وكلمة المرور.', errFillAllFields: 'الرجاء ملء جميع الحقول.',
+    errInviteLink: 'رابط الدعوة غير صالح. اطلب رابطًا جديدًا من المسؤول.',
+    errLoadProfile: 'خطأ في تحميل الملف الشخصي. حاول مرة أخرى.',
+    errNoCompany: 'الحساب غير مرتبط بشركة. افتح رابط الدعوة وحاول مرة أخرى.',
+    errSuspended: 'تم تعليق حساب شركتك. تواصل مع الدعم.',
+    errAlreadyRegistered: 'هذا البريد الإلكتروني مسجل بالفعل. حاول تسجيل الدخول مباشرة.',
+    successAccountCreated: 'تم إنشاء الحساب! يمكنك الآن تسجيل الدخول.',
+    trialExpiredTitle: 'انتهت فترتك التجريبية', trialExpiredBody: 'جميع بياناتك محفوظة بأمان. فعّل خطة لاستعادة الوصول الكامل إلى FieldTrack.',
+    trialExpiredCta: 'تواصل معنا لتفعيل خطة ←', trialExpiredNote: 'support@thetectus.com · تُحفظ بياناتك لمدة 30 يومًا بعد انتهاء الصلاحية.',
+    tabInventory: 'المخزون', tabDashboard: 'لوحة التحكم', tabUpload: 'رفع جماعي', tabApprovals: 'الموافقات',
+    tabConsumption: 'الاستهلاك', tabHistory: 'سجل الحركات', tabReports: 'التقارير', tabUsers: 'المستخدمون',
+    search: 'بحث', country: 'الدولة', location: 'الموقع', type: 'النوع', stock: 'المخزون',
+    allCountries: 'كل الدول', allLocations: 'كل المواقع', allTypes: 'كل الأنواع', all: 'الكل',
+    lowStock: 'مخزون منخفض', clear: 'مسح', addItem: '+ إضافة عنصر', serialNo: 'الرقم التسلسلي', name: 'الاسم',
+    qty: 'الكمية', unitCost: 'تكلفة الوحدة', totalValue: 'القيمة الإجمالية', actions: 'إجراءات', loading: 'جارٍ التحميل...',
+    uploadNotice: 'المشرفون: نزّلوا القالب، واملؤوه في الميدان، ثم أعيدوا رفعه. تُعرض التغييرات قبل تطبيقها.',
+    uploadStep1: 'الخطوة 1 — تنزيل القالب', downloadUpdateTemplate: 'تنزيل قالب التحديث (.xlsx)',
+    downloadNewTemplate: 'تنزيل قالب العناصر الجديدة (.xlsx)', uploadStep2: 'الخطوة 2 — رفع القالب المعبأ',
+    uploadDropHint: 'انقر للاختيار أو اسحب ملف .xlsx', uploadStep3: 'الخطوة 3 — المراجعة والتأكيد',
+    cancel: 'إلغاء', applyChanges: 'تطبيق التغييرات', consumedQty: 'الكمية المستهلكة', consumedValue: 'القيمة المستهلكة',
+    date: 'التاريخ', action: 'الإجراء', allActions: 'كل الإجراءات',
+    usersNotice: 'إدارة وصول الفريق. المسؤولون فقط يمكنهم تغيير الأدوار والدول المخصصة.',
+    inviteUser: '+ دعوة مستخدم', inviteBoxText: 'أرسل هذا الرابط للمستخدم الجديد — بفتحه، سينشئ حسابه الخاص مرتبطًا بالفعل بهذه الشركة:',
+    copied: 'تم النسخ!', loadingDashboard: 'جارٍ تحميل لوحة التحكم...', transferRequests: 'طلبات النقل',
+    status: 'الحالة', pending: 'قيد الانتظار', approved: 'مقبول', rejected: 'مرفوض',
+    exportReports: 'تصدير التقارير', exportReportsDesc: 'إنشاء تقارير مفصلة عن المخزون والاستهلاك والحركات.',
+    filterReportData: 'تصفية بيانات التقرير', dateFrom: 'من تاريخ', dateTo: 'إلى تاريخ',
+    repInvXlsxTitle: 'لقطة المخزون — Excel', repInvXlsxDesc: 'المخزون الحالي حسب الموقع مع الكميات والقيم.',
+    repInvPdfTitle: 'لقطة المخزون — PDF', repInvPdfDesc: 'تقرير مخزون قابل للطباعة للاجتماعات والتدقيق.',
+    repConXlsxTitle: 'تقرير الاستهلاك — Excel', repConXlsxDesc: 'كل العناصر المستهلكة مع تفصيل التكلفة.',
+    repConPdfTitle: 'تقرير الاستهلاك — PDF', repConPdfDesc: 'ملخص استهلاك قابل للطباعة لمراجعة الإدارة.',
+    repMovXlsxTitle: 'سجل الحركات — Excel', repMovXlsxDesc: 'سجل تدقيق كامل لكل عمليات النقل والاستهلاك.',
+    repMovPdfTitle: 'سجل الحركات — PDF', repMovPdfDesc: 'سجل حركات قابل للطباعة للامتثال والتدقيق.',
+    addNewItem: 'إضافة عنصر جديد', editItem: 'تعديل العنصر', quantity: 'الكمية', select: 'اختر',
+    unitCostDollar: 'تكلفة الوحدة ($)', minStockAlert: 'تنبيه الحد الأدنى للمخزون', saveItem: 'حفظ العنصر',
+    transferItem: 'نقل العنصر', itemName: 'اسم العنصر', fromLocation: 'من موقع', toCountry: 'إلى دولة',
+    toLocation: 'إلى موقع', notes: 'ملاحظات', confirmTransfer: 'تأكيد النقل',
+    usersOfMax: '{used} / {max} مستخدمين', usersCountPlain: '{n} مستخدمين', errMaxUsers: 'وصلت هذه الشركة إلى حد {max} مستخدم للخطة الحالية. تواصل مع support@thetectus.com للترقية.',
+    errorLoadingUsers: 'خطأ في تحميل المستخدمين: {msg}', noUsersFound: 'لم يتم العثور على مستخدمين.', role: 'الدور',
+    assignedCountries: 'الدول المخصصة', editRole: 'تعديل الدور',
+    kpiTotalValue: 'القيمة الإجمالية للمخزون', kpiFilteredValue: 'قيمة العرض المصفّى', kpiLowStockAlerts: 'تنبيهات المخزون المنخفض',
+    kpiTotalItems: 'إجمالي العناصر المتتبعة', kpiFilteredItems: 'العناصر المصفّاة',
+    kpiAcrossCountries: 'في {n} دولة', kpiActiveLocations: 'المواقع النشطة: {n}',
+    kpiItemsBelowMin: 'عناصر أقل من الحد الأدنى', kpiAllSufficient: 'الكل كافٍ',
+    kpiInFilteredView: '{n} في العرض المصفّى (من أصل {total})',
+    kpiFilteredOf: '{items} من {total} عنصر · {countries} {countryWord}',
+    country1: 'دولة', countryN: 'دول', applying: 'جارٍ التطبيق...',
   },
 };
-const LANG_META = { en: { flag: '🇬🇧', code: 'EN', name: 'English' }, pt: { flag: '🇦🇴', code: 'PT', name: 'Português' }, fr: { flag: '🇫🇷', code: 'FR', name: 'Français' } };
+const LANG_META = {
+  pt: { cc: 'ao', code: 'PT', name: 'Português' },
+  en: { cc: 'gb', code: 'EN', name: 'English' },
+  fr: { cc: 'fr', code: 'FR', name: 'Français' },
+  es: { cc: 'es', code: 'ES', name: 'Español' },
+  af: { cc: 'za', code: 'AF', name: 'Afrikaans' },
+  sw: { cc: 'tz', code: 'SW', name: 'Kiswahili' },
+  ar: { cc: 'sa', code: 'AR', name: 'العربية', rtl: true },
+};
+function flagImg(lang) { return `<img src="https://flagcdn.com/20x15/${LANG_META[lang].cc}.png" srcset="https://flagcdn.com/40x30/${LANG_META[lang].cc}.png 2x" width="20" height="15" alt="" style="border-radius:2px;vertical-align:middle">`; }
 const SLOGANS = {
-  en: ['Know where every part is. Always.', 'Inventory control built for the field, not the office.', 'From warehouse to offshore rig — tracked in real time.'],
-  pt: ['Sabe sempre onde está cada peça.', 'Controlo de inventário feito para o terreno, não para o escritório.', 'Do armazém à plataforma offshore — rastreado em tempo real.'],
-  fr: ['Sachez toujours où se trouve chaque pièce.', 'Un contrôle des stocks pensé pour le terrain, pas pour le bureau.', "De l'entrepôt à la plateforme offshore — suivi en temps réel."],
+  en: [
+    'Know where every part is. Always.',
+    'Inventory control for any business, any size.',
+    'From a single warehouse to offshore rigs across the globe.',
+    'Small shop or global operation — one system to track it all.',
+    'Stop guessing what you have in stock.',
+    'Built for the field, not just the office.',
+  ],
+  pt: [
+    'Sabe sempre onde está cada peça.',
+    'Controlo de inventário para qualquer empresa, de qualquer dimensão.',
+    'De um único armazém a plataformas offshore em todo o mundo.',
+    'Pequeno negócio ou operação global — um só sistema para gerir tudo.',
+    'Deixa de adivinhar o que tens em stock.',
+    'Feito para o terreno, não só para o escritório.',
+  ],
+  fr: [
+    'Sachez toujours où se trouve chaque pièce.',
+    'Contrôle des stocks pour toute entreprise, quelle que soit sa taille.',
+    'D\'un seul entrepôt aux plateformes offshore du monde entier.',
+    'Petite structure ou opération mondiale — un seul système pour tout gérer.',
+    'Ne devinez plus ce que vous avez en stock.',
+    'Conçu pour le terrain, pas seulement pour le bureau.',
+  ],
+  es: [
+    'Sabe siempre dónde está cada pieza.',
+    'Control de inventario para cualquier empresa, de cualquier tamaño.',
+    'De un solo almacén a plataformas offshore en todo el mundo.',
+    'Pequeño negocio u operación global — un solo sistema para gestionarlo todo.',
+    'Deja de adivinar qué tienes en stock.',
+    'Hecho para el terreno, no solo para la oficina.',
+  ],
+  af: [
+    'Weet altyd waar elke onderdeel is.',
+    'Voorraadbeheer vir enige besigheid, van enige grootte.',
+    'Van \'n enkele pakhuis tot vermaarde platforms wêreldwyd.',
+    'Klein besigheid of wêreldwye bedrywighede — een stelsel vir alles.',
+    'Hou op raai wat jy in voorraad het.',
+    'Gebou vir die veld, nie net vir die kantoor nie.',
+  ],
+  sw: [
+    'Jua kila mara ilipo kila bidhaa.',
+    'Udhibiti wa hesabu kwa biashara yoyote, ya ukubwa wowote.',
+    'Kutoka ghala moja hadi majukwaa ya baharini duniani kote.',
+    'Biashara ndogo au uendeshaji wa kimataifa — mfumo mmoja kwa yote.',
+    'Acha kubashiri una nini kwenye hisa.',
+    'Imeundwa kwa ajili ya uwandani, si ofisini tu.',
+  ],
+  ar: [
+    'اعرف دائمًا مكان كل قطعة.',
+    'التحكم في المخزون لأي شركة، مهما كان حجمها.',
+    'من مستودع واحد إلى منصات بحرية حول العالم.',
+    'شركة صغيرة أو عملية عالمية — نظام واحد لإدارة كل شيء.',
+    'توقف عن التخمين حول ما لديك في المخزون.',
+    'صُمم للميدان، وليس فقط للمكتب.',
+  ],
 };
 let sloganIdx = 0, typeInterval = null, eraseInterval = null, sloganTimeout = null;
 function typeSlogan(text, onDone) {
@@ -840,7 +1130,8 @@ function applyLang(lang) {
   try { localStorage.setItem('ft_lang', lang); } catch(e) {}
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
   document.documentElement.lang = lang;
-  ['auth-lang-flag','app-lang-flag'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = LANG_META[lang].flag; });
+  document.documentElement.dir = LANG_META[lang].rtl ? 'rtl' : 'ltr';
+  ['auth-lang-flag','app-lang-flag'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = flagImg(lang); });
   ['auth-lang-code','app-lang-code'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = LANG_META[lang].code; });
   buildLangDropdown('auth-lang-dropdown');
   buildLangDropdown('app-lang-dropdown');
@@ -856,7 +1147,7 @@ function applyLang(lang) {
 function buildLangDropdown(dropdownId) {
   const el = document.getElementById(dropdownId);
   if (!el) return;
-  el.innerHTML = Object.keys(LANG_META).map(l => `<div class="lang-opt ${l===currentLang?'active':''}" onclick="applyLang('${l}');closeLangMenus()"><span>${LANG_META[l].flag}</span> ${LANG_META[l].name}</div>`).join('');
+  el.innerHTML = Object.keys(LANG_META).map(l => `<div class="lang-opt ${l===currentLang?'active':''}" onclick="applyLang('${l}');closeLangMenus()">${flagImg(l)} ${LANG_META[l].name}</div>`).join('');
 }
 function toggleLangMenu(dropdownId) {
   const el = document.getElementById(dropdownId);
@@ -1294,7 +1585,18 @@ function renderPreview(rows,mode){
 }
 function cancelUpload(){document.getElementById('upload-preview').style.display='none';pendingUpload=null;}
 async function confirmUpload(){
-  if(!pendingUpload)return;const{rows,mode}=pendingUpload;
+  if(!pendingUpload)return;
+  const btn=document.getElementById('btn-apply-changes');
+  const btnOrigText=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner" style="width:12px;height:12px;border-width:2px;vertical-align:-1px;margin-right:6px"></span>'+t('applying');}
+  try{
+  await confirmUploadRun();
+  }finally{
+  if(btn){btn.disabled=false;btn.textContent=btnOrigText;}
+  }
+}
+async function confirmUploadRun(){
+  const{rows,mode}=pendingUpload;
   if(mode==='update'){for(const r of rows){const item=inventory.find(i=>i.serial_number===String(r.serial_number||'').trim()&&i.location===r.location&&i.tenant_id===currentProfile.tenant_id);if(!item||!canEditCountry(item.country))continue;const newQty=r.new_qty_on_hand!==''?parseInt(r.new_qty_on_hand):null,consumed=r.qty_consumed!==''?parseInt(r.qty_consumed):0;if(consumed>0){await sb.from('consumption_log').insert({serial_number:item.serial_number,item_name:item.name,country:item.country,location:item.location,qty:consumed,unit_cost:item.unit_cost,notes:r.notes||'Bulk upload',performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});await sb.from('movements').insert({action:'Consumed',serial_number:item.serial_number,item_name:item.name,qty:consumed,from_location:item.location,to_location:null,country:item.country,notes:r.notes||'Bulk upload',performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});}if(newQty!==null&&newQty!==item.qty){await sb.from('inventory').update({qty:newQty}).eq('id',item.id);await sb.from('movements').insert({action:'Bulk upload',serial_number:item.serial_number,item_name:item.name,qty:Math.abs(newQty-item.qty),from_location:item.location,to_location:item.location,country:item.country,notes:`Qty adjusted from ${item.qty} to ${newQty}. ${r.notes||''}`,performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});}}}
   else{let inserted=0,skipped=0,errors=[];for(const r of rows){const serial=String(r.serial_number||'').trim();if(!serial||serial==='SN-XXXX-XXX'){skipped++;continue;}if(inventory.find(i=>i.serial_number===serial&&i.location===r.location&&i.tenant_id===currentProfile.tenant_id)){skipped++;continue;}if(!canEditCountry(r.country)){skipped++;continue;}const{error:invErr}=await sb.from('inventory').insert({serial_number:serial,name:r.item_name||r.name||'Unnamed',type:r.type||'Spare part',country:r.country,location:r.location,qty:parseInt(r.qty)||0,unit_cost:parseFloat(r.unit_cost)||0,min_qty_alert:parseInt(r.min_qty_alert)||2,tenant_id:currentProfile.tenant_id});if(invErr){errors.push(`${serial}: ${invErr.message}`);continue;}await sb.from('movements').insert({action:'Bulk upload',serial_number:serial,item_name:r.item_name||r.name||'Unnamed',qty:parseInt(r.qty)||0,from_location:null,to_location:r.location,country:r.country,notes:r.notes||'Added via bulk upload',performed_by:currentUser.id,tenant_id:currentProfile.tenant_id});inserted++;}pendingUpload=null;document.getElementById('upload-preview').style.display='none';await loadInventory();const notices=document.getElementById('preview-notices');if(errors.length)notices.innerHTML=`<div class="notice notice-danger">${errors.length} erro(s): ${errors.join(' | ')}</div>`;else if(inserted===0)notices.innerHTML=`<div class="notice notice-warn">Nenhum item adicionado. Verifica se: os seriais são únicos, os campos obrigatórios estão preenchidos, e o país está correcto.</div>`;else notices.innerHTML=`<div class="notice notice-success">${inserted} item(s) adicionado(s) com sucesso. ${skipped>0?skipped+' linha(s) ignorada(s).':''}</div>`;return;}
   pendingUpload=null;document.getElementById('upload-preview').style.display='none';await loadInventory();
