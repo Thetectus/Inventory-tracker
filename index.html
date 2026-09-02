@@ -55,6 +55,17 @@
   .auth-loading-bar { width: 100%; height: 5px; border-radius: 999px; background: var(--bg3); overflow: hidden; }
   .auth-loading-bar-fill { height: 100%; width: 0%; background: var(--blue-text); border-radius: 999px; transition: width 0.35s ease; }
   .auth-loading-step { font-size: 12.5px; color: var(--text2); text-align: center; min-height: 16px; }
+
+  /* LANGUAGE SWITCHER */
+  .lang-switch { position: relative; }
+  .lang-trigger { display: flex; align-items: center; gap: 5px; cursor: pointer; padding: 4px 8px; border-radius: var(--radius); font-size: 12px; color: var(--text2); border: 0.5px solid var(--border2); background: var(--bg); user-select: none; }
+  .lang-trigger:hover { background: var(--bg2); }
+  .lang-dropdown { display: none; position: absolute; top: calc(100% + 4px); right: 0; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(0,0,0,0.12); min-width: 130px; z-index: 300; overflow: hidden; }
+  .lang-dropdown.open { display: block; }
+  .lang-opt { display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: 13px; cursor: pointer; color: var(--text); }
+  .lang-opt:hover { background: var(--bg2); }
+  .lang-opt.active { font-weight: 500; background: var(--blue-bg); color: var(--blue-text); }
+  .auth-card .lang-switch { position: absolute; top: 1rem; right: 1rem; }
   .auth-card h1 { font-size: 20px; font-weight: 500; margin-bottom: 0.25rem; }
   .auth-card p { font-size: 13px; color: var(--text2); margin-bottom: 1.5rem; }
   .auth-tabs { display: flex; gap: 0; border-bottom: 0.5px solid var(--border); margin-bottom: 1.25rem; }
@@ -245,30 +256,34 @@
     </div>
   </div>
   <div class="splash-word">FieldTrack</div>
-  <div class="splash-slogan">Controlo de inventário para operações distribuídas</div>
+  <div class="splash-slogan" data-i18n="splashSlogan">Controlo de inventário para operações distribuídas</div>
 </div>
 
 <div id="auth-screen">
   <div class="auth-card">
-    <h1>Inventory tracker</h1>
-    <p>Oil &amp; gas asset management</p>
+    <div class="lang-switch">
+      <div class="lang-trigger" onclick="toggleLangMenu('auth-lang-dropdown')"><span id="auth-lang-flag">🇬🇧</span> <span id="auth-lang-code">EN</span></div>
+      <div class="lang-dropdown" id="auth-lang-dropdown"></div>
+    </div>
+    <h1 data-i18n="appTitle">Inventory tracker</h1>
+    <p data-i18n="appSubtitle">Oil &amp; gas asset management</p>
     <div class="auth-tabs" id="auth-tabs">
-      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign in</button>
-      <button class="auth-tab" onclick="switchAuthTab('signup')" id="signup-tab-btn">Create account</button>
+      <button class="auth-tab active" onclick="switchAuthTab('login')" data-i18n="signIn">Sign in</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')" id="signup-tab-btn" data-i18n="createAccount">Create account</button>
     </div>
     <div id="login-form">
-      <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"></div>
-      <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="••••••••"></div>
-      <button class="btn-full" onclick="signIn()" id="signin-btn">Sign in</button>
+      <div class="field"><label data-i18n="email">Email</label><input type="email" id="login-email" placeholder="your@email.com"></div>
+      <div class="field"><label data-i18n="password">Password</label><input type="password" id="login-password" placeholder="••••••••"></div>
+      <button class="btn-full" onclick="signIn()" id="signin-btn" data-i18n="signIn">Sign in</button>
     </div>
     <div id="signup-form" style="display:none">
-      <div class="field"><label>Full name</label><input type="text" id="signup-name" placeholder="Your name"></div>
-      <div class="field"><label>Email</label><input type="email" id="signup-email" placeholder="your@email.com"></div>
-      <div class="field"><label>Password</label><input type="password" id="signup-password" placeholder="Min 6 characters"></div>
-      <div class="field"><label>Role (admin sets final role)</label>
-        <select id="signup-role"><option value="viewer">Viewer</option><option value="supervisor">Supervisor</option></select>
+      <div class="field"><label data-i18n="fullName">Full name</label><input type="text" id="signup-name" placeholder="Your name"></div>
+      <div class="field"><label data-i18n="email">Email</label><input type="email" id="signup-email" placeholder="your@email.com"></div>
+      <div class="field"><label data-i18n="password">Password</label><input type="password" id="signup-password" placeholder="Min 6 characters"></div>
+      <div class="field"><label data-i18n="roleField">Role (admin sets final role)</label>
+        <select id="signup-role"><option value="viewer" data-i18n="viewer">Viewer</option><option value="supervisor" data-i18n="supervisor">Supervisor</option></select>
       </div>
-      <button class="btn-full" onclick="signUp()">Create account</button>
+      <button class="btn-full" onclick="signUp()" data-i18n="createAccount">Create account</button>
     </div>
     <div id="auth-loading" class="auth-loading">
       <div class="auth-loading-bar"><div class="auth-loading-bar-fill" id="auth-loading-fill"></div></div>
@@ -283,13 +298,17 @@
   <nav class="navbar">
     <div class="navbar-left">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="16" height="13" rx="2"/><path d="M2 8h16M6 3v5M10 3v5M14 3v5"/></svg>
-      <h1>Inventory tracker</h1>
+      <h1 data-i18n="appTitle">Inventory tracker</h1>
     </div>
     <div class="navbar-right">
       <span id="company-name" style="font-size:11px;color:var(--text3);margin-right:4px"></span>
       <span id="user-name" style="font-size:13px;color:var(--text2)"></span>
       <span id="role-pill" class="role-pill"></span>
-      <button class="btn-signout" onclick="signOut()">Sign out</button>
+      <div class="lang-switch">
+        <div class="lang-trigger" onclick="toggleLangMenu('app-lang-dropdown')"><span id="app-lang-flag">🇬🇧</span> <span id="app-lang-code">EN</span></div>
+        <div class="lang-dropdown" id="app-lang-dropdown"></div>
+      </div>
+      <button class="btn-signout" onclick="signOut()" data-i18n="signOut">Sign out</button>
     </div>
   </nav>
 
@@ -304,12 +323,12 @@
           <circle cx="14" cy="14" r="11"/><path d="M14 8v6l4 2"/>
         </svg>
       </div>
-      <h2>O teu trial expirou</h2>
-      <p>Os teus dados estão todos guardados em segurança. Activa um plano para recuperar o acesso completo ao FieldTrack.</p>
-      <a href="mailto:support@thetectus.com?subject=Activar%20plano%20FieldTrack&body=Ol%C3%A1%2C%20o%20meu%20trial%20expirou%20e%20gostaria%20de%20activar%20um%20plano." class="btn-upgrade">
+      <h2 data-i18n="trialExpiredTitle">O teu trial expirou</h2>
+      <p data-i18n="trialExpiredBody">Os teus dados estão todos guardados em segurança. Activa um plano para recuperar o acesso completo ao FieldTrack.</p>
+      <a href="mailto:support@thetectus.com?subject=Activar%20plano%20FieldTrack&body=Ol%C3%A1%2C%20o%20meu%20trial%20expirou%20e%20gostaria%20de%20activar%20um%20plano." class="btn-upgrade" data-i18n="trialExpiredCta">
         Contactar para activar plano →
       </a>
-      <p class="expired-note">support@thetectus.com · Os teus dados ficam guardados por 30 dias após a expiração.</p>
+      <p class="expired-note" data-i18n="trialExpiredNote">support@thetectus.com · Os teus dados ficam guardados por 30 dias após a expiração.</p>
     </div>
   </div>
 
@@ -317,31 +336,31 @@
     <div class="kpi-grid" id="kpis"><div class="loading-state"><div class="spinner"></div></div></div>
 
     <div class="tabs">
-      <button class="tab active" onclick="showTab('inventory')">Inventory</button>
-      <button class="tab" onclick="showTab('dashboard')" id="tab-dashboard">Dashboard</button>
-      <button class="tab" onclick="showTab('upload')" id="tab-upload">Bulk upload</button>
-      <button class="tab" onclick="showTab('approvals')" id="tab-approvals">Approvals<span class="notif-dot" id="approvals-dot" style="display:none"></span></button>
-      <button class="tab" onclick="showTab('consumption')">Consumption</button>
-      <button class="tab" onclick="showTab('history')">Movement history</button>
-      <button class="tab" onclick="showTab('reports')">Reports</button>
-      <button class="tab" onclick="showTab('users')" id="tab-users" style="display:none">Users</button>
+      <button class="tab active" onclick="showTab('inventory')" data-i18n="tabInventory">Inventory</button>
+      <button class="tab" onclick="showTab('dashboard')" id="tab-dashboard" data-i18n="tabDashboard">Dashboard</button>
+      <button class="tab" onclick="showTab('upload')" id="tab-upload" data-i18n="tabUpload">Bulk upload</button>
+      <button class="tab" onclick="showTab('approvals')" id="tab-approvals"><span data-i18n="tabApprovals">Approvals</span><span class="notif-dot" id="approvals-dot" style="display:none"></span></button>
+      <button class="tab" onclick="showTab('consumption')" data-i18n="tabConsumption">Consumption</button>
+      <button class="tab" onclick="showTab('history')" data-i18n="tabHistory">Movement history</button>
+      <button class="tab" onclick="showTab('reports')" data-i18n="tabReports">Reports</button>
+      <button class="tab" onclick="showTab('users')" id="tab-users" style="display:none" data-i18n="tabUsers">Users</button>
     </div>
 
     <!-- INVENTORY PANE -->
     <div id="pane-inventory">
       <div class="filters">
-        <div class="filter-group"><label>Search</label><input type="text" id="f-search" placeholder="Name or serial #" style="width:170px" oninput="applyFilters()"></div>
-        <div class="filter-group"><label>Country</label><select id="f-country" onchange="cascadeLocation();applyFilters()"><option value="">All countries</option></select></div>
-        <div class="filter-group"><label>Location</label><select id="f-location" onchange="applyFilters()"><option value="">All locations</option></select></div>
-        <div class="filter-group"><label>Type</label><select id="f-type" onchange="applyFilters()"><option value="">All types</option><option>Spare part</option><option>Tool</option></select></div>
-        <div class="filter-group"><label>Stock</label><select id="f-status" onchange="applyFilters()"><option value="">All</option><option value="low">Low stock</option><option value="ok">OK</option></select></div>
-        <button class="btn" onclick="clearFilters()" style="margin-top:auto">Clear</button>
-        <button class="btn btn-primary" id="btn-add" onclick="openItemModal()" style="margin-top:auto;display:none">+ Add item</button>
+        <div class="filter-group"><label data-i18n="search">Search</label><input type="text" id="f-search" placeholder="Name or serial #" style="width:170px" oninput="applyFilters()"></div>
+        <div class="filter-group"><label data-i18n="country">Country</label><select id="f-country" onchange="cascadeLocation();applyFilters()"><option value="" data-i18n="allCountries">All countries</option></select></div>
+        <div class="filter-group"><label data-i18n="location">Location</label><select id="f-location" onchange="applyFilters()"><option value="" data-i18n="allLocations">All locations</option></select></div>
+        <div class="filter-group"><label data-i18n="type">Type</label><select id="f-type" onchange="applyFilters()"><option value="" data-i18n="allTypes">All types</option><option>Spare part</option><option>Tool</option></select></div>
+        <div class="filter-group"><label data-i18n="stock">Stock</label><select id="f-status" onchange="applyFilters()"><option value="" data-i18n="all">All</option><option value="low" data-i18n="lowStock">Low stock</option><option value="ok">OK</option></select></div>
+        <button class="btn" onclick="clearFilters()" style="margin-top:auto" data-i18n="clear">Clear</button>
+        <button class="btn btn-primary" id="btn-add" onclick="openItemModal()" style="margin-top:auto;display:none" data-i18n="addItem">+ Add item</button>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Serial #</th><th>Name</th><th>Type</th><th>Country</th><th>Location</th><th>Qty</th><th>Unit cost</th><th>Total value</th><th>Stock</th><th>Actions</th></tr></thead>
-          <tbody id="inv-body"><tr><td colspan="10" class="loading-state"><div class="spinner"></div> Loading...</td></tr></tbody>
+          <thead><tr><th data-i18n="serialNo">Serial #</th><th data-i18n="name">Name</th><th data-i18n="type">Type</th><th data-i18n="country">Country</th><th data-i18n="location">Location</th><th data-i18n="qty">Qty</th><th data-i18n="unitCost">Unit cost</th><th data-i18n="totalValue">Total value</th><th data-i18n="stock">Stock</th><th data-i18n="actions">Actions</th></tr></thead>
+          <tbody id="inv-body"><tr><td colspan="10" class="loading-state"><div class="spinner"></div> <span data-i18n="loading">Loading...</span></td></tr></tbody>
         </table>
       </div>
       <div class="filtered-total" id="filtered-total"></div>
@@ -349,29 +368,29 @@
 
     <!-- UPLOAD PANE -->
     <div id="pane-upload" style="display:none">
-      <div class="notice notice-info">Supervisors: download the template, fill it in on-site, then upload it back. Changes are previewed before applying.</div>
-      <div class="section-head">Step 1 — Download template</div>
+      <div class="notice notice-info" data-i18n="uploadNotice">Supervisors: download the template, fill it in on-site, then upload it back. Changes are previewed before applying.</div>
+      <div class="section-head" data-i18n="uploadStep1">Step 1 — Download template</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.5rem">
         <button class="btn btn-primary btn-icon" onclick="exportTemplate('update')">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3"/><rect x="2" y="11" width="12" height="3" rx="1"/></svg>
-          Download update template (.xlsx)
+          <span data-i18n="downloadUpdateTemplate">Download update template (.xlsx)</span>
         </button>
         <button class="btn btn-icon" onclick="exportTemplate('new')">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3"/><rect x="2" y="11" width="12" height="3" rx="1"/></svg>
-          Download new items template (.xlsx)
+          <span data-i18n="downloadNewTemplate">Download new items template (.xlsx)</span>
         </button>
       </div>
-      <div class="section-head">Step 2 — Upload filled template</div>
+      <div class="section-head" data-i18n="uploadStep2">Step 2 — Upload filled template</div>
       <div class="upload-zone" onclick="document.getElementById('file-input').click()"
            ondragover="event.preventDefault();this.style.background='var(--bg2)'"
            ondragleave="this.style.background=''"
            ondrop="handleDrop(event)">
         <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 4v16M10 14l6-6 6 6"/><path d="M6 24h20"/></svg>
-        <p style="font-size:13px;color:var(--text2)">Click to choose or drag &amp; drop .xlsx file</p>
+        <p style="font-size:13px;color:var(--text2)" data-i18n="uploadDropHint">Click to choose or drag &amp; drop .xlsx file</p>
         <input type="file" id="file-input" accept=".xlsx" style="display:none" onchange="handleFileSelect(event)">
       </div>
       <div id="upload-preview" style="display:none">
-        <div class="section-head">Step 3 — Review &amp; confirm</div>
+        <div class="section-head" data-i18n="uploadStep3">Step 3 — Review &amp; confirm</div>
         <div id="preview-notices"></div>
         <div class="table-wrap" style="max-height:300px;overflow-y:auto">
           <table id="preview-table" style="min-width:unset">
@@ -380,8 +399,8 @@
           </table>
         </div>
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:.75rem">
-          <button class="btn" onclick="cancelUpload()">Cancel</button>
-          <button class="btn btn-primary" onclick="confirmUpload()">Apply changes</button>
+          <button class="btn" onclick="cancelUpload()" data-i18n="cancel">Cancel</button>
+          <button class="btn btn-primary" onclick="confirmUpload()" data-i18n="applyChanges">Apply changes</button>
         </div>
       </div>
     </div>
@@ -389,13 +408,13 @@
     <!-- CONSUMPTION PANE -->
     <div id="pane-consumption" style="display:none">
       <div class="filters" style="margin-bottom:1rem">
-        <div class="filter-group"><label>Country</label><select id="c-country" onchange="renderConsumption()"><option value="">All countries</option></select></div>
+        <div class="filter-group"><label data-i18n="country">Country</label><select id="c-country" onchange="renderConsumption()"><option value="" data-i18n="allCountries">All countries</option></select></div>
       </div>
       <div class="kpi-grid" id="consumption-kpis" style="margin-bottom:1rem"></div>
       <div class="table-wrap">
         <table style="min-width:600px">
-          <thead><tr><th>Serial #</th><th>Name</th><th>Country</th><th>Location</th><th>Consumed qty</th><th>Unit cost</th><th>Consumed value</th><th>Date</th></tr></thead>
-          <tbody id="consumption-body"><tr><td colspan="8" class="loading-state">Loading...</td></tr></tbody>
+          <thead><tr><th data-i18n="serialNo">Serial #</th><th data-i18n="name">Name</th><th data-i18n="country">Country</th><th data-i18n="location">Location</th><th data-i18n="consumedQty">Consumed qty</th><th data-i18n="unitCost">Unit cost</th><th data-i18n="consumedValue">Consumed value</th><th data-i18n="date">Date</th></tr></thead>
+          <tbody id="consumption-body"><tr><td colspan="8" class="loading-state" data-i18n="loading">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -403,71 +422,71 @@
     <!-- HISTORY PANE -->
     <div id="pane-history" style="display:none">
       <div class="filters" style="margin-bottom:.75rem">
-        <div class="filter-group"><label>Action</label>
+        <div class="filter-group"><label data-i18n="action">Action</label>
           <select id="h-type" onchange="renderHistory()">
-            <option value="">All actions</option><option>Transfer</option><option>Added</option><option>Consumed</option><option>Bulk upload</option>
+            <option value="" data-i18n="allActions">All actions</option><option>Transfer</option><option>Added</option><option>Consumed</option><option>Bulk upload</option>
           </select>
         </div>
-        <div class="filter-group"><label>Country</label><select id="h-country" onchange="renderHistory()"><option value="">All countries</option></select></div>
+        <div class="filter-group"><label data-i18n="country">Country</label><select id="h-country" onchange="renderHistory()"><option value="" data-i18n="allCountries">All countries</option></select></div>
       </div>
-      <div id="history-list"><div class="loading-state"><div class="spinner"></div> Loading...</div></div>
+      <div id="history-list"><div class="loading-state"><div class="spinner"></div> <span data-i18n="loading">Loading...</span></div></div>
     </div>
 
     <!-- USERS PANE -->
     <div id="pane-users" style="display:none">
-      <div class="notice notice-info">Manage team access. Only admins can change roles and country assignments.</div>
+      <div class="notice notice-info" data-i18n="usersNotice">Manage team access. Only admins can change roles and country assignments.</div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0">
         <div id="users-count" style="font-size:12px;color:var(--text2)"></div>
-        <button class="btn btn-sm" id="btn-invite" onclick="showInviteLink()">+ Convidar utilizador</button>
+        <button class="btn btn-sm" id="btn-invite" onclick="showInviteLink()" data-i18n="inviteUser">+ Convidar utilizador</button>
       </div>
       <div id="invite-box" style="display:none" class="invite-box">
-        Envia este link ao novo utilizador — ao abri-lo, ele cria a própria conta já associada a esta empresa:
+        <span data-i18n="inviteBoxText">Envia este link ao novo utilizador — ao abri-lo, ele cria a própria conta já associada a esta empresa:</span>
         <code id="invite-link-code" onclick="copySelfInviteLink()" title="Clica para copiar"></code>
-        <div id="invite-copied" style="display:none;color:var(--green-text);font-size:11px;margin-top:2px">Copiado!</div>
+        <div id="invite-copied" style="display:none;color:var(--green-text);font-size:11px;margin-top:2px" data-i18n="copied">Copiado!</div>
       </div>
-      <div id="users-list"><div class="loading-state"><div class="spinner"></div> Loading...</div></div>
+      <div id="users-list"><div class="loading-state"><div class="spinner"></div> <span data-i18n="loading">Loading...</span></div></div>
     </div>
 
     <!-- DASHBOARD PANE -->
     <div id="pane-dashboard" style="display:none">
-      <div id="dash-content"><div class="loading-state"><div class="spinner"></div> Loading dashboard...</div></div>
+      <div id="dash-content"><div class="loading-state"><div class="spinner"></div> <span data-i18n="loadingDashboard">Loading dashboard...</span></div></div>
     </div>
 
     <!-- APPROVALS PANE -->
     <div id="pane-approvals" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
-        <div style="font-size:15px;font-weight:500">Transfer requests</div>
+        <div style="font-size:15px;font-weight:500" data-i18n="transferRequests">Transfer requests</div>
         <div class="filters" style="margin:0">
-          <div class="filter-group"><label>Status</label>
+          <div class="filter-group"><label data-i18n="status">Status</label>
             <select id="apr-status" onchange="renderApprovals()">
-              <option value="pending">Pending</option><option value="approved">Approved</option>
-              <option value="rejected">Rejected</option><option value="">All</option>
+              <option value="pending" data-i18n="pending">Pending</option><option value="approved" data-i18n="approved">Approved</option>
+              <option value="rejected" data-i18n="rejected">Rejected</option><option value="" data-i18n="all">All</option>
             </select>
           </div>
         </div>
       </div>
-      <div id="approvals-list"><div class="loading-state"><div class="spinner"></div> Loading...</div></div>
+      <div id="approvals-list"><div class="loading-state"><div class="spinner"></div> <span data-i18n="loading">Loading...</span></div></div>
     </div>
 
     <!-- REPORTS PANE -->
     <div id="pane-reports" style="display:none">
-      <div style="font-size:15px;font-weight:500;margin-bottom:.5rem">Export reports</div>
-      <div style="font-size:13px;color:var(--text2);margin-bottom:1rem">Generate detailed reports of your inventory, consumption, and movements.</div>
-      <div style="font-size:13px;font-weight:500;margin-bottom:.75rem">Filter report data</div>
+      <div style="font-size:15px;font-weight:500;margin-bottom:.5rem" data-i18n="exportReports">Export reports</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:1rem" data-i18n="exportReportsDesc">Generate detailed reports of your inventory, consumption, and movements.</div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:.75rem" data-i18n="filterReportData">Filter report data</div>
       <div class="filters" style="margin-bottom:1.25rem">
-        <div class="filter-group"><label>Country</label><select id="rep-country"><option value="">All countries</option></select></div>
-        <div class="filter-group"><label>Location</label><select id="rep-location"><option value="">All locations</option></select></div>
-        <div class="filter-group"><label>Type</label><select id="rep-type"><option value="">All types</option><option>Spare part</option><option>Tool</option></select></div>
-        <div class="filter-group"><label>Date from</label><input type="date" id="rep-from" style="padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px"></div>
-        <div class="filter-group"><label>Date to</label><input type="date" id="rep-to" style="padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px"></div>
+        <div class="filter-group"><label data-i18n="country">Country</label><select id="rep-country"><option value="" data-i18n="allCountries">All countries</option></select></div>
+        <div class="filter-group"><label data-i18n="location">Location</label><select id="rep-location"><option value="" data-i18n="allLocations">All locations</option></select></div>
+        <div class="filter-group"><label data-i18n="type">Type</label><select id="rep-type"><option value="" data-i18n="allTypes">All types</option><option>Spare part</option><option>Tool</option></select></div>
+        <div class="filter-group"><label data-i18n="dateFrom">Date from</label><input type="date" id="rep-from" style="padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px"></div>
+        <div class="filter-group"><label data-i18n="dateTo">Date to</label><input type="date" id="rep-to" style="padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px"></div>
       </div>
       <div class="report-options">
-        <div class="report-card" onclick="generateReport('inventory','xlsx')"><div class="report-icon" style="background:var(--green-bg)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--green-text)" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2"/><path d="M6 6h6M6 9h6M6 12h4"/></svg></div><h4>Inventory snapshot — Excel</h4><p>Current stock by location with quantities and values.</p></div>
-        <div class="report-card" onclick="generateReport('inventory','pdf')"><div class="report-icon" style="background:var(--red-bg)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--red-text)" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2"/><path d="M6 6h6M6 9h6M6 12h4"/></svg></div><h4>Inventory snapshot — PDF</h4><p>Printable inventory report for meetings and audits.</p></div>
-        <div class="report-card" onclick="generateReport('consumption','xlsx')"><div class="report-icon" style="background:var(--amber-bg)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--amber-text)" stroke-width="1.5"><path d="M9 2v14M2 9h14"/><circle cx="9" cy="9" r="7"/></svg></div><h4>Consumption report — Excel</h4><p>All consumed items with cost breakdown.</p></div>
-        <div class="report-card" onclick="generateReport('consumption','pdf')"><div class="report-icon" style="background:var(--blue-bg)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--blue-text)" stroke-width="1.5"><path d="M9 2v14M2 9h14"/><circle cx="9" cy="9" r="7"/></svg></div><h4>Consumption report — PDF</h4><p>Printable consumption summary for management review.</p></div>
-        <div class="report-card" onclick="generateReport('movements','xlsx')"><div class="report-icon" style="background:var(--bg2)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--text2)" stroke-width="1.5"><path d="M2 9h14M11 5l4 4-4 4"/></svg></div><h4>Movement history — Excel</h4><p>Full audit trail of all transfers and consumptions.</p></div>
-        <div class="report-card" onclick="generateReport('movements','pdf')"><div class="report-icon" style="background:var(--bg2)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--text2)" stroke-width="1.5"><path d="M2 9h14M11 5l4 4-4 4"/></svg></div><h4>Movement history — PDF</h4><p>Printable movement history for compliance and audits.</p></div>
+        <div class="report-card" onclick="generateReport('inventory','xlsx')"><div class="report-icon" style="background:var(--green-bg)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--green-text)" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2"/><path d="M6 6h6M6 9h6M6 12h4"/></svg></div><h4 data-i18n="repInvXlsxTitle">Inventory snapshot — Excel</h4><p data-i18n="repInvXlsxDesc">Current stock by location with quantities and values.</p></div>
+        <div class="report-card" onclick="generateReport('inventory','pdf')"><div class="report-icon" style="background:var(--red-bg)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--red-text)" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2"/><path d="M6 6h6M6 9h6M6 12h4"/></svg></div><h4 data-i18n="repInvPdfTitle">Inventory snapshot — PDF</h4><p data-i18n="repInvPdfDesc">Printable inventory report for meetings and audits.</p></div>
+        <div class="report-card" onclick="generateReport('consumption','xlsx')"><div class="report-icon" style="background:var(--amber-bg)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--amber-text)" stroke-width="1.5"><path d="M9 2v14M2 9h14"/><circle cx="9" cy="9" r="7"/></svg></div><h4 data-i18n="repConXlsxTitle">Consumption report — Excel</h4><p data-i18n="repConXlsxDesc">All consumed items with cost breakdown.</p></div>
+        <div class="report-card" onclick="generateReport('consumption','pdf')"><div class="report-icon" style="background:var(--blue-bg)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--blue-text)" stroke-width="1.5"><path d="M9 2v14M2 9h14"/><circle cx="9" cy="9" r="7"/></svg></div><h4 data-i18n="repConPdfTitle">Consumption report — PDF</h4><p data-i18n="repConPdfDesc">Printable consumption summary for management review.</p></div>
+        <div class="report-card" onclick="generateReport('movements','xlsx')"><div class="report-icon" style="background:var(--bg2)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--text2)" stroke-width="1.5"><path d="M2 9h14M11 5l4 4-4 4"/></svg></div><h4 data-i18n="repMovXlsxTitle">Movement history — Excel</h4><p data-i18n="repMovXlsxDesc">Full audit trail of all transfers and consumptions.</p></div>
+        <div class="report-card" onclick="generateReport('movements','pdf')"><div class="report-icon" style="background:var(--bg2)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--text2)" stroke-width="1.5"><path d="M2 9h14M11 5l4 4-4 4"/></svg></div><h4 data-i18n="repMovPdfTitle">Movement history — PDF</h4><p data-i18n="repMovPdfDesc">Printable movement history for compliance and audits.</p></div>
       </div>
       <div id="report-status"></div>
     </div>
@@ -477,20 +496,20 @@
 <!-- ITEM MODAL -->
 <div class="modal-overlay" id="item-modal">
   <div class="modal">
-    <h2 id="modal-title">Add new item</h2>
+    <h2 id="modal-title" data-i18n="addNewItem">Add new item</h2>
     <div class="form-grid">
-      <div class="form-group"><label>Serial #</label><input type="text" id="a-serial" placeholder="SN-2024-001"></div>
-      <div class="form-group"><label>Name</label><input type="text" id="a-name" placeholder="Equipment name"></div>
-      <div class="form-group"><label>Type</label><select id="a-type"><option>Spare part</option><option>Tool</option></select></div>
-      <div class="form-group"><label>Quantity</label><input type="number" id="a-qty" min="1" value="1"></div>
-      <div class="form-group"><label>Country</label><select id="a-country" onchange="fillAddLocations()"><option value="">Select</option></select></div>
-      <div class="form-group"><label>Location</label><select id="a-location"><option value="">Select</option></select></div>
-      <div class="form-group"><label>Unit cost ($)</label><input type="number" id="a-cost" min="0" step="0.01" placeholder="0.00"></div>
-      <div class="form-group"><label>Min stock alert</label><input type="number" id="a-min" min="0" value="2"></div>
+      <div class="form-group"><label data-i18n="serialNo">Serial #</label><input type="text" id="a-serial" placeholder="SN-2024-001"></div>
+      <div class="form-group"><label data-i18n="name">Name</label><input type="text" id="a-name" placeholder="Equipment name"></div>
+      <div class="form-group"><label data-i18n="type">Type</label><select id="a-type"><option>Spare part</option><option>Tool</option></select></div>
+      <div class="form-group"><label data-i18n="quantity">Quantity</label><input type="number" id="a-qty" min="1" value="1"></div>
+      <div class="form-group"><label data-i18n="country">Country</label><select id="a-country" onchange="fillAddLocations()"><option value="" data-i18n="select">Select</option></select></div>
+      <div class="form-group"><label data-i18n="location">Location</label><select id="a-location"><option value="" data-i18n="select">Select</option></select></div>
+      <div class="form-group"><label data-i18n="unitCostDollar">Unit cost ($)</label><input type="number" id="a-cost" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="form-group"><label data-i18n="minStockAlert">Min stock alert</label><input type="number" id="a-min" min="0" value="2"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeItemModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveItem()">Save item</button>
+      <button class="btn" onclick="closeItemModal()" data-i18n="cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="saveItem()" data-i18n="saveItem">Save item</button>
     </div>
   </div>
 </div>
@@ -498,21 +517,21 @@
 <!-- TRANSFER MODAL -->
 <div class="modal-overlay" id="transfer-modal">
   <div class="modal">
-    <h2>Transfer item</h2>
+    <h2 data-i18n="transferItem">Transfer item</h2>
     <div class="form-grid">
-      <div class="form-group"><label>Serial #</label><input type="text" id="t-serial" placeholder="SN-2024-001" oninput="fillTransferInfo()"></div>
-      <div class="form-group"><label>Item name</label><input type="text" id="t-name" disabled></div>
-      <div class="form-group"><label>From location</label><select id="t-from-loc" onchange="updateTransferSourceHint()"></select></div>
-      <div class="form-group"><label>Quantity</label><input type="number" id="t-qty" min="1" value="1"></div>
-      <div class="form-group"><label>To country</label><select id="t-country" onchange="fillTransferLocations()"><option value="">Select</option></select></div>
-      <div class="form-group"><label>To location</label><select id="t-location"><option value="">Select</option></select></div>
+      <div class="form-group"><label data-i18n="serialNo">Serial #</label><input type="text" id="t-serial" placeholder="SN-2024-001" oninput="fillTransferInfo()"></div>
+      <div class="form-group"><label data-i18n="itemName">Item name</label><input type="text" id="t-name" disabled></div>
+      <div class="form-group"><label data-i18n="fromLocation">From location</label><select id="t-from-loc" onchange="updateTransferSourceHint()"></select></div>
+      <div class="form-group"><label data-i18n="quantity">Quantity</label><input type="number" id="t-qty" min="1" value="1"></div>
+      <div class="form-group"><label data-i18n="toCountry">To country</label><select id="t-country" onchange="fillTransferLocations()"><option value="" data-i18n="select">Select</option></select></div>
+      <div class="form-group"><label data-i18n="toLocation">To location</label><select id="t-location"><option value="" data-i18n="select">Select</option></select></div>
     </div>
     <div class="form-grid full">
-      <div class="form-group"><label>Notes</label><input type="text" id="t-notes" placeholder="Reason for transfer"></div>
+      <div class="form-group"><label data-i18n="notes">Notes</label><input type="text" id="t-notes" placeholder="Reason for transfer"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeTransferModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="submitTransfer()">Confirm transfer</button>
+      <button class="btn" onclick="closeTransferModal()" data-i18n="cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="submitTransfer()" data-i18n="confirmTransfer">Confirm transfer</button>
     </div>
   </div>
 </div>
@@ -521,6 +540,194 @@
 const SUPABASE_URL = 'https://cqpsofmaaktsjtlkariw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxcHNvZm1hYWt0c2p0bGthcml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5ODM0MTIsImV4cCI6MjA5MTU1OTQxMn0.O5t-sDLAgvmy-Z9P_FVV2AS9ciewG33ZQy0HDbOA7yo';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ═══ I18N ═══
+const I18N = {
+  en: {
+    appTitle: 'Inventory tracker', appSubtitle: 'Oil & gas asset management',
+    signIn: 'Sign in', createAccount: 'Create account', email: 'Email', password: 'Password',
+    fullName: 'Full name', roleField: 'Role (admin sets final role)', viewer: 'Viewer', supervisor: 'Supervisor',
+    signOut: 'Sign out', splashSlogan: 'Inventory control for distributed operations',
+    stepCheckingCreds: 'Checking credentials...', stepAccountConfirmed: 'Account confirmed. Checking subscription...',
+    stepCheckingAccount: 'Checking account...', stepCheckingSub: 'Checking subscription validity...',
+    stepSubConfirmed: 'Subscription confirmed.', stepLoadingInventory: 'Loading inventory database...',
+    stepLoadingAccess: 'Loading access and permissions...', stepReady: 'Ready.',
+    errFillFields: 'Please enter email and password.', errFillAllFields: 'Please fill in all fields.',
+    errInviteLink: 'Invalid invite link. Ask your administrator for a new one.',
+    errLoadProfile: 'Error loading profile. Please try again.',
+    errNoCompany: 'Account not linked to a company. Open the invite link and try again.',
+    errSuspended: 'Your company account is suspended. Contact support.',
+    errAlreadyRegistered: 'This email is already registered. Try signing in instead.',
+    successAccountCreated: 'Account created! You can now sign in.',
+    trialExpiredTitle: 'Your trial has expired', trialExpiredBody: 'All your data is safely stored. Activate a plan to regain full access to FieldTrack.',
+    trialExpiredCta: 'Contact us to activate a plan →', trialExpiredNote: 'support@thetectus.com · Your data is kept for 30 days after expiry.',
+    tabInventory: 'Inventory', tabDashboard: 'Dashboard', tabUpload: 'Bulk upload', tabApprovals: 'Approvals',
+    tabConsumption: 'Consumption', tabHistory: 'Movement history', tabReports: 'Reports', tabUsers: 'Users',
+    search: 'Search', country: 'Country', location: 'Location', type: 'Type', stock: 'Stock',
+    allCountries: 'All countries', allLocations: 'All locations', allTypes: 'All types', all: 'All',
+    lowStock: 'Low stock', clear: 'Clear', addItem: '+ Add item', serialNo: 'Serial #', name: 'Name',
+    qty: 'Qty', unitCost: 'Unit cost', totalValue: 'Total value', actions: 'Actions', loading: 'Loading...',
+    uploadNotice: 'Supervisors: download the template, fill it in on-site, then upload it back. Changes are previewed before applying.',
+    uploadStep1: 'Step 1 — Download template', downloadUpdateTemplate: 'Download update template (.xlsx)',
+    downloadNewTemplate: 'Download new items template (.xlsx)', uploadStep2: 'Step 2 — Upload filled template',
+    uploadDropHint: 'Click to choose or drag & drop .xlsx file', uploadStep3: 'Step 3 — Review & confirm',
+    cancel: 'Cancel', applyChanges: 'Apply changes', consumedQty: 'Consumed qty', consumedValue: 'Consumed value',
+    date: 'Date', action: 'Action', allActions: 'All actions',
+    usersNotice: 'Manage team access. Only admins can change roles and country assignments.',
+    inviteUser: '+ Invite user', inviteBoxText: "Send this link to the new user — opening it lets them create their own account already linked to this company:",
+    copied: 'Copied!', loadingDashboard: 'Loading dashboard...', transferRequests: 'Transfer requests',
+    status: 'Status', pending: 'Pending', approved: 'Approved', rejected: 'Rejected',
+    exportReports: 'Export reports', exportReportsDesc: 'Generate detailed reports of your inventory, consumption, and movements.',
+    filterReportData: 'Filter report data', dateFrom: 'Date from', dateTo: 'Date to',
+    repInvXlsxTitle: 'Inventory snapshot — Excel', repInvXlsxDesc: 'Current stock by location with quantities and values.',
+    repInvPdfTitle: 'Inventory snapshot — PDF', repInvPdfDesc: 'Printable inventory report for meetings and audits.',
+    repConXlsxTitle: 'Consumption report — Excel', repConXlsxDesc: 'All consumed items with cost breakdown.',
+    repConPdfTitle: 'Consumption report — PDF', repConPdfDesc: 'Printable consumption summary for management review.',
+    repMovXlsxTitle: 'Movement history — Excel', repMovXlsxDesc: 'Full audit trail of all transfers and consumptions.',
+    repMovPdfTitle: 'Movement history — PDF', repMovPdfDesc: 'Printable movement history for compliance and audits.',
+    addNewItem: 'Add new item', editItem: 'Edit item', quantity: 'Quantity', select: 'Select',
+    unitCostDollar: 'Unit cost ($)', minStockAlert: 'Min stock alert', saveItem: 'Save item',
+    transferItem: 'Transfer item', itemName: 'Item name', fromLocation: 'From location', toCountry: 'To country',
+    toLocation: 'To location', notes: 'Notes', confirmTransfer: 'Confirm transfer',
+    usersOfMax: '{used} / {max} users', usersCountPlain: '{n} users', errMaxUsers: 'This company has reached the plan limit of {max} users. Contact support@thetectus.com to upgrade.',
+    errorLoadingUsers: 'Error loading users: {msg}', noUsersFound: 'No users found.', role: 'Role',
+    assignedCountries: 'Assigned countries', editRole: 'Edit role',
+  },
+  pt: {
+    appTitle: 'Inventory tracker', appSubtitle: 'Gestão de activos para o sector petrolífero e gás',
+    signIn: 'Entrar', createAccount: 'Criar conta', email: 'Email', password: 'Password',
+    fullName: 'Nome completo', roleField: 'Cargo (o admin define o cargo final)', viewer: 'Visualizador', supervisor: 'Supervisor',
+    signOut: 'Sair', splashSlogan: 'Controlo de inventário para operações distribuídas',
+    stepCheckingCreds: 'A verificar credenciais...', stepAccountConfirmed: 'Conta confirmada. A verificar subscrição...',
+    stepCheckingAccount: 'A confirmar existência da conta...', stepCheckingSub: 'A verificar validade da subscrição...',
+    stepSubConfirmed: 'Subscrição confirmada.', stepLoadingInventory: 'A carregar base de dados de inventário...',
+    stepLoadingAccess: 'A carregar acessos e permissões...', stepReady: 'Pronto.',
+    errFillFields: 'Indica o email e a password.', errFillAllFields: 'Preenche todos os campos.',
+    errInviteLink: 'Link de convite inválido. Pede um novo link ao administrador.',
+    errLoadProfile: 'Erro ao carregar perfil. Tenta novamente.',
+    errNoCompany: 'Conta sem empresa associada. Abre o link de convite e tenta novamente.',
+    errSuspended: 'A conta da sua empresa está suspensa. Contacte o suporte.',
+    errAlreadyRegistered: 'Este email já está registado. Tenta entrar directamente.',
+    successAccountCreated: 'Conta criada! Já podes entrar clicando em Entrar.',
+    trialExpiredTitle: 'O teu trial expirou', trialExpiredBody: 'Os teus dados estão todos guardados em segurança. Activa um plano para recuperar o acesso completo ao FieldTrack.',
+    trialExpiredCta: 'Contactar para activar plano →', trialExpiredNote: 'support@thetectus.com · Os teus dados ficam guardados por 30 dias após a expiração.',
+    tabInventory: 'Inventário', tabDashboard: 'Dashboard', tabUpload: 'Carregamento em massa', tabApprovals: 'Aprovações',
+    tabConsumption: 'Consumo', tabHistory: 'Histórico de movimentos', tabReports: 'Relatórios', tabUsers: 'Utilizadores',
+    search: 'Pesquisar', country: 'País', location: 'Localização', type: 'Tipo', stock: 'Stock',
+    allCountries: 'Todos os países', allLocations: 'Todas as localizações', allTypes: 'Todos os tipos', all: 'Todos',
+    lowStock: 'Stock baixo', clear: 'Limpar', addItem: '+ Adicionar item', serialNo: 'Nº de série', name: 'Nome',
+    qty: 'Qtd', unitCost: 'Custo unit.', totalValue: 'Valor total', actions: 'Acções', loading: 'A carregar...',
+    uploadNotice: 'Supervisores: descarrega o modelo, preenche-o no terreno, e depois carrega-o de volta. As alterações são pré-visualizadas antes de aplicar.',
+    uploadStep1: 'Passo 1 — Descarregar modelo', downloadUpdateTemplate: 'Descarregar modelo de actualização (.xlsx)',
+    downloadNewTemplate: 'Descarregar modelo de novos itens (.xlsx)', uploadStep2: 'Passo 2 — Carregar modelo preenchido',
+    uploadDropHint: 'Clica para escolher ou arrasta o ficheiro .xlsx', uploadStep3: 'Passo 3 — Rever e confirmar',
+    cancel: 'Cancelar', applyChanges: 'Aplicar alterações', consumedQty: 'Qtd consumida', consumedValue: 'Valor consumido',
+    date: 'Data', action: 'Acção', allActions: 'Todas as acções',
+    usersNotice: 'Gere o acesso da equipa. Só os admins podem alterar cargos e países atribuídos.',
+    inviteUser: '+ Convidar utilizador', inviteBoxText: 'Envia este link ao novo utilizador — ao abri-lo, ele cria a própria conta já associada a esta empresa:',
+    copied: 'Copiado!', loadingDashboard: 'A carregar dashboard...', transferRequests: 'Pedidos de transferência',
+    status: 'Estado', pending: 'Pendente', approved: 'Aprovado', rejected: 'Rejeitado',
+    exportReports: 'Exportar relatórios', exportReportsDesc: 'Gera relatórios detalhados do teu inventário, consumo e movimentos.',
+    filterReportData: 'Filtrar dados do relatório', dateFrom: 'Data de', dateTo: 'Data até',
+    repInvXlsxTitle: 'Inventário — Excel', repInvXlsxDesc: 'Stock actual por localização com quantidades e valores.',
+    repInvPdfTitle: 'Inventário — PDF', repInvPdfDesc: 'Relatório de inventário imprimível para reuniões e auditorias.',
+    repConXlsxTitle: 'Relatório de consumo — Excel', repConXlsxDesc: 'Todos os itens consumidos com detalhe de custo.',
+    repConPdfTitle: 'Relatório de consumo — PDF', repConPdfDesc: 'Resumo de consumo imprimível para revisão da gestão.',
+    repMovXlsxTitle: 'Histórico de movimentos — Excel', repMovXlsxDesc: 'Registo completo de todas as transferências e consumos.',
+    repMovPdfTitle: 'Histórico de movimentos — PDF', repMovPdfDesc: 'Histórico de movimentos imprimível para conformidade e auditorias.',
+    addNewItem: 'Adicionar novo item', editItem: 'Editar item', quantity: 'Quantidade', select: 'Seleccionar',
+    unitCostDollar: 'Custo unitário ($)', minStockAlert: 'Alerta de stock mínimo', saveItem: 'Guardar item',
+    transferItem: 'Transferir item', itemName: 'Nome do item', fromLocation: 'Localização de origem', toCountry: 'País de destino',
+    toLocation: 'Localização de destino', notes: 'Notas', confirmTransfer: 'Confirmar transferência',
+    usersOfMax: '{used} / {max} utilizadores', usersCountPlain: '{n} utilizadores', errMaxUsers: 'Esta empresa já atingiu o limite de {max} utilizadores do plano actual. Contacta support@thetectus.com para fazer upgrade.',
+    errorLoadingUsers: 'Erro ao carregar utilizadores: {msg}', noUsersFound: 'Nenhum utilizador encontrado.', role: 'Cargo',
+    assignedCountries: 'Países atribuídos', editRole: 'Editar cargo',
+  },
+  fr: {
+    appTitle: 'Inventory tracker', appSubtitle: 'Gestion des actifs pour le secteur pétrolier et gazier',
+    signIn: 'Se connecter', createAccount: 'Créer un compte', email: 'Email', password: 'Mot de passe',
+    fullName: 'Nom complet', roleField: 'Rôle (l\'admin définit le rôle final)', viewer: 'Lecteur', supervisor: 'Superviseur',
+    signOut: 'Se déconnecter', splashSlogan: 'Contrôle des stocks pour opérations distribuées',
+    stepCheckingCreds: 'Vérification des identifiants...', stepAccountConfirmed: 'Compte confirmé. Vérification de l\'abonnement...',
+    stepCheckingAccount: 'Vérification du compte...', stepCheckingSub: 'Vérification de la validité de l\'abonnement...',
+    stepSubConfirmed: 'Abonnement confirmé.', stepLoadingInventory: 'Chargement de la base de données d\'inventaire...',
+    stepLoadingAccess: 'Chargement des accès et permissions...', stepReady: 'Prêt.',
+    errFillFields: 'Veuillez saisir votre email et mot de passe.', errFillAllFields: 'Veuillez remplir tous les champs.',
+    errInviteLink: "Lien d'invitation invalide. Demandez un nouveau lien à votre administrateur.",
+    errLoadProfile: 'Erreur lors du chargement du profil. Veuillez réessayer.',
+    errNoCompany: "Compte non associé à une entreprise. Ouvrez le lien d'invitation et réessayez.",
+    errSuspended: 'Le compte de votre entreprise est suspendu. Contactez le support.',
+    errAlreadyRegistered: 'Cet email est déjà enregistré. Essayez de vous connecter directement.',
+    successAccountCreated: 'Compte créé ! Vous pouvez maintenant vous connecter.',
+    trialExpiredTitle: 'Votre essai a expiré', trialExpiredBody: 'Toutes vos données sont conservées en sécurité. Activez un plan pour retrouver un accès complet à FieldTrack.',
+    trialExpiredCta: 'Nous contacter pour activer un plan →', trialExpiredNote: 'support@thetectus.com · Vos données sont conservées 30 jours après expiration.',
+    tabInventory: 'Inventaire', tabDashboard: 'Tableau de bord', tabUpload: 'Import en masse', tabApprovals: 'Approbations',
+    tabConsumption: 'Consommation', tabHistory: 'Historique des mouvements', tabReports: 'Rapports', tabUsers: 'Utilisateurs',
+    search: 'Rechercher', country: 'Pays', location: 'Emplacement', type: 'Type', stock: 'Stock',
+    allCountries: 'Tous les pays', allLocations: 'Tous les emplacements', allTypes: 'Tous les types', all: 'Tous',
+    lowStock: 'Stock faible', clear: 'Effacer', addItem: '+ Ajouter un article', serialNo: 'N° de série', name: 'Nom',
+    qty: 'Qté', unitCost: 'Coût unitaire', totalValue: 'Valeur totale', actions: 'Actions', loading: 'Chargement...',
+    uploadNotice: 'Superviseurs : téléchargez le modèle, remplissez-le sur le terrain, puis renvoyez-le. Les modifications sont prévisualisées avant application.',
+    uploadStep1: 'Étape 1 — Télécharger le modèle', downloadUpdateTemplate: 'Télécharger le modèle de mise à jour (.xlsx)',
+    downloadNewTemplate: 'Télécharger le modèle de nouveaux articles (.xlsx)', uploadStep2: 'Étape 2 — Importer le modèle rempli',
+    uploadDropHint: 'Cliquez pour choisir ou glissez-déposez un fichier .xlsx', uploadStep3: 'Étape 3 — Vérifier et confirmer',
+    cancel: 'Annuler', applyChanges: 'Appliquer les modifications', consumedQty: 'Qté consommée', consumedValue: 'Valeur consommée',
+    date: 'Date', action: 'Action', allActions: 'Toutes les actions',
+    usersNotice: "Gérez l'accès de l'équipe. Seuls les admins peuvent modifier les rôles et pays assignés.",
+    inviteUser: '+ Inviter un utilisateur', inviteBoxText: "Envoyez ce lien au nouvel utilisateur — en l'ouvrant, il pourra créer son propre compte déjà associé à cette entreprise :",
+    copied: 'Copié !', loadingDashboard: 'Chargement du tableau de bord...', transferRequests: 'Demandes de transfert',
+    status: 'Statut', pending: 'En attente', approved: 'Approuvé', rejected: 'Rejeté',
+    exportReports: 'Exporter des rapports', exportReportsDesc: "Générez des rapports détaillés de votre inventaire, consommation et mouvements.",
+    filterReportData: 'Filtrer les données du rapport', dateFrom: 'Date de début', dateTo: 'Date de fin',
+    repInvXlsxTitle: 'Inventaire — Excel', repInvXlsxDesc: 'Stock actuel par emplacement avec quantités et valeurs.',
+    repInvPdfTitle: 'Inventaire — PDF', repInvPdfDesc: "Rapport d'inventaire imprimable pour réunions et audits.",
+    repConXlsxTitle: 'Rapport de consommation — Excel', repConXlsxDesc: 'Tous les articles consommés avec détail des coûts.',
+    repConPdfTitle: 'Rapport de consommation — PDF', repConPdfDesc: 'Résumé de consommation imprimable pour la direction.',
+    repMovXlsxTitle: 'Historique des mouvements — Excel', repMovXlsxDesc: 'Piste d\'audit complète de tous les transferts et consommations.',
+    repMovPdfTitle: 'Historique des mouvements — PDF', repMovPdfDesc: 'Historique des mouvements imprimable pour conformité et audits.',
+    addNewItem: 'Ajouter un nouvel article', editItem: "Modifier l'article", quantity: 'Quantité', select: 'Sélectionner',
+    unitCostDollar: 'Coût unitaire ($)', minStockAlert: 'Alerte de stock minimum', saveItem: "Enregistrer l'article",
+    transferItem: "Transférer l'article", itemName: "Nom de l'article", fromLocation: "Emplacement d'origine", toCountry: 'Pays de destination',
+    toLocation: 'Emplacement de destination', notes: 'Remarques', confirmTransfer: 'Confirmer le transfert',
+    usersOfMax: '{used} / {max} utilisateurs', usersCountPlain: '{n} utilisateurs', errMaxUsers: "Cette entreprise a atteint la limite de {max} utilisateurs du plan actuel. Contactez support@thetectus.com pour mettre à niveau.",
+    errorLoadingUsers: 'Erreur lors du chargement des utilisateurs : {msg}', noUsersFound: 'Aucun utilisateur trouvé.', role: 'Rôle',
+    assignedCountries: 'Pays assignés', editRole: 'Modifier le rôle',
+  },
+};
+const LANG_META = { en: { flag: '🇬🇧', code: 'EN', name: 'English' }, pt: { flag: '🇦🇴', code: 'PT', name: 'Português' }, fr: { flag: '🇫🇷', code: 'FR', name: 'Français' } };
+let currentLang = (function(){ try { return localStorage.getItem('ft_lang') || 'en'; } catch(e) { return 'en'; } })();
+function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key; }
+function tf(key, params) { let s = t(key); Object.keys(params||{}).forEach(k => { s = s.replace('{'+k+'}', params[k]); }); return s; }
+function applyLang(lang) {
+  currentLang = lang;
+  try { localStorage.setItem('ft_lang', lang); } catch(e) {}
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+  document.documentElement.lang = lang;
+  ['auth-lang-flag','app-lang-flag'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = LANG_META[lang].flag; });
+  ['auth-lang-code','app-lang-code'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = LANG_META[lang].code; });
+  buildLangDropdown('auth-lang-dropdown');
+  buildLangDropdown('app-lang-dropdown');
+  // Re-render dynamic panes so their JS-generated labels pick up the new language
+  if (currentProfile) {
+    updateKPIs();
+    const active = document.querySelector('.tab.active');
+    const activeTab = active && (active.getAttribute('onclick')||'').match(/showTab\('(\w+)'\)/);
+    if (activeTab) { if(activeTab[1]==='users') renderUsers(); else if(activeTab[1]==='dashboard') renderDashboard(); else if(activeTab[1]==='approvals') renderApprovals(); else if(activeTab[1]==='consumption') renderConsumption(); else if(activeTab[1]==='history') renderHistory(); }
+  }
+}
+function buildLangDropdown(dropdownId) {
+  const el = document.getElementById(dropdownId);
+  if (!el) return;
+  el.innerHTML = Object.keys(LANG_META).map(l => `<div class="lang-opt ${l===currentLang?'active':''}" onclick="applyLang('${l}');closeLangMenus()"><span>${LANG_META[l].flag}</span> ${LANG_META[l].name}</div>`).join('');
+}
+function toggleLangMenu(dropdownId) {
+  const el = document.getElementById(dropdownId);
+  const isOpen = el.classList.contains('open');
+  closeLangMenus();
+  if (!isOpen) el.classList.add('open');
+}
+function closeLangMenus() { document.querySelectorAll('.lang-dropdown').forEach(d => d.classList.remove('open')); }
+document.addEventListener('click', e => { if (!e.target.closest('.lang-switch')) closeLangMenus(); });
 
 const LOCATIONS = {
   "Angola":["Main Warehouse - Luanda","Offshore Workshop A","Workshop Luanda"],
@@ -544,6 +751,7 @@ function hideSplash() {
   setTimeout(() => splash.remove(), 650);
 }
 async function init() {
+  applyLang(currentLang);
   setTimeout(hideSplash, 3000);
   const { data: { session } } = await sb.auth.getSession();
   if (session) await loadApp(session.user);
@@ -570,7 +778,7 @@ function showAuthLoading() {
   document.getElementById('signup-form').style.display = 'none';
   document.getElementById('auth-tabs').style.display = 'none';
   document.getElementById('auth-loading').style.display = 'flex';
-  setAuthStep(8, 'A verificar credenciais...');
+  setAuthStep(8, t('stepCheckingCreds'));
 }
 function hideAuthLoading() {
   document.getElementById('auth-loading').style.display = 'none';
@@ -582,11 +790,11 @@ function hideAuthLoading() {
 async function signIn() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
-  if (!email || !password) return showAuthMsg('Please enter email and password.', 'error');
+  if (!email || !password) return showAuthMsg(t('errFillFields'), 'error');
   showAuthLoading();
   const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) { hideAuthLoading(); showAuthMsg(error.message, 'error'); return; }
-  setAuthStep(25, 'Conta confirmada. A verificar subscrição...');
+  setAuthStep(25, t('stepAccountConfirmed'));
   // loadApp() (triggered by onAuthStateChange) takes it from here and
   // drives the remaining steps via setAuthStep().
 }
@@ -596,10 +804,10 @@ async function signUp() {
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
   const role = document.getElementById('signup-role').value;
-  if (!name || !email || !password) return showAuthMsg('Preenche todos os campos.', 'error');
+  if (!name || !email || !password) return showAuthMsg(t('errFillAllFields'), 'error');
   const params = new URLSearchParams(window.location.search);
   const tenantId = params.get('tenant');
-  if (!tenantId) return showAuthMsg('Link de convite inválido. Pede um novo link ao administrador.', 'error');
+  if (!tenantId) return showAuthMsg(t('errInviteLink'), 'error');
   const { data: signUpData, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name, role, tenant_id: tenantId } } });
   if (error) return showAuthMsg(error.message, 'error');
   if (signUpData?.user) {
@@ -607,8 +815,8 @@ async function signUp() {
     const { data: prof } = await sb.from('profiles').select('tenant_id').eq('id', signUpData.user.id).single();
     if (prof && !prof.tenant_id) await sb.from('profiles').update({ tenant_id: tenantId, full_name: name }).eq('id', signUpData.user.id);
   }
-  if (signUpData?.user?.identities?.length === 0) showAuthMsg('Este email já está registado. Tenta entrar directamente.', 'error');
-  else showAuthMsg('Conta criada! Já podes entrar clicando em Sign in.', 'success');
+  if (signUpData?.user?.identities?.length === 0) showAuthMsg(t('errAlreadyRegistered'), 'error');
+  else showAuthMsg(t('successAccountCreated'), 'success');
 }
 
 async function signOut() { await sb.auth.signOut(); showAuthScreen(); }
@@ -619,9 +827,9 @@ function hideAuthMsg() { document.getElementById('auth-msg').style.display = 'no
 // ═══ LOAD APP ═══
 async function loadApp(user) {
   currentUser = user;
-  setAuthStep(40, 'A confirmar existência da conta...');
+  setAuthStep(40, t('stepCheckingAccount'));
   const { data: profile, error: profileErr } = await sb.from('profiles').select('id, full_name, role, tenant_id, assigned_countries').eq('id', user.id).single();
-  if (profileErr || !profile) { showAuthScreen(); showAuthMsg('Erro ao carregar perfil. Tenta novamente.', 'error'); return; }
+  if (profileErr || !profile) { showAuthScreen(); showAuthMsg(t('errLoadProfile'), 'error'); return; }
 
   if (!profile.tenant_id) {
     const params = new URLSearchParams(window.location.search);
@@ -630,15 +838,15 @@ async function loadApp(user) {
       const { error: updErr } = await sb.from('profiles').update({ tenant_id: tenantId }).eq('id', user.id);
       if (!updErr) profile.tenant_id = tenantId;
     }
-    if (!profile.tenant_id) { showAuthScreen(); showAuthMsg('Conta sem empresa associada. Abre o link de convite e tenta novamente.', 'error'); await sb.auth.signOut(); return; }
+    if (!profile.tenant_id) { showAuthScreen(); showAuthMsg(t('errNoCompany'), 'error'); await sb.auth.signOut(); return; }
   }
 
-  setAuthStep(55, 'A verificar validade da subscrição...');
+  setAuthStep(55, t('stepCheckingSub'));
   // ── Fetch tenant including trial fields ──
   const { data: tenant } = await sb.from('tenants').select('name, plan, active, is_trial, trial_ends_at, max_users').eq('id', profile.tenant_id).single();
 
-  if (tenant && !tenant.active) { showAuthScreen(); showAuthMsg('A conta da sua empresa está suspensa. Contacte o suporte.', 'error'); await sb.auth.signOut(); return; }
-  setAuthStep(70, 'Subscrição confirmada.');
+  if (tenant && !tenant.active) { showAuthScreen(); showAuthMsg(t('errSuspended'), 'error'); await sb.auth.signOut(); return; }
+  setAuthStep(70, t('stepSubConfirmed'));
 
   // ── TRIAL CHECK ──
   if (tenant?.is_trial && tenant?.trial_ends_at) {
@@ -679,11 +887,11 @@ async function loadApp(user) {
   document.getElementById('tab-users').style.display  = profile.role === 'admin' ? '' : 'none';
   document.getElementById('tab-upload').style.display = profile.role === 'viewer' ? 'none' : '';
   populateFilters();
-  setAuthStep(85, 'A carregar base de dados de inventário...');
+  setAuthStep(85, t('stepLoadingInventory'));
   await loadInventory();
-  setAuthStep(97, 'A carregar acessos e permissões...');
+  setAuthStep(97, t('stepLoadingAccess'));
   if (profile.role === 'admin') checkPendingApprovals();
-  setAuthStep(100, 'Pronto.');
+  setAuthStep(100, t('stepReady'));
 }
 
 // ═══ DATA ═══
@@ -849,7 +1057,7 @@ function showTab(tab) {
 // ═══ ITEM MODAL ═══
 function openItemModal(id) {
   editingId = id||null;
-  document.getElementById('modal-title').textContent = id?'Edit item':'Add new item';
+  document.getElementById('modal-title').textContent = id?t('editItem'):t('addNewItem');
   if(id){const it=inventory.find(i=>i.id===id);if(!it)return;document.getElementById('a-serial').value=it.serial_number;document.getElementById('a-name').value=it.name;document.getElementById('a-type').value=it.type;document.getElementById('a-qty').value=it.qty;document.getElementById('a-cost').value=it.unit_cost;document.getElementById('a-min').value=it.min_qty_alert;document.getElementById('a-country').value=it.country;fillAddLocations();document.getElementById('a-location').value=it.location;}
   else{['a-serial','a-name','a-cost'].forEach(i=>document.getElementById(i).value='');document.getElementById('a-qty').value=1;document.getElementById('a-min').value=2;document.getElementById('a-type').value='Spare part';document.getElementById('a-country').value='';document.getElementById('a-location').innerHTML='<option value="">Select</option>';}
   document.getElementById('item-modal').classList.add('open');
@@ -983,7 +1191,7 @@ function selfInviteUrl(){return `${window.location.origin}${window.location.path
 function showInviteLink(){
   const max=currentProfile?.tenants?.max_users;
   const used=teamProfiles?Object.keys(teamProfiles).length:0;
-  if(max && used>=max){alert(`Esta empresa já atingiu o limite de ${max} utilizadores do plano actual. Contacta support@thetectus.com para fazer upgrade.`);return;}
+  if(max && used>=max){alert(tf('errMaxUsers',{max}));return;}
   document.getElementById('invite-link-code').textContent=selfInviteUrl();
   document.getElementById('invite-box').style.display='block';
   document.getElementById('invite-copied').style.display='none';
@@ -996,15 +1204,15 @@ function copySelfInviteLink(){
 async function renderUsers(){
   if(currentProfile?.role!=='admin')return;const el=document.getElementById('users-list');
   const{data,error}=await sb.rpc('list_tenant_profiles');
-  if(error){el.innerHTML=`<p style="color:var(--red-text);font-size:13px">Error loading users: ${error.message}</p>`;return;}
+  if(error){el.innerHTML=`<p style="color:var(--red-text);font-size:13px">${tf('errorLoadingUsers',{msg:error.message})}</p>`;return;}
   teamProfiles={};(data||[]).forEach(p=>teamProfiles[p.id]=p.full_name);
   const max=currentProfile?.tenants?.max_users;
   const countEl=document.getElementById('users-count');
-  if(countEl)countEl.textContent=max?`${data?.length||0} / ${max} utilizadores do plano`:`${data?.length||0} utilizadores`;
+  if(countEl)countEl.textContent=max?tf('usersOfMax',{used:data?.length||0,max}):tf('usersCountPlain',{n:data?.length||0});
   const inviteBtn=document.getElementById('btn-invite');
   if(inviteBtn)inviteBtn.disabled=!!(max && (data?.length||0)>=max);
-  if(!data?.length){el.innerHTML='<p style="color:var(--text3);font-size:13px">No users found.</p>';return;}
-  el.innerHTML=`<div class="table-wrap"><table style="min-width:500px"><thead><tr><th>Name</th><th>Role</th><th>Assigned countries</th><th>Actions</th></tr></thead><tbody>${data.map(u=>`<tr><td>${u.full_name}</td><td><span class="badge ${u.role==='admin'?'badge-tool':u.role==='supervisor'?'badge-low':'badge-ok'}">${u.role}</span></td><td style="font-size:12px">${u.assigned_countries?.length?u.assigned_countries.join(', '):'All countries'}</td><td><button class="btn btn-sm" onclick="editUser('${u.id}','${u.role}')">Edit role</button></td></tr>`).join('')}</tbody></table></div>`;
+  if(!data?.length){el.innerHTML=`<p style="color:var(--text3);font-size:13px">${t('noUsersFound')}</p>`;return;}
+  el.innerHTML=`<div class="table-wrap"><table style="min-width:500px"><thead><tr><th>${t('name')}</th><th>${t('role')}</th><th>${t('assignedCountries')}</th><th>${t('actions')}</th></tr></thead><tbody>${data.map(u=>`<tr><td>${u.full_name}</td><td><span class="badge ${u.role==='admin'?'badge-tool':u.role==='supervisor'?'badge-low':'badge-ok'}">${u.role}</span></td><td style="font-size:12px">${u.assigned_countries?.length?u.assigned_countries.join(', '):t('allCountries')}</td><td><button class="btn btn-sm" onclick="editUser('${u.id}','${u.role}')">${t('editRole')}</button></td></tr>`).join('')}</tbody></table></div>`;
 }
 async function editUser(id,currentRole){const newRole=prompt(`Change role for user.\nCurrent: ${currentRole}\nEnter new role (admin / supervisor / viewer):`);if(!newRole||!['admin','supervisor','viewer'].includes(newRole))return;const countriesStr=newRole==='supervisor'?prompt('Enter assigned countries (comma-separated), or leave blank for all:\nOptions: '+Object.keys(LOCATIONS).join(', ')):'';const countries=countriesStr?countriesStr.split(',').map(c=>c.trim()).filter(Boolean):[];const{error}=await sb.rpc('update_user_role',{p_target_id:id,p_new_role:newRole,p_countries:countries});if(error)return alert('Error updating role: '+error.message);teamProfiles=null;renderUsers();}
 
