@@ -55,20 +55,20 @@
 
   /* BACKGROUND APP MOCKUPS (behind the login card) */
   .bg-mocks { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
-  .bg-mock { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 460px; max-width: 90vw; background: #0f1c2e; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 1.25rem 1.5rem; opacity: 0; transition: opacity 1.4s ease; box-shadow: 0 30px 80px rgba(8,20,40,0.35); }
+  .bg-mock { position: absolute; top: 46%; left: 50%; transform: translate(-50%,-50%); width: min(900px, 94vw); background: #0f1c2e; border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 2.25rem 2.5rem; opacity: 0; transition: opacity 1.4s ease; box-shadow: 0 40px 100px rgba(8,20,40,0.4); }
   .bg-mock.active { opacity: 0.4; }
-  .bgm-header { display: flex; align-items: center; gap: 7px; padding-bottom: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.07); margin-bottom: 1rem; }
-  .bgm-dot { width: 9px; height: 9px; border-radius: 50%; }
-  .bgm-title { font-size: 11px; color: rgba(255,255,255,0.35); margin-left: auto; font-family: monospace; }
-  .bgm-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 1rem; }
-  .bgm-kpi { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 0.75rem 0.9rem; }
-  .bgm-kpi-val { font-size: 17px; font-weight: 700; color: #fff; }
-  .bgm-kpi-lab { font-size: 10.5px; color: rgba(255,255,255,0.35); margin-top: 2px; }
-  .bgm-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12.5px; }
+  .bgm-header { display: flex; align-items: center; gap: 10px; padding-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.07); margin-bottom: 1.5rem; }
+  .bgm-dot { width: 13px; height: 13px; border-radius: 50%; }
+  .bgm-title { font-size: 15px; color: rgba(255,255,255,0.4); margin-left: auto; font-family: monospace; }
+  .bgm-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.5rem; }
+  .bgm-kpi { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .bgm-kpi-val { font-size: 26px; font-weight: 700; color: #fff; }
+  .bgm-kpi-lab { font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 4px; }
+  .bgm-row { display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 16px; }
   .bgm-row:last-child { border-bottom: none; }
-  .bgm-label { color: rgba(255,255,255,0.4); font-family: monospace; font-size: 11px; }
+  .bgm-label { color: rgba(255,255,255,0.4); font-family: monospace; font-size: 14px; }
   .bgm-value { color: #fff; font-weight: 500; }
-  .bgm-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .bgm-badge { font-size: 13px; padding: 4px 12px; border-radius: 12px; font-weight: 600; }
   .bgm-ok { background: rgba(74,222,128,0.15); color: #4ADE80; }
   .bgm-warn { background: rgba(251,191,36,0.15); color: #FBBF24; }
   .bgm-pending { background: rgba(96,165,250,0.15); color: #60A5FA; }
@@ -296,6 +296,7 @@
       <div class="bgm-row"><span class="bgm-label">SN-2024-019</span><span class="bgm-value">Bomba hidráulica</span><span class="bgm-badge bgm-ok">OK</span></div>
       <div class="bgm-row"><span class="bgm-label">SN-2024-008</span><span class="bgm-value">Manómetro digital</span><span class="bgm-badge bgm-warn">Low</span></div>
       <div class="bgm-row"><span class="bgm-label">SN-2024-052</span><span class="bgm-value">Filtro de óleo</span><span class="bgm-badge bgm-ok">OK</span></div>
+      <div class="bgm-row"><span class="bgm-label">SN-2024-064</span><span class="bgm-value">Sensor de pressão</span><span class="bgm-badge bgm-ok">OK</span></div>
     </div>
     <div class="bg-mock" data-mock="transfers">
       <div class="bgm-header"><div class="bgm-dot" style="background:#FF5F57"></div><div class="bgm-dot" style="background:#FEBC2E"></div><div class="bgm-dot" style="background:#28C840"></div><div class="bgm-title">FieldTrack · Approvals</div></div>
@@ -304,6 +305,7 @@
       <div class="bgm-row"><span class="bgm-label">SN-2024-031</span><span class="bgm-value">Riyadh → Jeddah</span><span class="bgm-badge bgm-pending">Pending</span></div>
       <div class="bgm-row"><span class="bgm-label">SN-2024-019</span><span class="bgm-value">Dubai → Abu Dhabi</span><span class="bgm-badge bgm-ok">Approved</span></div>
       <div class="bgm-row"><span class="bgm-label">SN-2024-008</span><span class="bgm-value">Bergen → Stavanger</span><span class="bgm-badge bgm-pending">Pending</span></div>
+      <div class="bgm-row"><span class="bgm-label">SN-2024-064</span><span class="bgm-value">Houston → New Orleans</span><span class="bgm-badge bgm-ok">Approved</span></div>
     </div>
     <div class="bg-mock" data-mock="dashboard">
       <div class="bgm-header"><div class="bgm-dot" style="background:#FF5F57"></div><div class="bgm-dot" style="background:#FEBC2E"></div><div class="bgm-dot" style="background:#28C840"></div><div class="bgm-title">FieldTrack · Dashboard</div></div>
@@ -316,6 +318,7 @@
       <div class="bgm-row"><span class="bgm-value">Angola</span><span class="bgm-value">$1.2M</span></div>
       <div class="bgm-row"><span class="bgm-value">Nigeria</span><span class="bgm-value">$640K</span></div>
       <div class="bgm-row"><span class="bgm-value">Saudi Arabia</span><span class="bgm-value">$410K</span></div>
+      <div class="bgm-row"><span class="bgm-value">Norway</span><span class="bgm-value">$290K</span></div>
     </div>
   </div>
   <div class="auth-wrap">
