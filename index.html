@@ -40,15 +40,14 @@
   #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; position: relative; overflow: hidden; }
   #auth-screen::before {
     content: ''; position: absolute; inset: 0; z-index: 0;
-    background-color: var(--bg3);
+    background-color: #eef4fa;
     background-image:
-      linear-gradient(rgba(12,68,124,0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(12,68,124,0.06) 1px, transparent 1px),
-      radial-gradient(circle at 15% 20%, rgba(12,68,124,0.10), transparent 45%),
-      radial-gradient(circle at 85% 80%, rgba(12,68,124,0.08), transparent 45%);
-    background-size: 34px 34px, 34px 34px, auto, auto;
-    -webkit-mask-image: linear-gradient(to bottom, black, black 70%, transparent 100%);
-    mask-image: linear-gradient(to bottom, black, black 70%, transparent 100%);
+      linear-gradient(rgba(12,68,124,0.14) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(12,68,124,0.14) 1px, transparent 1px),
+      radial-gradient(circle at 12% 15%, rgba(12,68,124,0.35), transparent 42%),
+      radial-gradient(circle at 88% 85%, rgba(20,90,153,0.30), transparent 42%),
+      radial-gradient(circle at 85% 12%, rgba(133,79,11,0.12), transparent 35%);
+    background-size: 32px 32px, 32px 32px, auto, auto, auto;
   }
   .auth-card { position: relative; z-index: 1; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; width: 100%; max-width: 380px; box-shadow: 0 20px 60px -20px rgba(12,68,124,0.25); }
   .auth-loading { display: none; flex-direction: column; align-items: center; gap: 14px; padding: 1rem 0 0.5rem; }
@@ -113,12 +112,18 @@
   .expired-note { font-size:11px; color:#9d9d98; margin-top:12px; line-height:1.6; }
 
   /* KPIs */
-  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 10px; margin-bottom: 1.25rem; }
-  .kpi { background: var(--bg2); border-radius: var(--radius); padding: 12px 14px; }
-  .kpi-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
-  .kpi-value { font-size: 22px; font-weight: 500; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px,1fr)); gap: 12px; margin-bottom: 1.25rem; }
+  .kpi { position: relative; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 14px 14px 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .kpi::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--kpi-accent, var(--blue-border)); }
+  .kpi-icon { width: 28px; height: 28px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; background: var(--kpi-accent-bg, var(--blue-bg)); color: var(--kpi-accent, var(--blue-text)); }
+  .kpi-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; font-weight: 500; }
+  .kpi-value { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
   .kpi-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
-  .kpi-value.amber { color: #854f0b; } .kpi-value.green { color: #3b6d11; } .kpi-value.red { color: #a32d2d; }
+  .kpi-value.amber { color: #854f0b; } .kpi-value.green { color: #27500a; } .kpi-value.red { color: #791f1f; }
+  .kpi.kpi-blue { --kpi-accent: var(--blue-text); --kpi-accent-bg: var(--blue-bg); }
+  .kpi.kpi-amber { --kpi-accent: var(--amber-text); --kpi-accent-bg: var(--amber-bg); }
+  .kpi.kpi-red { --kpi-accent: var(--red-text); --kpi-accent-bg: var(--red-bg); }
+  .kpi.kpi-green { --kpi-accent: var(--green-text); --kpi-accent-bg: var(--green-bg); }
 
   /* TABS */
   .tabs { display: flex; border-bottom: 0.5px solid var(--border); margin-bottom: 1rem; overflow-x: auto; }
@@ -592,6 +597,13 @@ const I18N = {
     usersOfMax: '{used} / {max} users', usersCountPlain: '{n} users', errMaxUsers: 'This company has reached the plan limit of {max} users. Contact support@thetectus.com to upgrade.',
     errorLoadingUsers: 'Error loading users: {msg}', noUsersFound: 'No users found.', role: 'Role',
     assignedCountries: 'Assigned countries', editRole: 'Edit role',
+    kpiTotalValue: 'Total inventory value', kpiFilteredValue: 'Filtered view value', kpiLowStockAlerts: 'Low stock alerts',
+    kpiTotalItems: 'Total items tracked', kpiFilteredItems: 'Filtered items',
+    kpiAcrossCountries: 'Across {n} countries', kpiActiveLocations: 'Active locations: {n}',
+    kpiItemsBelowMin: 'Items below minimum', kpiAllSufficient: 'All sufficient',
+    kpiInFilteredView: '{n} in filtered view ({total} total)',
+    kpiFilteredOf: '{items} of {total} items · {countries} {countryWord}',
+    country1: 'country', countryN: 'countries',
   },
   pt: {
     appTitle: 'Inventory tracker', appSubtitle: 'Gestão de activos para o sector petrolífero e gás',
@@ -642,6 +654,13 @@ const I18N = {
     usersOfMax: '{used} / {max} utilizadores', usersCountPlain: '{n} utilizadores', errMaxUsers: 'Esta empresa já atingiu o limite de {max} utilizadores do plano actual. Contacta support@thetectus.com para fazer upgrade.',
     errorLoadingUsers: 'Erro ao carregar utilizadores: {msg}', noUsersFound: 'Nenhum utilizador encontrado.', role: 'Cargo',
     assignedCountries: 'Países atribuídos', editRole: 'Editar cargo',
+    kpiTotalValue: 'Valor total do inventário', kpiFilteredValue: 'Valor da vista filtrada', kpiLowStockAlerts: 'Alertas de stock baixo',
+    kpiTotalItems: 'Total de itens registados', kpiFilteredItems: 'Itens filtrados',
+    kpiAcrossCountries: 'Em {n} países', kpiActiveLocations: 'Localizações activas: {n}',
+    kpiItemsBelowMin: 'Itens abaixo do mínimo', kpiAllSufficient: 'Tudo suficiente',
+    kpiInFilteredView: '{n} na vista filtrada ({total} no total)',
+    kpiFilteredOf: '{items} de {total} itens · {countries} {countryWord}',
+    country1: 'país', countryN: 'países',
   },
   fr: {
     appTitle: 'Inventory tracker', appSubtitle: 'Gestion des actifs pour le secteur pétrolier et gazier',
@@ -692,6 +711,13 @@ const I18N = {
     usersOfMax: '{used} / {max} utilisateurs', usersCountPlain: '{n} utilisateurs', errMaxUsers: "Cette entreprise a atteint la limite de {max} utilisateurs du plan actuel. Contactez support@thetectus.com pour mettre à niveau.",
     errorLoadingUsers: 'Erreur lors du chargement des utilisateurs : {msg}', noUsersFound: 'Aucun utilisateur trouvé.', role: 'Rôle',
     assignedCountries: 'Pays assignés', editRole: 'Modifier le rôle',
+    kpiTotalValue: "Valeur totale de l'inventaire", kpiFilteredValue: 'Valeur de la vue filtrée', kpiLowStockAlerts: 'Alertes de stock faible',
+    kpiTotalItems: "Total d'articles suivis", kpiFilteredItems: 'Articles filtrés',
+    kpiAcrossCountries: 'Dans {n} pays', kpiActiveLocations: 'Emplacements actifs : {n}',
+    kpiItemsBelowMin: 'Articles sous le minimum', kpiAllSufficient: 'Tout est suffisant',
+    kpiInFilteredView: '{n} dans la vue filtrée ({total} au total)',
+    kpiFilteredOf: '{items} sur {total} articles · {countries} {countryWord}',
+    country1: 'pays', countryN: 'pays',
   },
 };
 const LANG_META = { en: { flag: '🇬🇧', code: 'EN', name: 'English' }, pt: { flag: '🇦🇴', code: 'PT', name: 'Português' }, fr: { flag: '🇫🇷', code: 'FR', name: 'Français' } };
@@ -1017,6 +1043,12 @@ function renderTable() {
   totalEl.innerHTML = showCosts ? `Filtered total: <strong>$${total.toLocaleString()}</strong> across <strong>${filteredItems.length}</strong> item(s)` : `Showing <strong>${filteredItems.length}</strong> item(s)`;
 }
 
+const KPI_ICONS = {
+  value: '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="6" width="12" height="8" rx="1.2"/><path d="M2 6l6-3.5L14 6"/><path d="M5.5 9.5h5"/></svg>',
+  filter: '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 3h12M4 8h8M6.5 13h3"/></svg>',
+  warning: '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2 1 14h14L8 2z"/><path d="M8 6.5v3.5M8 12h.01"/></svg>',
+  boxes: '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="6" width="6" height="6" rx="0.8"/><rect x="8.5" y="6" width="6" height="6" rx="0.8"/><path d="M4.5 6V3.5a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1V6"/></svg>',
+};
 function updateKPIs() {
   const isViewer = currentProfile?.role === 'viewer';
   const isFiltered = filteredItems.length < inventory.length;
@@ -1030,19 +1062,20 @@ function updateKPIs() {
   const dispLow = isFiltered ? filtLow : totalLow;
   const dispItems = filteredItems.length;
   const dispCountries = isFiltered ? filtCountries : totalCountries;
-  const lowLabel = isFiltered ? `${dispLow} in filtered view (${totalLow} total)` : dispLow>0?'Items below minimum':'All sufficient';
-  const subLabel = isFiltered ? `${dispItems} of ${inventory.length} items · ${dispCountries} countr${dispCountries===1?'y':'ies'}` : `Active locations: ${filtLocations}`;
+  const lowLabel = isFiltered ? tf('kpiInFilteredView',{n:dispLow,total:totalLow}) : (dispLow>0?t('kpiItemsBelowMin'):t('kpiAllSufficient'));
+  const subLabel = isFiltered ? tf('kpiFilteredOf',{items:dispItems,total:inventory.length,countries:dispCountries,countryWord:t(dispCountries===1?'country1':'countryN')}) : tf('kpiActiveLocations',{n:filtLocations});
+  const kpi = (cls,icon,label,value,valClass,sub) => `<div class="kpi kpi-${cls}"><div class="kpi-icon">${icon}</div><div class="kpi-label">${label}</div><div class="kpi-value ${valClass||''}">${value}</div><div class="kpi-sub">${sub}</div></div>`;
   if (isViewer) {
-    document.getElementById('kpis').innerHTML = `
-      <div class="kpi"><div class="kpi-label">Total items tracked</div><div class="kpi-value">${inventory.length}</div><div class="kpi-sub">Across ${totalCountries} countries</div></div>
-      <div class="kpi"><div class="kpi-label">Filtered items</div><div class="kpi-value ${isFiltered?'amber':''}">${dispItems}</div><div class="kpi-sub">${subLabel}</div></div>
-      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${dispLow>0?'amber':'green'}">${dispLow}</div><div class="kpi-sub">${lowLabel}</div></div>`;
+    document.getElementById('kpis').innerHTML =
+      kpi('blue', KPI_ICONS.boxes, t('kpiTotalItems'), inventory.length, '', tf('kpiAcrossCountries',{n:totalCountries})) +
+      kpi(isFiltered?'amber':'blue', KPI_ICONS.filter, t('kpiFilteredItems'), dispItems, isFiltered?'amber':'', subLabel) +
+      kpi(dispLow>0?'red':'green', KPI_ICONS.warning, t('kpiLowStockAlerts'), dispLow, dispLow>0?'amber':'green', lowLabel);
   } else {
-    document.getElementById('kpis').innerHTML = `
-      <div class="kpi"><div class="kpi-label">Total inventory value</div><div class="kpi-value">$${totalVal.toLocaleString()}</div><div class="kpi-sub">Across ${totalCountries} countries</div></div>
-      <div class="kpi"><div class="kpi-label">Filtered view value</div><div class="kpi-value ${isFiltered?'amber':''}">$${filtVal.toLocaleString()}</div><div class="kpi-sub">${subLabel}</div></div>
-      <div class="kpi"><div class="kpi-label">Low stock alerts</div><div class="kpi-value ${dispLow>0?'amber':'green'}">${dispLow}</div><div class="kpi-sub">${lowLabel}</div></div>
-      <div class="kpi"><div class="kpi-label">Total items tracked</div><div class="kpi-value">${inventory.length}</div><div class="kpi-sub">Active locations: ${[...new Set(inventory.map(i=>i.location))].length}</div></div>`;
+    document.getElementById('kpis').innerHTML =
+      kpi('blue', KPI_ICONS.value, t('kpiTotalValue'), '$'+totalVal.toLocaleString(), '', tf('kpiAcrossCountries',{n:totalCountries})) +
+      kpi(isFiltered?'amber':'blue', KPI_ICONS.filter, t('kpiFilteredValue'), '$'+filtVal.toLocaleString(), isFiltered?'amber':'', subLabel) +
+      kpi(dispLow>0?'red':'green', KPI_ICONS.warning, t('kpiLowStockAlerts'), dispLow, dispLow>0?'amber':'green', lowLabel) +
+      kpi('blue', KPI_ICONS.boxes, t('kpiTotalItems'), inventory.length, '', tf('kpiActiveLocations',{n:[...new Set(inventory.map(i=>i.location))].length}));
   }
 }
 
