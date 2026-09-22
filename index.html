@@ -1233,17 +1233,18 @@ async function signUp() {
   const name = document.getElementById('signup-name').value.trim();
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
-  const role = document.getElementById('signup-role').value;
   if (!name || !email || !password) return showAuthMsg(t('errFillAllFields'), 'error');
   const params = new URLSearchParams(window.location.search);
-  const tenantId = params.get('tenant');
-  if (!tenantId) return showAuthMsg(t('errInviteLink'), 'error');
-  const { data: signUpData, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name, role, tenant_id: tenantId } } });
+  const inviteToken = params.get('invite');
+  if (!inviteToken) return showAuthMsg(t('errInviteLink'), 'error');
+  // role nunca vem do próprio utilizador — o convite (accept_invite,
+  // aplicado logo a seguir) é que decide o role e o tenant.
+  const { data: signUpData, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name } } });
   if (error) return showAuthMsg(error.message, 'error');
   if (signUpData?.user) {
     await new Promise(r => setTimeout(r, 800));
-    const { data: prof } = await sb.from('profiles').select('tenant_id').eq('id', signUpData.user.id).single();
-    if (prof && !prof.tenant_id) await sb.from('profiles').update({ tenant_id: tenantId, full_name: name }).eq('id', signUpData.user.id);
+    const { error: inviteErr } = await sb.rpc('accept_invite', { p_token: inviteToken });
+    if (inviteErr) { showAuthMsg(inviteErr.message, 'error'); return; }
   }
   if (signUpData?.user?.identities?.length === 0) showAuthMsg(t('errAlreadyRegistered'), 'error');
   else showAuthMsg(t('successAccountCreated'), 'success');
@@ -1262,13 +1263,12 @@ async function loadApp(user) {
   if (profileErr || !profile) { showAuthScreen(); showAuthMsg(t('errLoadProfile'), 'error'); return; }
 
   if (!profile.tenant_id) {
-    const params = new URLSearchParams(window.location.search);
-    const tenantId = params.get('tenant');
-    if (tenantId) {
-      const { error: updErr } = await sb.from('profiles').update({ tenant_id: tenantId }).eq('id', user.id);
-      if (!updErr) profile.tenant_id = tenantId;
-    }
-    if (!profile.tenant_id) { showAuthScreen(); showAuthMsg(t('errNoCompany'), 'error'); await sb.auth.signOut(); return; }
+    // Nunca associar a um tenant a partir de um parâmetro de URL —
+    // isso era a falha de "tenant takeover" corrigida na auditoria de
+    // 2026-09-22. A associação só acontece via accept_invite() /
+    // create_trial_tenant() / create_pending_tenant(), do lado do
+    // servidor, nunca por um update directo guiado pelo cliente.
+    showAuthScreen(); showAuthMsg(t('errNoCompany'), 'error'); await sb.auth.signOut(); return;
   }
 
   setAuthStep(55, t('stepCheckingSub'));
@@ -1635,17 +1635,25 @@ async function renderHistory(){
 }
 
 // ═══ USERS ═══
-function selfInviteUrl(){return `${window.location.origin}${window.location.pathname}?tenant=${currentProfile.tenant_id}`;}
-function showInviteLink(){
+// O link de convite é um token de uso único (tabela tenant_invites),
+// nunca o tenant_id em texto simples — ver auditoria de segurança
+// 2026-09-22. create_invite() só deixa admins do próprio tenant gerar
+// convites, e o role fica decidido aqui, nunca escolhido por quem se
+// regista.
+let lastInviteUrl = '';
+async function showInviteLink(){
   const max=currentProfile?.tenants?.max_users;
   const used=teamProfiles?Object.keys(teamProfiles).length:0;
   if(max && used>=max){alert(tf('errMaxUsers',{max}));return;}
-  document.getElementById('invite-link-code').textContent=selfInviteUrl();
+  const {data,error}=await sb.rpc('create_invite',{p_role:'viewer'});
+  if(error){alert('Error creating invite: '+error.message);return;}
+  lastInviteUrl=`${window.location.origin}${window.location.pathname}?invite=${data.token}`;
+  document.getElementById('invite-link-code').textContent=lastInviteUrl;
   document.getElementById('invite-box').style.display='block';
   document.getElementById('invite-copied').style.display='none';
 }
 function copySelfInviteLink(){
-  navigator.clipboard.writeText(selfInviteUrl()).then(()=>{
+  navigator.clipboard.writeText(lastInviteUrl).then(()=>{
     document.getElementById('invite-copied').style.display='block';
   });
 }
