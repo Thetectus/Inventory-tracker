@@ -165,22 +165,15 @@
 </div>
 
 <script>
+// ATENÇÃO: este ficheiro é servido publicamente (repo público +
+// /admin em produção). NUNCA voltar a pôr aqui a service_role key —
+// toda a lógica privilegiada vive na Edge Function admin-api, que
+// verifica a sessão + a tabela super_admins do lado do servidor.
 const SUPABASE_URL = 'https://cqpsofmaaktsjtlkariw.supabase.co';
-// ATENÇÃO: usa a SERVICE_ROLE key aqui — NUNCA partilhes este ficheiro
-// A service_role key está em Supabase → Settings → API → service_role
-const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxcHNvZm1hYWt0c2p0bGthcml3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTk4MzQxMiwiZXhwIjoyMDkxNTU5NDEyfQ.zpduCaj1pmdm9BQtNSmsKdpTUkhpBeHYxS2D_yN3udM';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxcHNvZm1hYWt0c2p0bGthcml3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5ODM0MTIsImV4cCI6MjA5MTU1OTQxMn0.O5t-sDLAgvmy-Z9P_FVV2AS9ciewG33ZQy0HDbOA7yo';
+const ADMIN_API_URL = `${SUPABASE_URL}/functions/v1/admin-api`;
 
-if (SUPABASE_SERVICE_KEY === 'COLOCA_AQUI_A_SERVICE_ROLE_KEY') {
-  document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;padding:2rem;text-align:center">
-    <div><div style="font-size:32px;margin-bottom:1rem">⚠️</div>
-    <h2 style="margin-bottom:.5rem">Service Role Key não configurada</h2>
-    <p style="color:#666;font-size:14px">Abre o ficheiro admin/index.html e substitui COLOCA_AQUI_A_SERVICE_ROLE_KEY<br>pela tua service_role key do Supabase (Settings → API → service_role)</p></div>
-  </div>`;
-  throw new Error('Service key not configured');
-}
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false }
-});
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const PLAN_LIMITS = {
   starter:      { max_users: 5,   max_locations: 3 },
@@ -190,25 +183,63 @@ const PLAN_LIMITS = {
 
 let tenants = [];
 
+async function callAdminApi(action, payload) {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) throw new Error('Not signed in');
+  const res = await fetch(ADMIN_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ action, ...payload }),
+  });
+  const body = await res.json();
+  if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+  return body;
+}
+
 async function doLogin() {
   const email = document.getElementById('login-email').value;
   const pass  = document.getElementById('login-password').value;
-  // Super-admin login hardcoded para simplicidade
-  // Em produção: verificar contra uma tabela de super-admins
-  if (email === 'kikocarujo@gmail.com' && pass === 'Carujo99') {
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app-screen').style.display = 'block';
-    document.getElementById('admin-email').textContent = email;
-    await loadDashboard();
-  } else {
+  document.getElementById('login-err').style.display = 'none';
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) {
     document.getElementById('login-err').textContent = 'Credenciais inválidas.';
     document.getElementById('login-err').style.display = 'block';
+    return;
   }
+  try {
+    await loadDashboard();
+  } catch (e) {
+    // Sessão válida mas não é super-admin (tabela super_admins) —
+    // a admin-api devolve 403 e não deixa ver nada.
+    await sb.auth.signOut();
+    document.getElementById('login-err').textContent = 'Esta conta não tem acesso ao painel de super-admin.';
+    document.getElementById('login-err').style.display = 'block';
+    return;
+  }
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('admin-email').textContent = email;
 }
 
+// Se já houver sessão activa (refresh da página), tenta entrar direto.
+(async function tryResumeSession() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return;
+  try {
+    await loadDashboard();
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    document.getElementById('admin-email').textContent = session.user.email;
+  } catch (e) {
+    await sb.auth.signOut();
+  }
+})();
+
 async function loadDashboard() {
-  const { data, error } = await sb.from('tenant_summary').select('*').order('created_at', { ascending: false });
-  if (error) { console.error(error); return; }
+  const { tenants: data } = await callAdminApi('list_tenants', {});
   tenants = data || [];
   renderKPIs();
   renderTable();
@@ -265,18 +296,18 @@ async function createTenant() {
   const billing = document.getElementById('nt-billing').value.trim();
   if (!name || !slug) return alert('Preenche o nome e o slug.');
 
-  const limits = PLAN_LIMITS[plan];
-  const { data, error } = await sb.from('tenants').insert({
-    name, slug, plan, billing_email: billing,
-    max_users: limits.max_users,
-    max_locations: limits.max_locations,
-    active: true
-  }).select().single();
+  let tenant;
+  try {
+    ({ tenant } = await callAdminApi('create_tenant', { name, slug, plan, billing_email: billing }));
+  } catch (e) { return alert('Erro: ' + e.message); }
 
-  if (error) return alert('Erro: ' + error.message);
+  let invite;
+  try {
+    ({ invite } = await callAdminApi('create_invite', { tenant_id: tenant.id, role: 'admin' }));
+  } catch (e) { return alert('Empresa criada, mas falhou gerar o convite: ' + e.message); }
 
   const appBase = window.location.origin;
-  const inviteUrl = `${appBase}?tenant=${data.id}&slug=${slug}`;
+  const inviteUrl = `${appBase}?invite=${invite.token}`;
   document.getElementById('invite-link').textContent = inviteUrl;
   document.getElementById('invite-result').style.display = 'block';
   await loadDashboard();
@@ -302,19 +333,21 @@ async function saveTenant() {
   const id     = document.getElementById('edit-id').value;
   const plan   = document.getElementById('edit-plan').value;
   const active = document.getElementById('edit-active').value === 'true';
-  const limits = PLAN_LIMITS[plan];
-  const { error } = await sb.from('tenants').update({
-    plan, active, max_users: limits.max_users, max_locations: limits.max_locations
-  }).eq('id', id);
-  if (error) return alert('Erro: ' + error.message);
+  try {
+    await callAdminApi('update_tenant', { id, plan, active });
+  } catch (e) { return alert('Erro: ' + e.message); }
   closeModal('modal-edit');
   await loadDashboard();
 }
 
-function copyInvite(id, slug) {
+async function copyInvite(id, slug) {
+  let invite;
+  try {
+    ({ invite } = await callAdminApi('create_invite', { tenant_id: id, role: 'admin' }));
+  } catch (e) { return alert('Erro a gerar convite: ' + e.message); }
   const appBase = window.location.origin;
-  const url = `${appBase}?tenant=${id}&slug=${slug}`;
-  navigator.clipboard.writeText(url).then(() => alert('Link copiado:\n' + url));
+  const url = `${appBase}?invite=${invite.token}`;
+  navigator.clipboard.writeText(url).then(() => alert('Link copiado (válido 14 dias, uso único):\n' + url));
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
