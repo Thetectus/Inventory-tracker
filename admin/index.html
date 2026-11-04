@@ -98,10 +98,22 @@
       </div>
       <table>
         <thead><tr>
-          <th>Empresa</th><th>Slug</th><th>Plano</th><th>Utilizadores</th>
+          <th>Empresa</th><th>Slug</th><th>Plano</th><th>Subscrição</th><th>Utilizadores</th>
           <th>Itens</th><th>Valor inventário</th><th>Estado</th><th>Criada</th><th>Acções</th>
         </tr></thead>
         <tbody id="tenants-body"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <h2>Histórico de pagamentos</h2>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Empresa</th><th>Valor</th><th>Método</th><th>Estado</th><th>Referência</th><th>Data</th>
+        </tr></thead>
+        <tbody id="payments-body"></tbody>
       </table>
     </div>
   </div>
@@ -160,6 +172,38 @@
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('modal-edit')">Cancelar</button>
       <button class="btn btn-primary" onclick="saveTenant()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Converter para pago -->
+<div class="modal-overlay" id="modal-convert">
+  <div class="modal">
+    <h2>Converter para pago</h2>
+    <div class="notice notice-info">Usa isto para pagamentos recebidos fora da Paddle (transferência bancária, etc). Pagamentos via checkout da Paddle activam-se automaticamente pelo webhook — não precisas de fazer nada aqui para esses.</div>
+    <input type="hidden" id="cv-id">
+    <div class="field"><label>Empresa</label><input type="text" id="cv-name" disabled></div>
+    <div class="field"><label>Plano</label>
+      <select id="cv-plan">
+        <option value="starter">Starter ($39/mês)</option>
+        <option value="professional">Professional ($99/mês)</option>
+        <option value="enterprise">Enterprise</option>
+      </select>
+    </div>
+    <div class="field"><label>Valor recebido</label><input type="number" id="cv-amount" step="0.01" min="0" placeholder="99.00"></div>
+    <div class="field"><label>Moeda</label><input type="text" id="cv-currency" value="USD" style="text-transform:uppercase" maxlength="3"></div>
+    <div class="field"><label>Método</label>
+      <select id="cv-method">
+        <option value="bank_transfer">Transferência bancária</option>
+        <option value="stripe">Stripe</option>
+        <option value="flutterwave">Flutterwave</option>
+        <option value="other">Outro</option>
+      </select>
+    </div>
+    <div class="field"><label>Referência (opcional)</label><input type="text" id="cv-reference" placeholder="n.º de transferência, etc"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-convert')">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmConvertToPaid()">Confirmar pagamento</button>
     </div>
   </div>
 </div>
@@ -238,11 +282,18 @@ async function doLogin() {
   }
 })();
 
+let payments = [];
+
 async function loadDashboard() {
-  const { tenants: data } = await callAdminApi('list_tenants', {});
+  const [{ tenants: data }, { payments: pay }] = await Promise.all([
+    callAdminApi('list_tenants', {}),
+    callAdminApi('list_payments', {}),
+  ]);
   tenants = data || [];
+  payments = pay || [];
   renderKPIs();
   renderTable();
+  renderPayments();
 }
 
 function renderKPIs() {
@@ -260,6 +311,16 @@ function renderKPIs() {
   `;
 }
 
+const SUB_BADGE = {
+  trial: '<span class="badge" style="background:var(--amber-bg);color:var(--amber)">Trial</span>',
+  pending: '<span class="badge" style="background:var(--bg2);color:var(--text2)">Pendente</span>',
+  active: '<span class="badge badge-active">Paga</span>',
+  past_due: '<span class="badge" style="background:var(--amber-bg);color:var(--amber)">Atraso</span>',
+  expired: '<span class="badge badge-inactive">Expirada</span>',
+  suspended: '<span class="badge badge-inactive">Suspensa</span>',
+  cancelled: '<span class="badge badge-inactive">Cancelada</span>',
+};
+
 function renderTable() {
   const planBadge = p => `<span class="badge badge-${p}">${p}</span>`;
   const activeBadge = a => a ? `<span class="badge badge-active">Activa</span>` : `<span class="badge badge-inactive">Suspensa</span>`;
@@ -268,6 +329,7 @@ function renderTable() {
       <td style="font-weight:500">${t.name}</td>
       <td style="font-family:monospace;font-size:12px;color:var(--text2)">${t.slug}</td>
       <td>${planBadge(t.plan)}</td>
+      <td>${SUB_BADGE[t.subscription_status] || t.subscription_status || '—'}</td>
       <td style="text-align:center">${t.total_users || 0}</td>
       <td style="text-align:center">${t.total_items || 0}</td>
       <td>$${Math.round(t.inventory_value || 0).toLocaleString()}</td>
@@ -275,10 +337,25 @@ function renderTable() {
       <td style="font-size:12px;color:var(--text2)">${new Date(t.created_at).toLocaleDateString('pt-PT')}</td>
       <td style="white-space:nowrap">
         <button class="btn btn-sm" onclick="openEdit('${t.id}','${t.plan}',${t.active})" style="margin-right:4px">Editar</button>
-        <button class="btn btn-sm" onclick="copyInvite('${t.id}','${t.slug}')">Link convite</button>
+        <button class="btn btn-sm" onclick="copyInvite('${t.id}','${t.slug}')" style="margin-right:4px">Link convite</button>
+        <button class="btn btn-sm btn-primary" onclick="openConvert('${t.id}','${(t.name||'').replace(/'/g,"\\'")}', '${t.plan}')">Converter p/ pago</button>
       </td>
     </tr>
   `).join('');
+}
+
+function renderPayments() {
+  const statusColor = { confirmed: 'var(--green)', failed: 'var(--red)', pending: 'var(--amber)', refunded: 'var(--text2)' };
+  document.getElementById('payments-body').innerHTML = payments.length ? payments.map(p => `
+    <tr>
+      <td style="font-weight:500">${p.tenants?.name || p.tenant_id}</td>
+      <td>${Number(p.amount).toLocaleString()} ${p.currency}</td>
+      <td style="font-size:12px;color:var(--text2)">${p.method}</td>
+      <td style="color:${statusColor[p.status] || 'var(--text2)'};font-weight:500">${p.status}</td>
+      <td style="font-family:monospace;font-size:11px;color:var(--text2)">${p.reference || '—'}</td>
+      <td style="font-size:12px;color:var(--text2)">${new Date(p.paid_at).toLocaleDateString('pt-PT')}</td>
+    </tr>
+  `).join('') : `<tr><td colspan="6" style="color:var(--text2);text-align:center;padding:1.5rem">Sem pagamentos registados ainda.</td></tr>`;
 }
 
 function openNewTenant() {
@@ -348,6 +425,31 @@ async function copyInvite(id, slug) {
   const appBase = window.location.origin;
   const url = `${appBase}?invite=${invite.token}`;
   navigator.clipboard.writeText(url).then(() => alert('Link copiado (válido 14 dias, uso único):\n' + url));
+}
+
+function openConvert(id, name, plan) {
+  document.getElementById('cv-id').value = id;
+  document.getElementById('cv-name').value = name;
+  document.getElementById('cv-plan').value = plan;
+  document.getElementById('cv-amount').value = '';
+  document.getElementById('cv-currency').value = 'USD';
+  document.getElementById('cv-reference').value = '';
+  document.getElementById('modal-convert').classList.add('open');
+}
+
+async function confirmConvertToPaid() {
+  const id = document.getElementById('cv-id').value;
+  const plan = document.getElementById('cv-plan').value;
+  const amount = document.getElementById('cv-amount').value;
+  const currency = document.getElementById('cv-currency').value.trim().toUpperCase() || 'USD';
+  const method = document.getElementById('cv-method').value;
+  const reference = document.getElementById('cv-reference').value.trim();
+  if (!amount || Number(amount) < 0) return alert('Indica o valor recebido.');
+  try {
+    await callAdminApi('convert_to_paid', { id, plan, amount: Number(amount), currency, method, reference });
+  } catch (e) { return alert('Erro: ' + e.message); }
+  closeModal('modal-convert');
+  await loadDashboard();
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
