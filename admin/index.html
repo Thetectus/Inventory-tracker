@@ -132,7 +132,7 @@
     <div class="field"><label>Slug (identificador único)</label><input type="text" id="nt-slug" placeholder="totalenergies-angola" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"></div>
     <div class="field"><label>Plano</label>
       <select id="nt-plan" onchange="updatePlanLimits()">
-        <option value="starter">Starter — até 5 utilizadores, 3 localizações ($39/mês)</option>
+        <option value="starter">Starter — até 5 utilizadores, 3 localizações ($20/mês)</option>
         <option value="professional" selected>Professional — até 15 utilizadores, 10 localizações ($99/mês)</option>
         <option value="enterprise">Enterprise — ilimitado (sob consulta)</option>
       </select>
@@ -185,7 +185,7 @@
     <div class="field"><label>Empresa</label><input type="text" id="cv-name" disabled></div>
     <div class="field"><label>Plano</label>
       <select id="cv-plan">
-        <option value="starter">Starter ($39/mês)</option>
+        <option value="starter">Starter ($20/mês)</option>
         <option value="professional">Professional ($99/mês)</option>
         <option value="enterprise">Enterprise</option>
       </select>
@@ -298,7 +298,7 @@ async function loadDashboard() {
 
 function renderKPIs() {
   const totalRevenue = tenants.reduce((s, t) => {
-    const p = { starter: 39, professional: 99, enterprise: 499 };
+    const p = { starter: 20, professional: 99, enterprise: 499 };
     return s + (t.active ? (p[t.plan] || 0) : 0);
   }, 0);
   const totalValue = tenants.reduce((s, t) => s + (t.inventory_value || 0), 0);
