@@ -1645,12 +1645,14 @@ async function showInviteLink(){
   const max=currentProfile?.tenants?.max_users;
   const used=teamProfiles?Object.keys(teamProfiles).length:0;
   if(max && used>=max){alert(tf('errMaxUsers',{max}));return;}
-  const {data,error}=await sb.rpc('create_invite',{p_role:'viewer'});
+  const email=prompt('Email of the person you are inviting (optional — fill in to also email them the invite automatically):','');
+  const {data,error}=await sb.rpc('create_invite',{p_role:'viewer',p_email:email||null});
   if(error){alert('Error creating invite: '+error.message);return;}
   lastInviteUrl=`${window.location.origin}${window.location.pathname}?invite=${data.token}`;
   document.getElementById('invite-link-code').textContent=lastInviteUrl;
   document.getElementById('invite-box').style.display='block';
   document.getElementById('invite-copied').style.display='none';
+  if(email){const emailedNote=document.createElement('div');emailedNote.style.cssText='font-size:11px;color:var(--green-text);margin-top:4px';emailedNote.textContent='✓ Also emailed to '+email;document.getElementById('invite-box').appendChild(emailedNote);}
 }
 function copySelfInviteLink(){
   navigator.clipboard.writeText(lastInviteUrl).then(()=>{

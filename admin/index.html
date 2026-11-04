@@ -380,13 +380,15 @@ async function createTenant() {
 
   let invite;
   try {
-    ({ invite } = await callAdminApi('create_invite', { tenant_id: tenant.id, role: 'admin' }));
+    ({ invite } = await callAdminApi('create_invite', { tenant_id: tenant.id, role: 'admin', email: billing }));
   } catch (e) { return alert('Empresa criada, mas falhou gerar o convite: ' + e.message); }
 
   const appBase = window.location.origin;
   const inviteUrl = `${appBase}?invite=${invite.token}`;
   document.getElementById('invite-link').textContent = inviteUrl;
   document.getElementById('invite-result').style.display = 'block';
+  if (billing) document.getElementById('invite-result').insertAdjacentHTML('beforeend',
+    `<div style="font-size:11px;color:var(--green);margin-top:6px">✓ Convite enviado automaticamente para ${billing}.</div>`);
   await loadDashboard();
 }
 
@@ -418,13 +420,14 @@ async function saveTenant() {
 }
 
 async function copyInvite(id, slug) {
+  const email = prompt('Email do convidado (opcional — se preencheres, enviamos o convite automaticamente; se deixares em branco, só copiamos o link):', '');
   let invite;
   try {
-    ({ invite } = await callAdminApi('create_invite', { tenant_id: id, role: 'admin' }));
+    ({ invite } = await callAdminApi('create_invite', { tenant_id: id, role: 'admin', email: email || undefined }));
   } catch (e) { return alert('Erro a gerar convite: ' + e.message); }
   const appBase = window.location.origin;
   const url = `${appBase}?invite=${invite.token}`;
-  navigator.clipboard.writeText(url).then(() => alert('Link copiado (válido 14 dias, uso único):\n' + url));
+  navigator.clipboard.writeText(url).then(() => alert((email ? `Convite enviado para ${email}. ` : '') + 'Link copiado (válido 14 dias, uso único):\n' + url));
 }
 
 function openConvert(id, name, plan) {

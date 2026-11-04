@@ -159,6 +159,22 @@ serve(async (req) => {
     return json({ ok: true });
   }
 
+  if (action === "create_invite") {
+    const tenant_id = String(body.tenant_id || "");
+    const role = String(body.role || "viewer");
+    const email = String(body.email || "").trim() || null;
+    if (!tenant_id) return json({ error: "tenant_id is required" }, 400);
+    if (!["admin", "supervisor", "viewer"].includes(role)) return json({ error: "Invalid role" }, 400);
+
+    const { data, error } = await admin
+      .from("tenant_invites")
+      .insert({ tenant_id, role, created_by: null, email })
+      .select("token, expires_at")
+      .single();
+    if (error) return json({ error: error.message }, 500);
+    return json({ invite: data });
+  }
+
   if (action === "list_payments") {
     const { data, error } = await admin
       .from("payments")
