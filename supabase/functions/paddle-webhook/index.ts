@@ -29,38 +29,73 @@ serve(async (req) => {
   }
 
   const event = JSON.parse(rawBody);
-
-  if (event.event_type !== "transaction.completed") {
-    return new Response("Ignored (not transaction.completed)", { status: 200 });
-  }
-
-  const tx = event.data;
-  const tenant_id = tx.custom_data?.tenant_id;
-  const plan = tx.custom_data?.plan;
-  if (!tenant_id || !plan) {
-    return new Response("Missing tenant_id/plan in custom_data", { status: 400 });
-  }
-
-  const totals = tx.details?.totals;
-  const amountMinor = totals?.total ?? "0"; // Paddle amounts are strings in the lowest denomination
-  const currency = totals?.currency_code ?? "USD";
-  const amount = Number(amountMinor) / 100;
-
   const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-  const { error } = await sb.rpc("activate_paid_subscription", {
-    p_tenant_id: tenant_id,
-    p_plan: plan,
-    p_amount: amount,
-    p_currency: currency,
-    p_reference: tx.id,
-    p_provider_tx_id: tx.id,
-    p_method: "paddle",
-  });
-  if (error) {
-    return new Response("DB error: " + error.message, { status: 500 });
+
+  if (event.event_type === "transaction.completed") {
+    const tx = event.data;
+    const tenant_id = tx.custom_data?.tenant_id;
+    const plan = tx.custom_data?.plan;
+    if (!tenant_id || !plan) {
+      return new Response("Missing tenant_id/plan in custom_data", { status: 400 });
+    }
+
+    const totals = tx.details?.totals;
+    const amountMinor = totals?.total ?? "0"; // Paddle amounts are strings in the lowest denomination
+    const currency = totals?.currency_code ?? "USD";
+    const amount = Number(amountMinor) / 100;
+
+    const { error } = await sb.rpc("activate_paid_subscription", {
+      p_tenant_id: tenant_id,
+      p_plan: plan,
+      p_amount: amount,
+      p_currency: currency,
+      p_reference: tx.id,
+      p_provider_tx_id: tx.id,
+      p_method: "paddle",
+    });
+    if (error) return new Response("DB error: " + error.message, { status: 500 });
+    return new Response("OK", { status: 200 });
   }
 
-  return new Response("OK", { status: 200 });
+  if (event.event_type === "transaction.payment_failed") {
+    const tx = event.data;
+    const tenant_id = tx.custom_data?.tenant_id;
+    if (!tenant_id) return new Response("Missing tenant_id in custom_data", { status: 400 });
+
+    const totals = tx.details?.totals;
+    const amount = Number(totals?.total ?? "0") / 100;
+    const currency = totals?.currency_code ?? "USD";
+
+    const { error } = await sb.rpc("record_failed_payment", {
+      p_tenant_id: tenant_id,
+      p_amount: amount,
+      p_currency: currency,
+      p_reference: tx.id,
+      p_provider_tx_id: tx.id,
+      p_method: "paddle",
+    });
+    if (error) return new Response("DB error: " + error.message, { status: 500 });
+    return new Response("OK", { status: 200 });
+  }
+
+  // subscription.past_due / subscription.canceled: Paddle puts
+  // custom_data on the subscription object (copied from the checkout
+  // that created it), not on a transaction.
+  if (event.event_type === "subscription.past_due" || event.event_type === "subscription.canceled") {
+    const sub = event.data;
+    const tenant_id = sub.custom_data?.tenant_id;
+    if (!tenant_id) return new Response("Missing tenant_id in custom_data", { status: 400 });
+
+    const status = event.event_type === "subscription.past_due" ? "past_due" : "cancelled";
+    const { error } = await sb.rpc("set_subscription_status", {
+      p_tenant_id: tenant_id,
+      p_status: status,
+    });
+    if (error) return new Response("DB error: " + error.message, { status: 500 });
+    return new Response("OK", { status: 200 });
+  }
+
+  return new Response("Ignored (unhandled event_type)", { status: 200 });
 });
 
 // Paddle-Signature header format: "ts=<unix_ts>;h1=<hex_hmac>"

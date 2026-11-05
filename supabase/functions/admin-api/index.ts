@@ -127,5 +127,63 @@ serve(async (req) => {
     return json({ ok: true });
   }
 
+  if (action === "convert_to_paid") {
+    // Manual conversion (bank transfer, or any payment taken off-Paddle)
+    // for a trial/pending tenant. Paddle checkouts activate automatically
+    // via the paddle-webhook; this is for the cases that don't go through
+    // that flow.
+    const id = String(body.id || "");
+    const plan = String(body.plan || "");
+    const amount = Number(body.amount);
+    const currency = String(body.currency || "USD");
+    const method = String(body.method || "bank_transfer");
+    const reference = String(body.reference || "").trim();
+    if (!id) return json({ error: "id is required" }, 400);
+    const limits = PLAN_LIMITS[plan];
+    if (!limits) return json({ error: "Invalid plan" }, 400);
+    if (!Number.isFinite(amount) || amount < 0) return json({ error: "Invalid amount" }, 400);
+    if (!["bank_transfer", "stripe", "flutterwave", "other"].includes(method)) {
+      return json({ error: "Invalid method" }, 400);
+    }
+
+    const { error } = await admin.rpc("activate_paid_subscription", {
+      p_tenant_id: id,
+      p_plan: plan,
+      p_amount: amount,
+      p_currency: currency,
+      p_reference: reference || `manual-${Date.now()}`,
+      p_provider_tx_id: reference || `manual-${Date.now()}`,
+      p_method: method,
+    });
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true });
+  }
+
+  if (action === "create_invite") {
+    const tenant_id = String(body.tenant_id || "");
+    const role = String(body.role || "viewer");
+    const email = String(body.email || "").trim() || null;
+    if (!tenant_id) return json({ error: "tenant_id is required" }, 400);
+    if (!["admin", "supervisor", "viewer"].includes(role)) return json({ error: "Invalid role" }, 400);
+
+    const { data, error } = await admin
+      .from("tenant_invites")
+      .insert({ tenant_id, role, created_by: null, email })
+      .select("token, expires_at")
+      .single();
+    if (error) return json({ error: error.message }, 500);
+    return json({ invite: data });
+  }
+
+  if (action === "list_payments") {
+    const { data, error } = await admin
+      .from("payments")
+      .select("id, tenant_id, amount, currency, method, status, reference, notes, paid_at, tenants(name, slug)")
+      .order("paid_at", { ascending: false })
+      .limit(200);
+    if (error) return json({ error: error.message }, 500);
+    return json({ payments: data });
+  }
+
   return json({ error: "Unknown action" }, 400);
 });
