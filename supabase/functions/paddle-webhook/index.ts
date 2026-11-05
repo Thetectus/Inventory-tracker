@@ -7,18 +7,44 @@
 // Deploy: supabase functions deploy paddle-webhook --no-verify-jwt
 // (--no-verify-jwt because Paddle calls this anonymously — auth is via
 // the Paddle-Signature header instead, checked below)
-// Secrets: supabase secrets set PADDLE_WEBHOOK_SECRET=...
+// Secrets: supabase secrets set PADDLE_WEBHOOK_SECRET=... PADDLE_API_KEY=...
 // Configure this function's URL as a Notification destination in the
 // Paddle dashboard (Developer Tools -> Notifications), subscribed at
 // least to transaction.completed. The secret shown there when you
 // create the destination is PADDLE_WEBHOOK_SECRET.
+//
+// PADDLE_API_KEY is a different secret (Developer Tools -> Authentication
+// -> API keys, NOT the client-side token) used server-side only, to fetch
+// the official invoice PDF URL for each confirmed transaction so our
+// receipt email can link to it. Optional: if unset, payments just get no
+// invoice_url and the email omits the "official receipt" link.
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const PADDLE_WEBHOOK_SECRET = Deno.env.get("PADDLE_WEBHOOK_SECRET")!;
+const PADDLE_API_KEY = Deno.env.get("PADDLE_API_KEY");
+const PADDLE_API_BASE = Deno.env.get("PADDLE_API_BASE") || "https://sandbox-api.paddle.com";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+// Fetches the hosted PDF URL for a transaction's invoice from Paddle's
+// API. Best-effort: Paddle generates the invoice asynchronously, so this
+// can occasionally 404 right after transaction.completed — that's fine,
+// the payment is still recorded, just without a receipt link.
+async function fetchInvoiceUrl(transactionId: string): Promise<string | null> {
+  if (!PADDLE_API_KEY) return null;
+  try {
+    const res = await fetch(`${PADDLE_API_BASE}/transactions/${transactionId}/invoice`, {
+      headers: { Authorization: `Bearer ${PADDLE_API_KEY}` },
+    });
+    if (!res.ok) return null;
+    const body = await res.json();
+    return body?.data?.url ?? null;
+  } catch {
+    return null;
+  }
+}
 
 serve(async (req) => {
   const signatureHeader = req.headers.get("paddle-signature");
@@ -44,6 +70,12 @@ serve(async (req) => {
     const currency = totals?.currency_code ?? "USD";
     const amount = Number(amountMinor) / 100;
 
+    // Fetched BEFORE activating, so the invoice link lands in the same
+    // payments row the welcome-email trigger reads (an AFTER INSERT
+    // trigger, so an UPDATE afterwards would be too late to be included).
+    // Best-effort: null is fine, the receipt email just omits the link.
+    const invoiceUrl = await fetchInvoiceUrl(tx.id);
+
     const { error } = await sb.rpc("activate_paid_subscription", {
       p_tenant_id: tenant_id,
       p_plan: plan,
@@ -52,6 +84,7 @@ serve(async (req) => {
       p_reference: tx.id,
       p_provider_tx_id: tx.id,
       p_method: "paddle",
+      p_invoice_url: invoiceUrl,
     });
     if (error) return new Response("DB error: " + error.message, { status: 500 });
     return new Response("OK", { status: 200 });

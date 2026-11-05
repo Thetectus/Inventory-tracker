@@ -6,7 +6,7 @@
 // Deploy: supabase functions deploy send-email --no-verify-jwt
 // Secrets: supabase secrets set RESEND_API_KEY=... FROM_EMAIL="FieldTrack <notifications@thetectus.com>" INTERNAL_SECRET=...
 // (INTERNAL_SECRET must match the value stored in Supabase Vault as
-// 'internal_secret' — see the dunning_emails migration.)
+// 'internal_secret' — see the automated_emails migration.)
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -40,12 +40,62 @@ async function sendResend(to: string, subject: string, html: string) {
   }
 }
 
-function wrap(title: string, bodyHtml: string): string {
-  return `<div style="font-family:-apple-system,Segoe UI,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#1a1a18">
-    <h2 style="color:#0c447c;margin-bottom:16px">${title}</h2>
-    ${bodyHtml}
-    <p style="color:#9d9d98;font-size:12px;margin-top:32px">FieldTrack — The Tectus</p>
+const PLAN_LABEL: Record<string, string> = {
+  starter: "Starter",
+  professional: "Professional",
+  enterprise: "Enterprise",
+};
+
+function fmtDate(iso?: string | null): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "long", year: "numeric" });
+}
+
+function fmtMoney(amount?: number | string | null, currency?: string | null): string {
+  if (amount === undefined || amount === null) return "—";
+  const n = Number(amount);
+  return `${n.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency || "USD"}`;
+}
+
+const METHOD_LABEL: Record<string, string> = {
+  paddle: "Cartão (Paddle)",
+  bank_transfer: "Transferência bancária",
+  stripe: "Stripe",
+  flutterwave: "Flutterwave",
+  other: "Outro",
+};
+
+// Shared visual shell — warmer tone: a coloured header band, a proper
+// signature, and room for an optional "receipt" details table.
+function wrap(opts: { preheader?: string; heading: string; intro: string; bodyHtml: string; ctaLabel?: string; ctaUrl?: string }): string {
+  const cta = opts.ctaUrl
+    ? `<p style="margin:28px 0 8px"><a href="${opts.ctaUrl}" style="background:#0c447c;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:600;font-size:14px">${opts.ctaLabel || "Abrir o FieldTrack"}</a></p>`
+    : "";
+  return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:520px;margin:0 auto;background:#ffffff">
+    ${opts.preheader ? `<span style="display:none;max-height:0;overflow:hidden">${opts.preheader}</span>` : ""}
+    <div style="background:linear-gradient(135deg,#0c447c,#1a6cb8);padding:28px 32px;border-radius:12px 12px 0 0">
+      <div style="color:#fff;font-size:20px;font-weight:700;letter-spacing:-0.02em">FieldTrack</div>
+    </div>
+    <div style="padding:32px;border:1px solid #e5e5e3;border-top:none;border-radius:0 0 12px 12px">
+      <h2 style="color:#0c2f4f;margin:0 0 12px;font-size:20px">${opts.heading}</h2>
+      <p style="color:#44443f;font-size:15px;line-height:1.6;margin:0 0 20px">${opts.intro}</p>
+      ${opts.bodyHtml}
+      ${cta}
+      <p style="color:#6b6b67;font-size:14px;line-height:1.6;margin-top:28px">Qualquer dúvida, é só responder a este email — lemos tudo pessoalmente.</p>
+      <p style="color:#1a1a18;font-size:14px;margin-top:20px">Obrigado por confiares em nós,<br><strong>Equipa The Tectus</strong></p>
+    </div>
+    <p style="color:#9d9d98;font-size:11px;text-align:center;margin-top:16px">FieldTrack é um produto da The Tectus &middot; thetectus.com</p>
   </div>`;
+}
+
+function receiptTable(rows: [string, string][]): string {
+  return `<table style="width:100%;border-collapse:collapse;background:#f7f7f5;border-radius:10px;overflow:hidden;margin:4px 0 20px">
+    ${rows.map(([label, value], i) => `
+      <tr>
+        <td style="padding:12px 16px;color:#6b6b67;font-size:13px;border-bottom:${i < rows.length - 1 ? "1px solid #e5e5e3" : "none"}">${label}</td>
+        <td style="padding:12px 16px;color:#1a1a18;font-size:13px;font-weight:600;text-align:right;border-bottom:${i < rows.length - 1 ? "1px solid #e5e5e3" : "none"}">${value}</td>
+      </tr>`).join("")}
+  </table>`;
 }
 
 const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -57,7 +107,7 @@ async function getTenantContactEmail(tenantId: string): Promise<string | null> {
 }
 
 async function getTenant(tenantId: string) {
-  const { data } = await sb.from("tenants").select("name, slug, plan").eq("id", tenantId).single();
+  const { data } = await sb.from("tenants").select("name, slug, plan, billing_email").eq("id", tenantId).single();
   return data;
 }
 
@@ -81,15 +131,22 @@ serve(async (req) => {
       const tenantId = String(payload.tenant_id);
       const [to, tenant] = await Promise.all([getTenantContactEmail(tenantId), getTenant(tenantId)]);
       if (!to || !tenant) return new Response("No recipient", { status: 200 });
+      const trialEndsAt = payload.trial_ends_at ? String(payload.trial_ends_at) : null;
       await sendResend(
         to,
-        `Bem-vindo ao FieldTrack, ${tenant.name}!`,
-        wrap("A tua conta está pronta", `
-          <p>Olá,</p>
-          <p>A conta de <strong>${tenant.name}</strong> foi criada com sucesso no FieldTrack, em período de avaliação gratuita de 14 dias.</p>
-          <p><a href="${APP_URL}" style="background:#0c447c;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block">Abrir o FieldTrack</a></p>
-          <p>Qualquer dúvida, responde a este email.</p>
-        `),
+        `Bem-vindo ao FieldTrack, ${tenant.name}! 🎉`,
+        wrap({
+          heading: `Bem-vindo, ${tenant.name}!`,
+          intro: `A tua conta está pronta a usar. Preparámos 14 dias de avaliação gratuita, sem precisares de cartão de crédito, para conheceres o FieldTrack com calma.`,
+          bodyHtml: receiptTable([
+            ["Empresa", tenant.name],
+            ["Email de contacto", to],
+            ["Plano em avaliação", PLAN_LABEL[tenant.plan] || tenant.plan],
+            ["Trial termina em", fmtDate(trialEndsAt)],
+          ]),
+          ctaLabel: "Abrir o FieldTrack",
+          ctaUrl: APP_URL,
+        }),
       );
     } else if (event === "welcome_pending") {
       const tenantId = String(payload.tenant_id);
@@ -97,35 +154,67 @@ serve(async (req) => {
       if (!to || !tenant) return new Response("No recipient", { status: 200 });
       await sendResend(
         to,
-        `FieldTrack — confirmação de registo`,
-        wrap("Falta só confirmar o pagamento", `
-          <p>Olá,</p>
-          <p>A conta de <strong>${tenant.name}</strong> (plano ${tenant.plan}) foi criada e fica activa automaticamente assim que o pagamento for confirmado.</p>
-        `),
+        `FieldTrack — falta só confirmar o pagamento`,
+        wrap({
+          heading: "Quase lá!",
+          intro: `Recebemos o registo de <strong>${tenant.name}</strong>. A conta fica activa automaticamente assim que confirmarmos o pagamento — normalmente é instantâneo.`,
+          bodyHtml: receiptTable([
+            ["Empresa", tenant.name],
+            ["Email de contacto", to],
+            ["Plano escolhido", PLAN_LABEL[tenant.plan] || tenant.plan],
+          ]),
+        }),
       );
     } else if (event === "payment_confirmed") {
       const tenantId = String(payload.tenant_id);
       const [to, tenant] = await Promise.all([getTenantContactEmail(tenantId), getTenant(tenantId)]);
       if (!to || !tenant) return new Response("No recipient", { status: 200 });
+      const amount = payload.amount as number | string | undefined;
+      const currency = payload.currency as string | undefined;
+      const method = payload.method as string | undefined;
+      const reference = payload.reference as string | undefined;
+      const paidAt = payload.paid_at as string | undefined;
+      const invoiceUrl = payload.invoice_url as string | undefined;
+      const invoiceLink = invoiceUrl
+        ? `<p style="margin:0 0 20px"><a href="${invoiceUrl}" style="color:#0c447c;font-size:14px;font-weight:600;text-decoration:none">📄 Ver recibo oficial (PDF)</a></p>`
+        : method === "paddle"
+          ? `<p style="color:#9d9d98;font-size:12px;margin:0 0 20px">O recibo fiscal oficial é enviado separadamente pela Paddle, nosso processador de pagamentos.</p>`
+          : "";
       await sendResend(
         to,
-        `Pagamento confirmado — ${tenant.name}`,
-        wrap("A tua subscrição está activa", `
-          <p>Recebemos o pagamento e a conta de <strong>${tenant.name}</strong> (plano ${tenant.plan}) está activa.</p>
-          <p><a href="${APP_URL}" style="background:#0c447c;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block">Abrir o FieldTrack</a></p>
-        `),
+        `Recibo — pagamento confirmado (${tenant.name})`,
+        wrap({
+          heading: "Pagamento recebido, obrigado!",
+          intro: `A subscrição de <strong>${tenant.name}</strong> está activa. Aqui tens o resumo para os teus registos${invoiceUrl ? " — e o recibo oficial da Paddle logo abaixo" : ""}:`,
+          bodyHtml: receiptTable([
+            ["Empresa", tenant.name],
+            ["Plano", PLAN_LABEL[tenant.plan] || tenant.plan],
+            ["Valor pago", fmtMoney(amount, currency)],
+            ["Método", METHOD_LABEL[method || ""] || method || "—"],
+            ["Referência", reference || "—"],
+            ["Data", fmtDate(paidAt)],
+          ]) + invoiceLink,
+          ctaLabel: "Abrir o FieldTrack",
+          ctaUrl: APP_URL,
+        }),
       );
     } else if (event === "payment_failed") {
       const tenantId = String(payload.tenant_id);
       const [to, tenant] = await Promise.all([getTenantContactEmail(tenantId), getTenant(tenantId)]);
       if (!to || !tenant) return new Response("No recipient", { status: 200 });
+      const amount = payload.amount as number | string | undefined;
+      const currency = payload.currency as string | undefined;
       await sendResend(
         to,
-        `Falha no pagamento — ${tenant.name}`,
-        wrap("Não foi possível processar o pagamento", `
-          <p>Tentámos cobrar a subscrição de <strong>${tenant.name}</strong> e não foi possível. Vamos tentar novamente automaticamente nos próximos dias.</p>
-          <p>Verifica se o cartão associado está válido para evitar a suspensão do acesso.</p>
-        `),
+        `Não conseguimos processar o pagamento — ${tenant.name}`,
+        wrap({
+          heading: "Houve um problema com o pagamento",
+          intro: `Tentámos cobrar a subscrição de <strong>${tenant.name}</strong> e não foi possível desta vez. Vamos tentar novamente automaticamente nos próximos dias — não precisas de fazer nada já, mas vale a pena confirmar que o cartão está válido.`,
+          bodyHtml: amount ? receiptTable([
+            ["Empresa", tenant.name],
+            ["Valor da tentativa", fmtMoney(amount, currency)],
+          ]) : "",
+        }),
       );
     } else if (event === "past_due") {
       const tenantId = String(payload.tenant_id);
@@ -134,9 +223,11 @@ serve(async (req) => {
       await sendResend(
         to,
         `Acção necessária — pagamento em atraso (${tenant.name})`,
-        wrap("A tua subscrição está em atraso", `
-          <p>Já tentámos cobrar algumas vezes sem sucesso. O acesso de <strong>${tenant.name}</strong> continua activo por agora, mas será suspenso se o pagamento não for regularizado em breve.</p>
-        `),
+        wrap({
+          heading: "Precisamos de actualizar o teu pagamento",
+          intro: `Já tentámos cobrar a subscrição de <strong>${tenant.name}</strong> algumas vezes sem sucesso. O acesso continua activo por agora, mas pode ser suspenso se não regularizares o pagamento em breve.`,
+          bodyHtml: "",
+        }),
       );
     } else if (event === "cancelled") {
       const tenantId = String(payload.tenant_id);
@@ -145,10 +236,11 @@ serve(async (req) => {
       await sendResend(
         to,
         `Subscrição cancelada — ${tenant.name}`,
-        wrap("A tua subscrição foi cancelada", `
-          <p>A subscrição de <strong>${tenant.name}</strong> foi cancelada e o acesso ao FieldTrack foi suspenso.</p>
-          <p>Se foi um erro, responde a este email e ajudamos a reactivar.</p>
-        `),
+        wrap({
+          heading: "A tua subscrição foi cancelada",
+          intro: `A subscrição de <strong>${tenant.name}</strong> foi cancelada e o acesso ao FieldTrack foi suspenso. Os teus dados continuam guardados em segurança.`,
+          bodyHtml: "<p style=\"color:#44443f;font-size:14px\">Se isto foi um engano, responde a este email e ajudamos a reactivar a conta.</p>",
+        }),
       );
     } else if (event === "trial_reminder") {
       const tenantId = String(payload.tenant_id);
@@ -160,11 +252,13 @@ serve(async (req) => {
         daysLeft <= 1
           ? `O teu trial termina hoje/amanhã — ${tenant.name}`
           : `Faltam ${daysLeft} dias de trial — ${tenant.name}`,
-        wrap("O teu período de avaliação está a terminar", `
-          <p>Faltam <strong>${daysLeft} dia(s)</strong> para o fim do trial gratuito de <strong>${tenant.name}</strong>.</p>
-          <p>Subscreve agora para não perderes o acesso ao inventário.</p>
-          <p><a href="${APP_URL}" style="background:#0c447c;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block">Subscrever</a></p>
-        `),
+        wrap({
+          heading: "O teu período de avaliação está a terminar",
+          intro: `Faltam <strong>${daysLeft} dia(s)</strong> para o fim do trial gratuito de <strong>${tenant.name}</strong>. Subscreve agora para não perderes o acesso ao teu inventário.`,
+          bodyHtml: "",
+          ctaLabel: "Subscrever agora",
+          ctaUrl: APP_URL,
+        }),
       );
     } else if (event === "trial_expired") {
       const tenantId = String(payload.tenant_id);
@@ -173,10 +267,13 @@ serve(async (req) => {
       await sendResend(
         to,
         `O teu trial terminou — ${tenant.name}`,
-        wrap("O período de avaliação terminou", `
-          <p>O trial gratuito de <strong>${tenant.name}</strong> terminou e o acesso foi bloqueado.</p>
-          <p>Subscreve para reactivar — os teus dados continuam guardados.</p>
-        `),
+        wrap({
+          heading: "O período de avaliação terminou",
+          intro: `O trial gratuito de <strong>${tenant.name}</strong> terminou e o acesso foi bloqueado. Os teus dados continuam guardados — subscreve para reactivar.`,
+          bodyHtml: "",
+          ctaLabel: "Subscrever",
+          ctaUrl: APP_URL,
+        }),
       );
     } else if (event === "invite") {
       const to = String(payload.email || "");
@@ -188,12 +285,14 @@ serve(async (req) => {
       const inviteUrl = `${APP_URL}?invite=${token}`;
       await sendResend(
         to,
-        `Convite para te juntares a ${tenant.name} no FieldTrack`,
-        wrap(`Foste convidado para ${tenant.name}`, `
-          <p>Foste convidado como <strong>${role}</strong> para a equipa de <strong>${tenant.name}</strong> no FieldTrack.</p>
-          <p><a href="${inviteUrl}" style="background:#0c447c;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block">Aceitar convite</a></p>
-          <p style="color:#9d9d98;font-size:12px">Este link é de uso único e expira em 14 dias.</p>
-        `),
+        `Foste convidado para ${tenant.name} no FieldTrack`,
+        wrap({
+          heading: `Junta-te a ${tenant.name}`,
+          intro: `Foste convidado como <strong>${role}</strong> para a equipa de <strong>${tenant.name}</strong> no FieldTrack.`,
+          bodyHtml: "<p style=\"color:#9d9d98;font-size:12px\">Este link é de uso único e expira em 14 dias.</p>",
+          ctaLabel: "Aceitar convite",
+          ctaUrl: inviteUrl,
+        }),
       );
     } else {
       return new Response("Unknown event", { status: 400 });
